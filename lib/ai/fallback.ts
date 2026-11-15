@@ -1,4 +1,9 @@
-import { BiometricProfile, hasActiveBiometrics, TriageLevel, CareReferral } from './types';
+import {
+  BiometricProfile,
+  hasActiveBiometrics,
+  TriageLevel,
+  CareReferral,
+} from "./types";
 
 interface FallbackResult {
   message: string;
@@ -8,50 +13,50 @@ interface FallbackResult {
 
 export function generateClinicalFallback(
   userQuery: string,
-  biometrics?: BiometricProfile
+  biometrics?: BiometricProfile,
 ): FallbackResult {
   const query = userQuery.toLowerCase();
   const hasBio = hasActiveBiometrics(biometrics);
 
   // 1. Critical Emergency Red Flags check
   const urgentKeywords = [
-    'chest pain',
-    'heart attack',
-    'shortness of breath',
-    'difficulty breathing',
-    'cannot breathe',
-    'can\'t breathe',
-    'choking',
-    'stroke',
-    'slurred speech',
-    'facial droop',
-    'numbness one side',
-    'paralysis',
-    'unconscious',
-    'passed out',
-    'severe bleeding',
-    'coughing blood',
-    'anaphylaxis',
-    'throat swelling',
-    'swollen tongue',
-    'suicide',
-    'kill myself',
-    'overdose',
-    'seizure',
-    'convulsion',
-    'stiff neck with fever',
+    "chest pain",
+    "heart attack",
+    "shortness of breath",
+    "difficulty breathing",
+    "cannot breathe",
+    "can't breathe",
+    "choking",
+    "stroke",
+    "slurred speech",
+    "facial droop",
+    "numbness one side",
+    "paralysis",
+    "unconscious",
+    "passed out",
+    "severe bleeding",
+    "coughing blood",
+    "anaphylaxis",
+    "throat swelling",
+    "swollen tongue",
+    "suicide",
+    "kill myself",
+    "overdose",
+    "seizure",
+    "convulsion",
+    "stiff neck with fever",
   ];
 
   for (const kw of urgentKeywords) {
     if (query.includes(kw)) {
       return {
-        triageLevel: 'urgent',
+        triageLevel: "urgent",
         referral: {
           recommended: true,
-          facilityType: 'emergency',
-          searchQuery: 'Emergency Care Center',
-          actionText: 'Find Nearest Emergency Facility',
-          reason: 'Immediate in-person emergency evaluation is required.',
+          facilityType: "emergency",
+          searchQuery: "Emergency Care Center",
+          actionText: "Find Nearest Emergency Facility",
+          reason: "Immediate in-person emergency evaluation is required.",
         },
         message: `### 🚨 Urgent Medical Alert: Immediate Emergency Evaluation Required
 
@@ -74,94 +79,141 @@ export function generateClinicalFallback(
   const bioAlerts: string[] = [];
   if (hasBio && biometrics) {
     const allergies = (biometrics.allergies || []).map((a) => a.toLowerCase());
-    const conditions = (biometrics.chronicConditions || []).map((c) => c.toLowerCase());
-    const meds = (biometrics.currentMedications || []).map((m) => m.toLowerCase());
+    const conditions = (biometrics.chronicConditions || []).map((c) =>
+      c.toLowerCase(),
+    );
+    const meds = (biometrics.currentMedications || []).map((m) =>
+      m.toLowerCase(),
+    );
 
     // Allergy checks
-    if (allergies.some((a) => a.includes('penicillin'))) {
+    if (allergies.some((a) => a.includes("penicillin"))) {
       if (
-        query.includes('amoxicillin') ||
-        query.includes('augmentin') ||
-        query.includes('ampicillin') ||
-        query.includes('penicillin')
+        query.includes("amoxicillin") ||
+        query.includes("augmentin") ||
+        query.includes("ampicillin") ||
+        query.includes("penicillin")
       ) {
         bioAlerts.push(
-          '⚠️ **Severe Allergy Contraindication**: You have a documented **Penicillin allergy**. Amoxicillin, Ampicillin, and Augmentin belong to the beta-lactam penicillin family and pose a high risk of anaphylaxis. Do not take these without direct allergist/physician clearance.'
+          "⚠️ **Severe Allergy Contraindication**: You have a documented **Penicillin allergy**. Amoxicillin, Ampicillin, and Augmentin belong to the beta-lactam penicillin family and pose a high risk of anaphylaxis. Do not take these without direct allergist/physician clearance.",
         );
       }
     }
 
-    if (allergies.some((a) => a.includes('sulfa'))) {
-      if (query.includes('bactrim') || query.includes('septrin') || query.includes('co-trimoxazole') || query.includes('sulfa')) {
+    if (allergies.some((a) => a.includes("sulfa"))) {
+      if (
+        query.includes("bactrim") ||
+        query.includes("septrin") ||
+        query.includes("co-trimoxazole") ||
+        query.includes("sulfa")
+      ) {
         bioAlerts.push(
-          '⚠️ **Sulfa Allergy Contraindication**: Your profile lists a **Sulfa allergy**. Sulfonamide antibiotics like Septrin/Bactrim must be avoided to prevent hypersensitivity reactions or severe cutaneous drug reactions.'
+          "⚠️ **Sulfa Allergy Contraindication**: Your profile lists a **Sulfa allergy**. Sulfonamide antibiotics like Septrin/Bactrim must be avoided to prevent hypersensitivity reactions or severe cutaneous drug reactions.",
         );
       }
     }
 
-    if (allergies.some((a) => a.includes('nsaid') || a.includes('aspirin') || a.includes('ibuprofen'))) {
-      if (query.includes('ibuprofen') || query.includes('aspirin') || query.includes('diclofenac') || query.includes('naproxen')) {
+    if (
+      allergies.some(
+        (a) =>
+          a.includes("nsaid") ||
+          a.includes("aspirin") ||
+          a.includes("ibuprofen"),
+      )
+    ) {
+      if (
+        query.includes("ibuprofen") ||
+        query.includes("aspirin") ||
+        query.includes("diclofenac") ||
+        query.includes("naproxen")
+      ) {
         bioAlerts.push(
-          '⚠️ **NSAID Allergy Alert**: Your profile lists an **NSAID / Aspirin allergy**. Avoid Ibuprofen, Diclofenac, and Naproxen. Consider Paracetamol (Acetaminophen) for analgesia instead.'
+          "⚠️ **NSAID Allergy Alert**: Your profile lists an **NSAID / Aspirin allergy**. Avoid Ibuprofen, Diclofenac, and Naproxen. Consider Paracetamol (Acetaminophen) for analgesia instead.",
         );
       }
     }
 
     // Condition checks
-    if (conditions.some((c) => c.includes('hypertension') || c.includes('high blood pressure'))) {
-      if (query.includes('cold') || query.includes('decongestant') || query.includes('pseudoephedrine') || query.includes('sinus')) {
+    if (
+      conditions.some(
+        (c) => c.includes("hypertension") || c.includes("high blood pressure"),
+      )
+    ) {
+      if (
+        query.includes("cold") ||
+        query.includes("decongestant") ||
+        query.includes("pseudoephedrine") ||
+        query.includes("sinus")
+      ) {
         bioAlerts.push(
-          '⚠️ **Hypertension Precaution**: Many OTC multi-symptom cold/sinus remedies contain **pseudoephedrine or phenylephrine**, which can dangerously elevate blood pressure. Look for decongestant-free cold formulas or consult your pharmacist.'
+          "⚠️ **Hypertension Precaution**: Many OTC multi-symptom cold/sinus remedies contain **pseudoephedrine or phenylephrine**, which can dangerously elevate blood pressure. Look for decongestant-free cold formulas or consult your pharmacist.",
         );
       }
     }
 
-    if (conditions.some((c) => c.includes('asthma'))) {
-      if (query.includes('ibuprofen') || query.includes('aspirin') || query.includes('diclofenac')) {
+    if (conditions.some((c) => c.includes("asthma"))) {
+      if (
+        query.includes("ibuprofen") ||
+        query.includes("aspirin") ||
+        query.includes("diclofenac")
+      ) {
         bioAlerts.push(
-          '⚠️ **Asthma Precaution**: NSAIDs (Ibuprofen, Aspirin) can trigger bronchospasm in up to 10-20% of asthmatic individuals (aspirin-exacerbated respiratory disease). Exercise caution and prioritize Paracetamol.'
+          "⚠️ **Asthma Precaution**: NSAIDs (Ibuprofen, Aspirin) can trigger bronchospasm in up to 10-20% of asthmatic individuals (aspirin-exacerbated respiratory disease). Exercise caution and prioritize Paracetamol.",
         );
       }
     }
 
-    if (conditions.some((c) => c.includes('diabetes'))) {
-      if (query.includes('cough syrup') || query.includes('syrup')) {
+    if (conditions.some((c) => c.includes("diabetes"))) {
+      if (query.includes("cough syrup") || query.includes("syrup")) {
         bioAlerts.push(
-          '⚠️ **Diabetes Precaution**: Standard liquid cough syrups frequently contain high concentrations of sucrose or corn syrup. Request sugar-free formulation at the pharmacy to avoid glycemic spikes.'
+          "⚠️ **Diabetes Precaution**: Standard liquid cough syrups frequently contain high concentrations of sucrose or corn syrup. Request sugar-free formulation at the pharmacy to avoid glycemic spikes.",
         );
       }
     }
 
     // Drug-Drug interactions
-    if (meds.some((m) => m.includes('lisinopril') || m.includes('enalapril') || m.includes('ramipril'))) {
-      if (query.includes('potassium') || query.includes('ibuprofen') || query.includes('pain relief')) {
+    if (
+      meds.some(
+        (m) =>
+          m.includes("lisinopril") ||
+          m.includes("enalapril") ||
+          m.includes("ramipril"),
+      )
+    ) {
+      if (
+        query.includes("potassium") ||
+        query.includes("ibuprofen") ||
+        query.includes("pain relief")
+      ) {
         bioAlerts.push(
-          '⚠️ **Medication Interaction**: You are taking an ACE inhibitor. Combining ACE inhibitors with regular NSAIDs can reduce antihypertensive efficacy and increase renal strain.'
+          "⚠️ **Medication Interaction**: You are taking an ACE inhibitor. Combining ACE inhibitors with regular NSAIDs can reduce antihypertensive efficacy and increase renal strain.",
         );
       }
     }
   }
 
-  const bioSection = bioAlerts.length > 0
-    ? `\n\n### 🛡️ Biometric Safety Cross-Check\n${bioAlerts.join('\n\n')}\n`
-    : '';
+  const bioSection =
+    bioAlerts.length > 0
+      ? `\n\n### 🛡️ Biometric Safety Cross-Check\n${bioAlerts.join("\n\n")}\n`
+      : "";
 
   // 3. Scenario: Fever / Malaria / Body aches
   if (
-    query.includes('fever') ||
-    query.includes('malaria') ||
-    query.includes('chills') ||
-    query.includes('typhoid') ||
-    query.includes('temperature')
+    query.includes("fever") ||
+    query.includes("malaria") ||
+    query.includes("chills") ||
+    query.includes("typhoid") ||
+    query.includes("temperature")
   ) {
     return {
-      triageLevel: 'moderate',
+      triageLevel: "moderate",
       referral: {
         recommended: true,
-        facilityType: 'pharmacy',
-        searchQuery: 'Artemether/Lumefantrine',
-        actionText: 'Check Malaria Medications & RDT Kits',
-        reason: 'Find verified Artemether/Lumefantrine and Rapid Diagnostic Kits at nearby Zelthia pharmacies.',
+        facilityType: "pharmacy",
+        searchQuery: "Artemether/Lumefantrine",
+        actionText: "Check Malaria Medications & RDT Kits",
+        reason:
+          "Find verified Artemether/Lumefantrine and Rapid Diagnostic Kits at nearby Zelthia pharmacies.",
       },
       message: `### Clinical Assessment: Acute Febrile Episode & Malaria Evaluation
 
@@ -187,21 +239,22 @@ A fever accompanied by chills, joint pain, or generalized fatigue in malaria-end
 
   // 4. Scenario: Skin Rash / Itch / Cream
   if (
-    query.includes('rash') ||
-    query.includes('skin') ||
-    query.includes('itching') ||
-    query.includes('eczema') ||
-    query.includes('dermatitis') ||
-    query.includes('cream')
+    query.includes("rash") ||
+    query.includes("skin") ||
+    query.includes("itching") ||
+    query.includes("eczema") ||
+    query.includes("dermatitis") ||
+    query.includes("cream")
   ) {
     return {
-      triageLevel: 'low',
+      triageLevel: "low",
       referral: {
         recommended: true,
-        facilityType: 'pharmacy',
-        searchQuery: 'Hydrocortisone cream',
-        actionText: 'Check Pharmacy Stock for Dermatology Creams',
-        reason: 'Locate soothing topical creams and antihistamines in local partner stock.',
+        facilityType: "pharmacy",
+        searchQuery: "Hydrocortisone cream",
+        actionText: "Check Pharmacy Stock for Dermatology Creams",
+        reason:
+          "Locate soothing topical creams and antihistamines in local partner stock.",
       },
       message: `### Clinical Assessment: Dermatological Symptoms & Topical Care
 
@@ -225,22 +278,23 @@ Skin rashes can originate from contact dermatitis (allergens, detergents, cosmet
 
   // 5. Scenario: Pharmacy stock / Antibiotics inquiry
   if (
-    query.includes('antibiotic') ||
-    query.includes('stock') ||
-    query.includes('pharmacy') ||
-    query.includes('prescription') ||
-    query.includes('amoxicillin') ||
-    query.includes('ciprofloxacin') ||
-    query.includes('augmentin')
+    query.includes("antibiotic") ||
+    query.includes("stock") ||
+    query.includes("pharmacy") ||
+    query.includes("prescription") ||
+    query.includes("amoxicillin") ||
+    query.includes("ciprofloxacin") ||
+    query.includes("augmentin")
   ) {
     return {
-      triageLevel: 'moderate',
+      triageLevel: "moderate",
       referral: {
         recommended: true,
-        facilityType: 'pharmacy',
-        searchQuery: 'Antibiotics',
-        actionText: 'Check Real-Time Pharmacy Stock & Locations',
-        reason: 'Search licensed community pharmacies for verified prescription stock and landmark directions.',
+        facilityType: "pharmacy",
+        searchQuery: "Antibiotics",
+        actionText: "Check Real-Time Pharmacy Stock & Locations",
+        reason:
+          "Search licensed community pharmacies for verified prescription stock and landmark directions.",
       },
       message: `### Clinical Assessment: Prescription Antibiotic Guidance & Stock Availability
 
@@ -262,21 +316,24 @@ Antibiotics are essential prescription medicines engineered specifically to trea
 
   // 6. Scenario: Drug interactions check
   if (
-    query.includes('drug interaction') ||
-    query.includes('interaction') ||
-    query.includes('combine') ||
-    query.includes('take together') ||
-    query.includes('side effect')
+    query.includes("drug interaction") ||
+    query.includes("interaction") ||
+    query.includes("combine") ||
+    query.includes("take together") ||
+    query.includes("side effect")
   ) {
-    const medList = biometrics?.currentMedications?.join(', ') || 'None registered in profile';
+    const medList =
+      biometrics?.currentMedications?.join(", ") ||
+      "None registered in profile";
     return {
-      triageLevel: 'low',
+      triageLevel: "low",
       referral: {
         recommended: true,
-        facilityType: 'pharmacy',
-        searchQuery: 'Consult Pharmacist',
-        actionText: 'Find Registered Pharmacist Near You',
-        reason: 'Review your medication regimen with a licensed clinical pharmacist on Zelthia.',
+        facilityType: "pharmacy",
+        searchQuery: "Consult Pharmacist",
+        actionText: "Find Registered Pharmacist Near You",
+        reason:
+          "Review your medication regimen with a licensed clinical pharmacist on Zelthia.",
       },
       message: `### Clinical Assessment: Comprehensive Drug Interaction Screening
 
@@ -298,20 +355,21 @@ Reviewing drug compatibility is one of the most effective measures to prevent ad
 
   // 7. General / Default Clinical Guidance
   return {
-    triageLevel: 'low',
+    triageLevel: "low",
     referral: {
       recommended: true,
-      facilityType: 'clinic',
-      searchQuery: 'Primary Care Consultation',
-      actionText: 'Find Local Healthcare Centers',
-      reason: 'Connect with community clinics and pharmacies registered on Zelthia.',
+      facilityType: "clinic",
+      searchQuery: "Primary Care Consultation",
+      actionText: "Find Local Healthcare Centers",
+      reason:
+        "Connect with community clinics and pharmacies registered on Zelthia.",
     },
     message: `### Clinical Guidance & Health Navigation
 
 Thank you for consulting Zelthia AI. I am here to provide evidence-based, compassionate health information and connect you with local care providers.${bioSection}
 
 #### 1. Health Assessment Summary
-- **Symptom Overview**: You inquired about: *"${userQuery.slice(0, 100)}${userQuery.length > 100 ? '...' : ''}"*.
+- **Symptom Overview**: You inquired about: *"${userQuery.slice(0, 100)}${userQuery.length > 100 ? "..." : ""}"*.
 - For accurate triage, monitoring the duration, intensity, triggers, and any associated symptoms (such as fever, localized pain, or nausea) provides vital clinical context.
 
 #### 2. General Supportive Self-Care

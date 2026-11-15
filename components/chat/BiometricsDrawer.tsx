@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   X,
   Shield,
@@ -55,17 +55,34 @@ export const BiometricsDrawer: React.FC<BiometricsDrawerProps> = ({
   profile,
   onSave,
 }) => {
+  if (!isOpen) return null;
+
+  return (
+    <BiometricsDrawerModal
+      key={JSON.stringify(profile)}
+      onClose={onClose}
+      profile={profile}
+      onSave={onSave}
+    />
+  );
+};
+
+interface BiometricsModalProps {
+  onClose: () => void;
+  profile: BiometricProfile;
+  onSave: (updated: BiometricProfile) => void;
+}
+
+const BiometricsDrawerModal: React.FC<BiometricsModalProps> = ({
+  onClose,
+  profile,
+  onSave,
+}) => {
   const [formData, setFormData] = useState<BiometricProfile>(profile);
   const [allergyInput, setAllergyInput] = useState("");
   const [conditionInput, setConditionInput] = useState("");
   const [medicationInput, setMedicationInput] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
-
-  useEffect(() => {
-    setFormData(profile);
-  }, [profile, isOpen]);
-
-  if (!isOpen) return null;
 
   const handleAddAllergy = (tag: string) => {
     const trimmed = tag.trim();

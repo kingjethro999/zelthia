@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
 import {
   InventoryItem,
   DrugCategory,
   DosageForm,
   Facility,
-} from "@/lib/inventory-data";
-import { X, Pill, Sparkles, AlertCircle } from "lucide-react";
+} from '@/lib/inventory-data';
+import { X, Pill, Sparkles, AlertCircle } from 'lucide-react';
 
 interface DrugModalProps {
   isOpen: boolean;
@@ -19,117 +19,96 @@ interface DrugModalProps {
 }
 
 const CATEGORIES: DrugCategory[] = [
-  "Antimalarials",
-  "Antibiotics",
-  "Pain Relief",
-  "Dermatology/Creams",
-  "Emergency Supplies",
-  "Chronic Care",
-  "Vitamins & Supplements",
+  'Antimalarials',
+  'Antibiotics',
+  'Pain Relief',
+  'Dermatology/Creams',
+  'Emergency Supplies',
+  'Chronic Care',
+  'Vitamins & Supplements',
 ];
 
 const DOSAGE_FORMS: DosageForm[] = [
-  "Tablet",
-  "Capsule",
-  "Cream",
-  "Syrup",
-  "Inhaler",
-  "Injection",
-  "Suspension",
-  "Drops",
+  'Tablet',
+  'Capsule',
+  'Cream',
+  'Syrup',
+  'Inhaler',
+  'Injection',
+  'Suspension',
+  'Drops',
 ];
 
-export function DrugModal({
-  isOpen,
+function DrugModalForm({
   onClose,
   onSave,
   facilities,
   selectedFacilityId,
   itemToEdit,
-}: DrugModalProps) {
+}: Omit<DrugModalProps, 'isOpen'>) {
   const [facilityId, setFacilityId] = useState(
-    itemToEdit?.facilityId || selectedFacilityId || facilities[0]?.id || "",
+    itemToEdit?.facilityId || selectedFacilityId || facilities[0]?.id || ''
   );
-  const [name, setName] = useState("");
-  const [genericFormula, setGenericFormula] = useState("");
-  const [category, setCategory] = useState<DrugCategory>("Dermatology/Creams");
-  const [dosageForm, setDosageForm] = useState<DosageForm>("Cream");
-  const [strength, setStrength] = useState("");
-  const [stockCount, setStockCount] = useState<number>(20);
-  const [minThreshold, setMinThreshold] = useState<number>(5);
-  const [unitPrice, setUnitPrice] = useState<number>(2500);
-  const [batchNumber, setBatchNumber] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [requiresPrescription, setRequiresPrescription] = useState(false);
-  const [notes, setNotes] = useState("");
+  const [name, setName] = useState(itemToEdit?.name || '');
+  const [genericFormula, setGenericFormula] = useState(
+    itemToEdit?.genericFormula || ''
+  );
+  const [category, setCategory] = useState<DrugCategory>(
+    itemToEdit?.category || 'Dermatology/Creams'
+  );
+  const [dosageForm, setDosageForm] = useState<DosageForm>(
+    itemToEdit?.dosageForm || 'Cream'
+  );
+  const [strength, setStrength] = useState(
+    itemToEdit?.strength || '1% w/w 15g tube'
+  );
+  const [stockCount, setStockCount] = useState<number>(
+    itemToEdit ? itemToEdit.stockCount : 20
+  );
+  const [minThreshold, setMinThreshold] = useState<number>(
+    itemToEdit ? itemToEdit.minThreshold : 5
+  );
+  const [unitPrice, setUnitPrice] = useState<number>(
+    itemToEdit ? itemToEdit.unitPrice : 2500
+  );
+  const [batchNumber, setBatchNumber] = useState(
+    itemToEdit?.batchNumber || 'B-STOCK-01'
+  );
+  const [expiryDate, setExpiryDate] = useState(
+    itemToEdit?.expiryDate || '2027-06-30'
+  );
+  const [requiresPrescription, setRequiresPrescription] = useState(
+    Boolean(itemToEdit?.requiresPrescription)
+  );
+  const [notes, setNotes] = useState(itemToEdit?.notes || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Initialize or reset when itemToEdit or isOpen changes
-  useEffect(() => {
-    if (itemToEdit) {
-      setFacilityId(itemToEdit.facilityId);
-      setName(itemToEdit.name);
-      setGenericFormula(itemToEdit.genericFormula);
-      setCategory(itemToEdit.category);
-      setDosageForm(itemToEdit.dosageForm);
-      setStrength(itemToEdit.strength);
-      setStockCount(itemToEdit.stockCount);
-      setMinThreshold(itemToEdit.minThreshold);
-      setUnitPrice(itemToEdit.unitPrice);
-      setBatchNumber(itemToEdit.batchNumber);
-      setExpiryDate(itemToEdit.expiryDate);
-      setRequiresPrescription(itemToEdit.requiresPrescription);
-      setNotes(itemToEdit.notes || "");
-    } else {
-      setFacilityId(selectedFacilityId || facilities[0]?.id || "");
-      setName("");
-      setGenericFormula("");
-      setCategory("Dermatology/Creams");
-      setDosageForm("Cream");
-      setStrength("1% w/w 15g tube");
-      setStockCount(20);
-      setMinThreshold(5);
-      setUnitPrice(2500);
-      setBatchNumber(`B-${Date.now().toString(36).toUpperCase()}`);
-      // Default expiry date 18 months in future
-      const defaultExp = new Date();
-      defaultExp.setMonth(defaultExp.getMonth() + 18);
-      setExpiryDate(defaultExp.toISOString().split("T")[0]);
-      setRequiresPrescription(false);
-      setNotes("");
-    }
-    setError(null);
-  }, [itemToEdit, isOpen, selectedFacilityId, facilities]);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!name.trim()) {
-      setError("Please provide a drug/product name.");
+      setError('Please provide a drug/product name.');
       return;
     }
     if (!genericFormula.trim()) {
-      setError("Please provide the generic pharmacological formula.");
+      setError('Please provide the generic pharmacological formula.');
       return;
     }
     if (!facilityId) {
-      setError("Please select a facility for this inventory item.");
+      setError('Please select a facility for this inventory item.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       if (itemToEdit) {
-        // Edit existing item
-        const res = await fetch("/api/inventory", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch('/api/inventory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: "update_item",
+            action: 'update_item',
             itemId: itemToEdit.id,
             updates: {
               name: name.trim(),
@@ -150,16 +129,15 @@ export function DrugModal({
 
         const data = await res.json();
         if (!res.ok || !data.success) {
-          throw new Error(data.error || "Failed to update item");
+          throw new Error(data.error || 'Failed to update item');
         }
         onSave(data.item);
       } else {
-        // Add new item
-        const res = await fetch("/api/inventory", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch('/api/inventory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: "add_item",
+            action: 'add_item',
             item: {
               facilityId,
               name: name.trim(),
@@ -180,13 +158,13 @@ export function DrugModal({
 
         const data = await res.json();
         if (!res.ok || !data.success) {
-          throw new Error(data.error || "Failed to add item");
+          throw new Error(data.error || 'Failed to add item');
         }
         onSave(data.item);
       }
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "An error occurred";
+      const msg = err instanceof Error ? err.message : 'An error occurred';
       setError(msg);
     } finally {
       setIsSubmitting(false);
@@ -204,13 +182,10 @@ export function DrugModal({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                {itemToEdit
-                  ? "Edit Medical Inventory Item"
-                  : "Add New Drug / Medical Supply"}
+                {itemToEdit ? 'Edit Medical Inventory Item' : 'Add New Drug / Medical Supply'}
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Maintain accurate pharmacological records, pricing, and stock
-                alerts.
+                Maintain accurate pharmacological records, pricing, and stock alerts.
               </p>
             </div>
           </div>
@@ -223,10 +198,7 @@ export function DrugModal({
         </div>
 
         {/* Form Body */}
-        <form
-          onSubmit={handleSubmit}
-          className="p-6 space-y-4 max-h-[75vh] overflow-y-auto"
-        >
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
           {error && (
             <div className="p-3 text-sm text-red-700 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-none" />
@@ -456,15 +428,21 @@ export function DrugModal({
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 active:bg-teal-800 rounded-lg transition-colors shadow-sm disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
-              {isSubmitting
-                ? "Saving..."
-                : itemToEdit
-                  ? "Save Changes"
-                  : "Add to Inventory"}
+              {isSubmitting ? 'Saving...' : itemToEdit ? 'Save Changes' : 'Add to Inventory'}
             </button>
           </div>
         </form>
       </div>
     </div>
+  );
+}
+
+export function DrugModal(props: DrugModalProps) {
+  if (!props.isOpen) return null;
+  return (
+    <DrugModalForm
+      key={props.itemToEdit ? props.itemToEdit.id : 'new-drug-form'}
+      {...props}
+    />
   );
 }

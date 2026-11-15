@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Facility,
   InventoryItem,
   InventoryMetrics,
-  StockStatus,
   computeStockStatus,
   isExpiringSoon,
 } from "@/lib/inventory-data";
@@ -17,10 +16,8 @@ import { DrugModal } from "./drug-modal";
 import {
   Search,
   Building2,
-  Sparkles,
   Layers,
   ArrowRight,
-  ShieldCheck,
   CheckCircle2,
   RefreshCw,
 } from "lucide-react";

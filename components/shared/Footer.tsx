@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2026;
 
   return (
     <footer className="bg-zinc-950 text-zinc-300 border-t border-zinc-800">

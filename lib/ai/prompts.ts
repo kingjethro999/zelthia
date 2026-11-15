@@ -1,30 +1,45 @@
-import { BiometricProfile, hasActiveBiometrics } from './types';
+import { BiometricProfile, hasActiveBiometrics } from "./types";
 
 export function buildSystemPrompt(biometrics?: BiometricProfile): string {
   const hasBio = hasActiveBiometrics(biometrics);
 
-  let biometricsContext = 'No user biometric profile provided yet. Advise generally and suggest they configure their profile if asking about medications or personal risks.';
+  let biometricsContext =
+    "No user biometric profile provided yet. Advise generally and suggest they configure their profile if asking about medications or personal risks.";
 
   if (hasBio && biometrics) {
     const details: string[] = [];
     if (biometrics.age) details.push(`- Age: ${biometrics.age} years old`);
-    if (biometrics.biologicalSex) details.push(`- Biological Sex: ${biometrics.biologicalSex}`);
-    if (biometrics.bloodGroup) details.push(`- Blood Group: ${biometrics.bloodGroup}`);
+    if (biometrics.biologicalSex)
+      details.push(`- Biological Sex: ${biometrics.biologicalSex}`);
+    if (biometrics.bloodGroup)
+      details.push(`- Blood Group: ${biometrics.bloodGroup}`);
     if (biometrics.allergies && biometrics.allergies.length > 0) {
-      details.push(`- ALLERGIES: ${biometrics.allergies.join(', ')} (STRICT CONTRAINDICATION ALERT)`);
+      details.push(
+        `- ALLERGIES: ${biometrics.allergies.join(", ")} (STRICT CONTRAINDICATION ALERT)`,
+      );
     } else {
       details.push(`- Allergies: None reported`);
     }
-    if (biometrics.chronicConditions && biometrics.chronicConditions.length > 0) {
-      details.push(`- Chronic Health Conditions: ${biometrics.chronicConditions.join(', ')}`);
+    if (
+      biometrics.chronicConditions &&
+      biometrics.chronicConditions.length > 0
+    ) {
+      details.push(
+        `- Chronic Health Conditions: ${biometrics.chronicConditions.join(", ")}`,
+      );
     }
-    if (biometrics.currentMedications && biometrics.currentMedications.length > 0) {
-      details.push(`- Currently Taking Medications: ${biometrics.currentMedications.join(', ')}`);
+    if (
+      biometrics.currentMedications &&
+      biometrics.currentMedications.length > 0
+    ) {
+      details.push(
+        `- Currently Taking Medications: ${biometrics.currentMedications.join(", ")}`,
+      );
     }
     if (biometrics.notes) {
       details.push(`- Additional Notes: ${biometrics.notes}`);
     }
-    biometricsContext = `ACTIVE USER BIOMETRIC PROFILE:\n${details.join('\n')}`;
+    biometricsContext = `ACTIVE USER BIOMETRIC PROFILE:\n${details.join("\n")}`;
   }
 
   return `You are Zelthia AI, a medical-grade AI health companion and clinical triage navigator.

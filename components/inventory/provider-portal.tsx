@@ -13,7 +13,6 @@ import {
   Building2,
   Plus,
   Search,
-  Filter,
   AlertTriangle,
   Clock,
   ShieldCheck,
@@ -28,7 +27,6 @@ import {
   Copy,
   Check,
   ChevronDown,
-  ChevronUp,
   Phone,
   Calendar,
   AlertOctagon,
@@ -268,7 +266,7 @@ export function ProviderPortal({
                 </div>
 
                 <p className="text-xs text-zinc-800 dark:text-zinc-200 leading-relaxed font-medium">
-                  "{currentFacility.landmarkDirections}"
+                  &ldquo;{currentFacility.landmarkDirections}&rdquo;
                 </p>
 
                 {currentFacility.stepByStepLandmarks.length > 0 && (

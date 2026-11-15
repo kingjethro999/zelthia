@@ -220,8 +220,7 @@ export function FacilityModal({
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-zinc-500" /> Operating Hours
-                *
+                <Clock className="w-3.5 h-3.5 text-zinc-500" /> Operating Hours *
               </label>
               <input
                 type="text"
@@ -229,6 +228,32 @@ export function FacilityModal({
                 placeholder="e.g. Daily: 8:00 AM - 10:00 PM or 24/7"
                 value={operatingHours}
                 onChange={(e) => setOperatingHours(e.target.value)}
+                className="w-full px-3.5 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Official Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="dispensary@facility.ng"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3.5 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                24/7 Emergency Line
+              </label>
+              <input
+                type="tel"
+                placeholder="+234 809 111 4455"
+                value={emergencyContact}
+                onChange={(e) => setEmergencyContact(e.target.value)}
                 className="w-full px-3.5 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>

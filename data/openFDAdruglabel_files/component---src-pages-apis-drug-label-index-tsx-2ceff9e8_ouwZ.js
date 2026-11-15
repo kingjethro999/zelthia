@@ -1,2 +1,253 @@
-"use strict";(self.webpackChunkopen_fda_gov=self.webpackChunkopen_fda_gov||[]).push([[8737],{7741:function(e){e.exports=JSON.parse('{"documentTitle":"openFDA › Drugs › Labeling API","name":"Drug Labeling","description":"Drug product information provided by manufacturers and distributors in the Structured Product Label (SPL) format.","datasets":["SPL"],"label":"Drug labeling","title":"Drug Labeling","path":"/apis/drug/label","api_path":"/drug/label","start":20090601,"status":"druglabel","dateConstraintKey":"effective_time","type":"endpoint"}')},14405:function(e,t,i){i.r(t),i.d(t,{default:function(){return C}});var a=i(96540),r=i(22033),o=i(91055),n=i(18671),l=i(30632),d=i(98444),s=JSON.parse('{"globalDefs":{"startYear":2009,"api":"/drug/event","apiName":"Labels","font":{"color":"#000000","fontFamily":"Merriweather,Georgia,serif"},"tooltip":{"fontSize":"11px","font":"Merriweather,Georgia,serif"},"pieChartConfig":{"fill":"#8884d8","colors":["#0088FE","#1ECFFF","#00C49F","#FFBB28","#d62728"]},"lineChartConfig":{"chartRow":{"height":200,"trackerInfoWidth":130},"chartContainer":{"width":700,"showGrid":true,"format":"year","timeAxisStyle":{"labels":{"labelColor":"black","labelWeight":150,"labelSize":13},"axis":{"axisColor":"grey","axisWidth":1}}},"yAxis":{"label":"Number of Drug Labels","min":0,"width":70,"type":"linear","labelOffset":0,"style":{"labelFont":"Merriweather,Georgia,serif","labels":{"labelColor":"#000000","labelWeight":150,"labelSize":11},"axis":{"axisColor":"#000000"}}},"lineChart":{"interpolation":"curveMonotoneX"},"colors":["#1f77b4","#00d899","#ff3300","#2ca02c","#ff7f0e","#006666","#990099","#9467bd","#c5b0d5","#ff33cc","#8c564b","#c49c94","#e377c2","#f7b6d2","#7f7f7f","#c7c7c7","#bcbd22","#dbdb8d","#17becf","#9edae5","#00008B"],"eventMarker":{"infoTimeFormat":"%m-%Y","markerRadius":0,"markerStyle":{"fill":"black"},"infoWidth":175,"infoStyle":{"fill":"white","opacity":0.9,"stroke":"#0000","pointerEvents":"none"},"markerLabelStyle":{"fill":"#000000"}}}},"choices":[{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type, Administation Route </i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.route.exact","subfieldLabel":"Route","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":10,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type, Mechanism of Action </i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.pharm_class_moa.exact","subfieldLabel":"Mechanism of action of the drug","subfield_filter":" [MoA]","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":5,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type, Pharmacologic Class </i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.pharm_class_epc.exact","subfieldLabel":"Established pharmacologic class","subfield_filter":" [EPC]","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":5,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type, Physiologic Effect </i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfieldLabel":"Physiologic effect","subfield":"openfda.pharm_class_pe.exact","subfield_filter":" [PE]","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":10,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type</i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.brand_name.exact","subfieldLabel":"Brand Name","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":8,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"excludedTerms":["OXYGEN"],"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type</i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.generic_name.exact","subfieldLabel":"Generic Name","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":8,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}}]}'),c=i(7741);function u(e){return u="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},u(e)}function f(e,t){for(var i=0;i<t.length;i++){var a=t[i];a.enumerable=a.enumerable||!1,a.configurable=!0,"value"in a&&(a.writable=!0),Object.defineProperty(e,p(a.key),a)}}function p(e){var t=function(e,t){if("object"!=u(e)||!e)return e;var i=e[Symbol.toPrimitive];if(void 0!==i){var a=i.call(e,t||"default");if("object"!=u(a))return a;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===t?String:Number)(e)}(e,"string");return"symbol"==u(t)?t:t+""}function h(e,t,i){return t=m(t),function(e,t){if(t&&("object"==u(t)||"function"==typeof t))return t;if(void 0!==t)throw new TypeError("Derived constructors may only return object or undefined");return function(e){if(void 0===e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return e}(e)}(e,b()?Reflect.construct(t,i||[],m(e).constructor):t.apply(e,i))}function b(){try{var e=!Boolean.prototype.valueOf.call(Reflect.construct(Boolean,[],(function(){})))}catch(e){}return(b=function(){return!!e})()}function m(e){return m=Object.setPrototypeOf?Object.getPrototypeOf.bind():function(e){return e.__proto__||Object.getPrototypeOf(e)},m(e)}function g(e,t){return g=Object.setPrototypeOf?Object.setPrototypeOf.bind():function(e,t){return e.__proto__=t,e},g(e,t)}var y=function(e){function t(){return function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t),h(this,t,arguments)}return function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function");e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,writable:!0,configurable:!0}}),Object.defineProperty(e,"prototype",{writable:!1}),t&&g(e,t)}(t,e),i=t,(u=[{key:"render",value:function(){return a.createElement("section",{className:"doc-content"},a.createElement("h2",null,"Drug Labeling Overview"),a.createElement("p",null,"Drug manufacturers and distributors submit documentation about their products to FDA in the ",a.createElement("a",{href:"http://labels.fda.gov/"},"Structured Product Labeling (SPL) format"),". The openFDA drug product labeling API returns data from this dataset."),a.createElement("p",null,"The labeling is a 'living document' that changes over time to reflect increased knowledge about the safety and effectiveness of the drug."),a.createElement("p",null,"The openFDA drug product labels API returns data from these submissions for both prescription and over-the-counter (OTC) drugs. The labels are broken into sections, such as indications for use (prescription drugs) or purpose (OTC drugs), adverse reactions, and so forth. There is considerable variation between drug products in terms of these sections and their contents, since the information required for safe and effective use varies with the unique characteristics of each drug product."),a.createElement("p",null,"To read more about Structured Product Labeling, please visit the ",a.createElement("a",{href:"https://www.fda.gov/forindustry/datastandards/structuredproductlabeling/default.htm"},"FDA’s SPL Resources page"),"."),a.createElement(n.A,{infographicDefinitions:s,meta:c}),a.createElement(o.A,{noun_name:c.api_path.split("/")[1],endpoint_name:c.api_path.split("/")[2],harmonized:!0,status:c.status}),a.createElement("h3",null,"Fields Harmonization"),a.createElement("p",null,"Different datasets use different unique identifiers, which can make it difficult to find the same drug in each dataset."),a.createElement("p",null,"openFDA features harmonization on specific identifiers to make it easier to both search for and understand the drug products returned by API queries. These additional fields are attached to records in all categories, if applicable."),a.createElement("p",null,"Review the chart below to better understand which fields are harmonized."),a.createElement(l.A,{master_harmonization:d,selected_noun:"drug"}),a.createElement("h3",null,"Responsible use of the data"),a.createElement("p",null,"Do not rely on openFDA to make decisions regarding medical care. Always speak to your health provider about the risks and benefits of FDA-regulated products. We may limit or otherwise restrict your access to the API in line with our ",a.createElement(r.Ay,{to:"/terms/"},"Terms of Service"),"."),a.createElement("h3",null,"Disclaimer"),a.createElement("p",null,"Please be aware of the following when using information from this API:"),a.createElement("p",null,"The drug labels and other drug-specific information provided in this API represent the most recent drug listing information companies have submitted to the Food and Drug Administration (FDA). (See 21 CFR part 207.) The drug labeling and other information has been reformatted to make it easier to read but its content has neither been altered nor verified by FDA. The drug labeling provided in this API may not be the labeling on currently distributed products or identical to the labeling that is approved. Most OTC drugs are not reviewed and approved by FDA; however, they may be marketed if they comply with applicable regulations and policies described in monographs. Drugs marked 'OTC monograph final' or 'OTC monograph not final' are not checked for conformance to the monograph. Drugs marked 'unapproved medical gas', 'unapproved homeopathic' or 'unapproved drug other' have not been evaluated by FDA for safety and efficacy and their labeling has not been approved. In addition, FDA is not aware of scientific evidence to support homeopathy as effective."))}}])&&f(i.prototype,u),p&&f(i,p),Object.defineProperty(i,"prototype",{writable:!1}),i;var i,u,p}(a.Component),C=y}}]);
+"use strict";
+(self.webpackChunkopen_fda_gov = self.webpackChunkopen_fda_gov || []).push([
+  [8737],
+  {
+    7741: function (e) {
+      e.exports = JSON.parse(
+        '{"documentTitle":"openFDA › Drugs › Labeling API","name":"Drug Labeling","description":"Drug product information provided by manufacturers and distributors in the Structured Product Label (SPL) format.","datasets":["SPL"],"label":"Drug labeling","title":"Drug Labeling","path":"/apis/drug/label","api_path":"/drug/label","start":20090601,"status":"druglabel","dateConstraintKey":"effective_time","type":"endpoint"}',
+      );
+    },
+    14405: function (e, t, i) {
+      (i.r(t),
+        i.d(t, {
+          default: function () {
+            return C;
+          },
+        }));
+      var a = i(96540),
+        r = i(22033),
+        o = i(91055),
+        n = i(18671),
+        l = i(30632),
+        d = i(98444),
+        s = JSON.parse(
+          '{"globalDefs":{"startYear":2009,"api":"/drug/event","apiName":"Labels","font":{"color":"#000000","fontFamily":"Merriweather,Georgia,serif"},"tooltip":{"fontSize":"11px","font":"Merriweather,Georgia,serif"},"pieChartConfig":{"fill":"#8884d8","colors":["#0088FE","#1ECFFF","#00C49F","#FFBB28","#d62728"]},"lineChartConfig":{"chartRow":{"height":200,"trackerInfoWidth":130},"chartContainer":{"width":700,"showGrid":true,"format":"year","timeAxisStyle":{"labels":{"labelColor":"black","labelWeight":150,"labelSize":13},"axis":{"axisColor":"grey","axisWidth":1}}},"yAxis":{"label":"Number of Drug Labels","min":0,"width":70,"type":"linear","labelOffset":0,"style":{"labelFont":"Merriweather,Georgia,serif","labels":{"labelColor":"#000000","labelWeight":150,"labelSize":11},"axis":{"axisColor":"#000000"}}},"lineChart":{"interpolation":"curveMonotoneX"},"colors":["#1f77b4","#00d899","#ff3300","#2ca02c","#ff7f0e","#006666","#990099","#9467bd","#c5b0d5","#ff33cc","#8c564b","#c49c94","#e377c2","#f7b6d2","#7f7f7f","#c7c7c7","#bcbd22","#dbdb8d","#17becf","#9edae5","#00008B"],"eventMarker":{"infoTimeFormat":"%m-%Y","markerRadius":0,"markerStyle":{"fill":"black"},"infoWidth":175,"infoStyle":{"fill":"white","opacity":0.9,"stroke":"#0000","pointerEvents":"none"},"markerLabelStyle":{"fill":"#000000"}}}},"choices":[{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type, Administation Route </i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.route.exact","subfieldLabel":"Route","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":10,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type, Mechanism of Action </i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.pharm_class_moa.exact","subfieldLabel":"Mechanism of action of the drug","subfield_filter":" [MoA]","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":5,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type, Pharmacologic Class </i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.pharm_class_epc.exact","subfieldLabel":"Established pharmacologic class","subfield_filter":" [EPC]","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":5,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type, Physiologic Effect </i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfieldLabel":"Physiologic effect","subfield":"openfda.pharm_class_pe.exact","subfield_filter":" [PE]","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":10,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type</i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.brand_name.exact","subfieldLabel":"Brand Name","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":8,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"excludedTerms":["OXYGEN"],"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}},{"type":"PieChart","title":"<i><i class=\'datamap-infographic-header-text-bold\'>Drug Labels</i> by Product Type</i>","subtitle":"Device Labels","yTitle":"Product Type","xTitle":"","selectionPostFix":" ","countBy":"openfda.product_type.exact","dateField":"effective_time","subfield":"openfda.generic_name.exact","subfieldLabel":"Generic Name","pieChartCategoryName":"Product Type","pieChartApiName":"Drug Labels","lineLimiter":8,"defs":{"HUMAN OTC DRUG":"OTC","HUMAN PRESCRIPTION DRUG":"PRESCRIPTION"},"dataFunction":"_getAllData","xLegendCoordinate":-30,"pieChartConfig":{"default":{"id":"HUMAN OTC DRUG","index":0},"radius":{"cx":305,"cy":200,"innerRadius":60,"outerRadius":80},"textLabel":["Percentage","by Type"],"width":450,"widthReset":365,"height":450,"viewBox":"90 70 540 510","margin":{"top":5,"right":5,"bottom":5,"left":0}}}]}',
+        ),
+        c = i(7741);
+      function u(e) {
+        return (
+          (u =
+            "function" == typeof Symbol && "symbol" == typeof Symbol.iterator
+              ? function (e) {
+                  return typeof e;
+                }
+              : function (e) {
+                  return e &&
+                    "function" == typeof Symbol &&
+                    e.constructor === Symbol &&
+                    e !== Symbol.prototype
+                    ? "symbol"
+                    : typeof e;
+                }),
+          u(e)
+        );
+      }
+      function f(e, t) {
+        for (var i = 0; i < t.length; i++) {
+          var a = t[i];
+          ((a.enumerable = a.enumerable || !1),
+            (a.configurable = !0),
+            "value" in a && (a.writable = !0),
+            Object.defineProperty(e, p(a.key), a));
+        }
+      }
+      function p(e) {
+        var t = (function (e, t) {
+          if ("object" != u(e) || !e) return e;
+          var i = e[Symbol.toPrimitive];
+          if (void 0 !== i) {
+            var a = i.call(e, t || "default");
+            if ("object" != u(a)) return a;
+            throw new TypeError("@@toPrimitive must return a primitive value.");
+          }
+          return ("string" === t ? String : Number)(e);
+        })(e, "string");
+        return "symbol" == u(t) ? t : t + "";
+      }
+      function h(e, t, i) {
+        return (
+          (t = m(t)),
+          (function (e, t) {
+            if (t && ("object" == u(t) || "function" == typeof t)) return t;
+            if (void 0 !== t)
+              throw new TypeError(
+                "Derived constructors may only return object or undefined",
+              );
+            return (function (e) {
+              if (void 0 === e)
+                throw new ReferenceError(
+                  "this hasn't been initialised - super() hasn't been called",
+                );
+              return e;
+            })(e);
+          })(
+            e,
+            b()
+              ? Reflect.construct(t, i || [], m(e).constructor)
+              : t.apply(e, i),
+          )
+        );
+      }
+      function b() {
+        try {
+          var e = !Boolean.prototype.valueOf.call(
+            Reflect.construct(Boolean, [], function () {}),
+          );
+        } catch (e) {}
+        return (b = function () {
+          return !!e;
+        })();
+      }
+      function m(e) {
+        return (
+          (m = Object.setPrototypeOf
+            ? Object.getPrototypeOf.bind()
+            : function (e) {
+                return e.__proto__ || Object.getPrototypeOf(e);
+              }),
+          m(e)
+        );
+      }
+      function g(e, t) {
+        return (
+          (g = Object.setPrototypeOf
+            ? Object.setPrototypeOf.bind()
+            : function (e, t) {
+                return ((e.__proto__ = t), e);
+              }),
+          g(e, t)
+        );
+      }
+      var y = (function (e) {
+          function t() {
+            return (
+              (function (e, t) {
+                if (!(e instanceof t))
+                  throw new TypeError("Cannot call a class as a function");
+              })(this, t),
+              h(this, t, arguments)
+            );
+          }
+          return (
+            (function (e, t) {
+              if ("function" != typeof t && null !== t)
+                throw new TypeError(
+                  "Super expression must either be null or a function",
+                );
+              ((e.prototype = Object.create(t && t.prototype, {
+                constructor: { value: e, writable: !0, configurable: !0 },
+              })),
+                Object.defineProperty(e, "prototype", { writable: !1 }),
+                t && g(e, t));
+            })(t, e),
+            (i = t),
+            (u = [
+              {
+                key: "render",
+                value: function () {
+                  return a.createElement(
+                    "section",
+                    { className: "doc-content" },
+                    a.createElement("h2", null, "Drug Labeling Overview"),
+                    a.createElement(
+                      "p",
+                      null,
+                      "Drug manufacturers and distributors submit documentation about their products to FDA in the ",
+                      a.createElement(
+                        "a",
+                        { href: "http://labels.fda.gov/" },
+                        "Structured Product Labeling (SPL) format",
+                      ),
+                      ". The openFDA drug product labeling API returns data from this dataset.",
+                    ),
+                    a.createElement(
+                      "p",
+                      null,
+                      "The labeling is a 'living document' that changes over time to reflect increased knowledge about the safety and effectiveness of the drug.",
+                    ),
+                    a.createElement(
+                      "p",
+                      null,
+                      "The openFDA drug product labels API returns data from these submissions for both prescription and over-the-counter (OTC) drugs. The labels are broken into sections, such as indications for use (prescription drugs) or purpose (OTC drugs), adverse reactions, and so forth. There is considerable variation between drug products in terms of these sections and their contents, since the information required for safe and effective use varies with the unique characteristics of each drug product.",
+                    ),
+                    a.createElement(
+                      "p",
+                      null,
+                      "To read more about Structured Product Labeling, please visit the ",
+                      a.createElement(
+                        "a",
+                        {
+                          href: "https://www.fda.gov/forindustry/datastandards/structuredproductlabeling/default.htm",
+                        },
+                        "FDA’s SPL Resources page",
+                      ),
+                      ".",
+                    ),
+                    a.createElement(n.A, {
+                      infographicDefinitions: s,
+                      meta: c,
+                    }),
+                    a.createElement(o.A, {
+                      noun_name: c.api_path.split("/")[1],
+                      endpoint_name: c.api_path.split("/")[2],
+                      harmonized: !0,
+                      status: c.status,
+                    }),
+                    a.createElement("h3", null, "Fields Harmonization"),
+                    a.createElement(
+                      "p",
+                      null,
+                      "Different datasets use different unique identifiers, which can make it difficult to find the same drug in each dataset.",
+                    ),
+                    a.createElement(
+                      "p",
+                      null,
+                      "openFDA features harmonization on specific identifiers to make it easier to both search for and understand the drug products returned by API queries. These additional fields are attached to records in all categories, if applicable.",
+                    ),
+                    a.createElement(
+                      "p",
+                      null,
+                      "Review the chart below to better understand which fields are harmonized.",
+                    ),
+                    a.createElement(l.A, {
+                      master_harmonization: d,
+                      selected_noun: "drug",
+                    }),
+                    a.createElement("h3", null, "Responsible use of the data"),
+                    a.createElement(
+                      "p",
+                      null,
+                      "Do not rely on openFDA to make decisions regarding medical care. Always speak to your health provider about the risks and benefits of FDA-regulated products. We may limit or otherwise restrict your access to the API in line with our ",
+                      a.createElement(
+                        r.Ay,
+                        { to: "/terms/" },
+                        "Terms of Service",
+                      ),
+                      ".",
+                    ),
+                    a.createElement("h3", null, "Disclaimer"),
+                    a.createElement(
+                      "p",
+                      null,
+                      "Please be aware of the following when using information from this API:",
+                    ),
+                    a.createElement(
+                      "p",
+                      null,
+                      "The drug labels and other drug-specific information provided in this API represent the most recent drug listing information companies have submitted to the Food and Drug Administration (FDA). (See 21 CFR part 207.) The drug labeling and other information has been reformatted to make it easier to read but its content has neither been altered nor verified by FDA. The drug labeling provided in this API may not be the labeling on currently distributed products or identical to the labeling that is approved. Most OTC drugs are not reviewed and approved by FDA; however, they may be marketed if they comply with applicable regulations and policies described in monographs. Drugs marked 'OTC monograph final' or 'OTC monograph not final' are not checked for conformance to the monograph. Drugs marked 'unapproved medical gas', 'unapproved homeopathic' or 'unapproved drug other' have not been evaluated by FDA for safety and efficacy and their labeling has not been approved. In addition, FDA is not aware of scientific evidence to support homeopathy as effective.",
+                    ),
+                  );
+                },
+              },
+            ]) && f(i.prototype, u),
+            p && f(i, p),
+            Object.defineProperty(i, "prototype", { writable: !1 }),
+            i
+          );
+          var i, u, p;
+        })(a.Component),
+        C = y;
+    },
+  },
+]);
 //# sourceMappingURL=component---src-pages-apis-drug-label-index-tsx-2ceff9e821835b0be8b2.js.map

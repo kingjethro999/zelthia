@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { FeatureHighlights } from "@/components/marketing/FeatureHighlights";
 import { ProblemSolutionSection } from "@/components/marketing/ProblemSolutionSection";
-import { FaqSection, FAQ_DATA } from "@/components/marketing/FaqSection";
+import { FaqSection } from "@/components/marketing/FaqSection";
+import { FAQ_DATA } from "@/components/marketing/faq-data";
 import { CtaBanner } from "@/components/marketing/CtaBanner";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://zelthia.health";

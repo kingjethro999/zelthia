@@ -19,12 +19,10 @@ import {
   Copy,
   Check,
   Building2,
-  Pill,
   Sparkles,
   Navigation,
   Compass,
   HeartHandshake,
-  ExternalLink,
 } from "lucide-react";
 
 interface PatientSearchProps {
@@ -307,8 +305,8 @@ export function PatientSearch({
               No matching medications in stock
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-md mx-auto">
-              We couldn't find any medications matching "{searchQuery}". Try
-              loosening your search filters or unchecking "In Stock Only" to
+              We couldn&apos;t find any medications matching &ldquo;{searchQuery}&rdquo;. Try
+              loosening your search filters or unchecking &ldquo;In Stock Only&rdquo; to
               view out-of-stock items.
             </p>
             <button
@@ -361,7 +359,7 @@ export function PatientSearch({
 
                     {item.notes && (
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
-                        "{item.notes}"
+                        &ldquo;{item.notes}&rdquo;
                       </p>
                     )}
 
@@ -484,7 +482,7 @@ export function PatientSearch({
                     </div>
 
                     <p className="text-xs text-zinc-800 dark:text-zinc-200 font-medium leading-relaxed">
-                      "{item.facility.landmarkDirections}"
+                      &ldquo;{item.facility.landmarkDirections}&rdquo;
                     </p>
 
                     <div className="flex flex-wrap items-center gap-4 text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 pt-2 border-t border-teal-200/50 dark:border-teal-800/40">

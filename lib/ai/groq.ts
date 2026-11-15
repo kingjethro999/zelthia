@@ -1,33 +1,34 @@
-import { BiometricProfile } from './types';
-import { buildSystemPrompt } from './prompts';
+import { BiometricProfile } from "./types";
+import { buildSystemPrompt } from "./prompts";
 
 interface MessageParam {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
 export async function callGroq(
   messages: MessageParam[],
-  biometrics?: BiometricProfile
+  biometrics?: BiometricProfile,
 ): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new Error('GROQ_API_KEY is not configured');
+    throw new Error("GROQ_API_KEY is not configured");
   }
 
-  const model = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
-  const url = 'https://api.groq.com/openai/v1/chat/completions';
+  const model = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
+  const url = "https://api.groq.com/openai/v1/chat/completions";
 
   const systemPrompt = buildSystemPrompt(biometrics);
 
-  const formattedMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-    { role: 'system', content: systemPrompt },
-  ];
+  const formattedMessages: Array<{
+    role: "system" | "user" | "assistant";
+    content: string;
+  }> = [{ role: "system", content: systemPrompt }];
 
   for (const m of messages) {
-    if (m.role === 'system') continue;
+    if (m.role === "system") continue;
     formattedMessages.push({
-      role: m.role === 'assistant' ? 'assistant' : 'user',
+      role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
     });
   }
@@ -37,9 +38,9 @@ export async function callGroq(
 
   try {
     const res = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
@@ -52,15 +53,17 @@ export async function callGroq(
     });
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => 'Unknown error');
-      throw new Error(`Groq API error status ${res.status}: ${errText.slice(0, 300)}`);
+      const errText = await res.text().catch(() => "Unknown error");
+      throw new Error(
+        `Groq API error status ${res.status}: ${errText.slice(0, 300)}`,
+      );
     }
 
     const data = await res.json();
     const text = data?.choices?.[0]?.message?.content;
 
     if (!text) {
-      throw new Error('No text returned in Groq response');
+      throw new Error("No text returned in Groq response");
     }
 
     return text;

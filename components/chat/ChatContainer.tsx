@@ -43,33 +43,31 @@ export const ChatContainer: React.FC = () => {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [biometrics, setBiometrics] = useState<BiometricProfile>({
-    age: "",
-    biologicalSex: "",
-    bloodGroup: "",
-    allergies: [],
-    chronicConditions: [],
-    currentMedications: [],
-    notes: "",
+  const [biometrics, setBiometrics] = useState<BiometricProfile>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_BIO);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === "object") return parsed;
+        }
+      } catch {
+        // Fallback
+      }
+    }
+    return {
+      age: "",
+      biologicalSex: "",
+      bloodGroup: "",
+      allergies: [],
+      chronicConditions: [],
+      currentMedications: [],
+      notes: "",
+    };
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Load biometrics from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_BIO);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === "object") {
-          setBiometrics(parsed);
-        }
-      }
-    } catch {
-      // LocalStorage unavailable or invalid JSON
-    }
-  }, []);
 
   // Scroll to bottom on new messages
   useEffect(() => {
