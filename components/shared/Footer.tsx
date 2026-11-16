@@ -17,7 +17,7 @@ const COLUMNS = [
   {
     title: "Facilities",
     links: [
-      { href: "/inventory?mode=provider", label: "Manage your stock" },
+      { href: "/provider", label: "Manage your stock" },
       { href: "/signup", label: "List your pharmacy" },
     ],
   },
@@ -33,7 +33,8 @@ const COLUMNS = [
 
 export function Footer() {
   const pathname = usePathname();
-  if (pathname === "/chat") return null;
+  // App-like screens and auth flows have no marketing footer.
+  if (/^\/(chat|signin|signup|setup|provider)(\/|$)/.test(pathname)) return null;
 
   return (
     <footer className="mt-auto border-t border-line bg-surface">
@@ -62,7 +63,7 @@ export function Footer() {
       </div>
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p>&copy; 2026 Zelthia</p>
+          <p>{"\u00a9 2026 Zelthia"}</p>
           <p className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-alert" aria-hidden />
             Zelthia doesn&apos;t replace a doctor. In an emergency, call{" "}

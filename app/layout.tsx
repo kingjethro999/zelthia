@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/shared/Header";
@@ -105,11 +106,15 @@ export default function RootLayout({
           Skip to content
         </a>
         <SessionProvider />
-        <Header />
+        <Suspense>
+          <Header />
+        </Suspense>
         <main id="main" className="flex flex-1 flex-col">
           {children}
         </main>
-        <Footer />
+        <Suspense>
+          <Footer />
+        </Suspense>
       </body>
     </html>
   );

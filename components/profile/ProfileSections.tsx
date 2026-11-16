@@ -12,9 +12,10 @@ import {
   Venus,
   VenusAndMars,
   EyeOff,
+  MapPin,
 } from "lucide-react";
 import { ChoiceGroup } from "@/components/ui/Choice";
-import { Stepper, TagInput, TextArea } from "@/components/ui/Field";
+import { Stepper, TagInput, TextArea, TextField } from "@/components/ui/Field";
 import type { BiometricProfile, BiologicalSex, BloodGroup } from "@/lib/ai/types";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +51,16 @@ export function AboutFields({ profile, patch }: { profile: BiometricProfile; pat
         onChange={(v) => patch({ age: v ?? "" })}
         hint="Doses and warning signs change with age."
         className="max-w-xs"
+      />
+      <TextField
+        label="Town or area"
+        icon={MapPin}
+        autoComplete="address-level2"
+        value={profile.location ?? ""}
+        onChange={(e) => patch({ location: e.target.value })}
+        placeholder="e.g. Wuse 2, Abuja"
+        hint="Used to find pharmacies, clinics and scan centres near you."
+        className="max-w-md"
       />
       <ChoiceGroup<BiologicalSex>
         label="Sex assigned at birth"

@@ -21,6 +21,8 @@ interface ChoiceGroupProps<T extends string> {
   variant?: "cards" | "pills";
   columns?: 2 | 3 | 4;
   className?: string;
+  /** Tighter tiles that hide descriptions on small screens. */
+  dense?: boolean;
 }
 
 /** Accessible radio group rendered as tiles or pills (no native radios). */
@@ -33,6 +35,7 @@ export function ChoiceGroup<T extends string>({
   variant = "cards",
   columns = 2,
   className,
+  dense,
 }: ChoiceGroupProps<T>) {
   const id = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -117,7 +120,8 @@ export function ChoiceGroup<T extends string>({
               onClick={() => onChange(opt.value)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cn(
-                "relative flex min-h-14 items-start gap-2.5 rounded-xl border p-3 text-left transition-[border-color,background-color] duration-150",
+                "relative flex items-start gap-2.5 rounded-xl border text-left transition-[border-color,background-color] duration-150",
+                dense ? "p-2.5 sm:p-3" : "min-h-14 p-3",
                 checked
                   ? "border-brand bg-brand-soft"
                   : "border-line bg-surface hover:border-brand/40",
@@ -137,7 +141,7 @@ export function ChoiceGroup<T extends string>({
                   {opt.label}
                 </span>
                 {opt.description && (
-                  <span className="mt-0.5 block text-xs text-muted">
+                  <span className={cn("mt-0.5 text-xs text-muted", dense ? "hidden sm:block" : "block")}>
                     {opt.description}
                   </span>
                 )}

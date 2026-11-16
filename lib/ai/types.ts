@@ -8,6 +8,8 @@ export interface BiometricProfile {
   age?: number | string;
   biologicalSex?: BiologicalSex;
   bloodGroup?: BloodGroup;
+  /** Town or area the user is usually in, for finding care nearby. */
+  location?: string;
   /** Height in centimetres. */
   heightCm?: number | null;
   /** Weight in kilograms. */

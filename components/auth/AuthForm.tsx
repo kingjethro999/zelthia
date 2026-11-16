@@ -31,7 +31,9 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("patient");
+  const [role, setRole] = useState<UserRole>(
+    params.get("role") === "provider" || next?.startsWith("/provider") ? "provider" : "patient",
+  );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ message: string; field?: string } | null>(
     null,
@@ -52,33 +54,35 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
     }
     const user = useSession.getState().user;
     if (user && !user.onboarded) {
-      router.replace(`/setup${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+      const dest = next ?? (role === "provider" ? "/provider" : null);
+      router.replace(`/setup${dest ? `?next=${encodeURIComponent(dest)}` : ""}`);
     } else {
-      router.replace(next ?? (user?.role === "provider" ? "/inventory?mode=provider" : "/chat"));
+      router.replace(next ?? (user?.role === "provider" ? "/provider" : "/chat"));
     }
   };
 
   const fieldError = (f: string) => (error?.field === f ? error.message : undefined);
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5" noValidate>
+    <form onSubmit={onSubmit} className="space-y-4" noValidate>
       {mode === "signup" && (
         <>
           <ChoiceGroup<UserRole>
             label="I'm joining as"
+            dense
             value={role}
             onChange={setRole}
             options={[
               {
                 value: "patient",
-                label: "A person",
-                description: "Get health guidance and find medicine",
+                label: "Myself",
+                description: "Health chat and medicine search",
                 icon: UserRound,
               },
               {
                 value: "provider",
                 label: "A facility",
-                description: "Pharmacy, clinic or hospital stock",
+                description: "List stock and services",
                 icon: Building2,
               },
             ]}
@@ -134,9 +138,18 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
       </Button>
 
       <p className="text-center text-sm text-muted">
+        <Link href="/chat" className="font-medium text-ink underline-offset-4 hover:underline">
+          Continue as a guest
+        </Link>
+      </p>
+
+      <p className="text-center text-sm text-muted">
         {mode === "signin" ? "New to Zelthia? " : "Already have an account? "}
         <Link
-          href={`${mode === "signin" ? "/signup" : "/signin"}${next ? `?next=${encodeURIComponent(next)}` : ""}`}
+          href={`${mode === "signin" ? "/signup" : "/signin"}?${new URLSearchParams({
+            ...(next ? { next } : {}),
+            ...(role === "provider" ? { role: "provider" } : {}),
+          })}`}
           className="font-semibold text-brand underline-offset-4 hover:underline"
         >
           {mode === "signin" ? "Create an account" : "Sign in"}

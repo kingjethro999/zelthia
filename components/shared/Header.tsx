@@ -22,11 +22,11 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/chat", label: "Health chat", icon: MessageCircleHeart },
   { href: "/inventory", label: "Find medicine", icon: Pill },
-  { href: "/inventory?mode=provider", label: "For facilities", icon: Building2 },
+  { href: "/provider", label: "For facilities", icon: Building2 },
 ];
 
 /** Routes that render their own full-height chrome. */
-const BARE = ["/chat"];
+const BARE = ["/chat", "/signin", "/signup", "/setup"];
 
 export function Header() {
   const pathname = usePathname();
@@ -37,7 +37,7 @@ export function Header() {
     setOpen(false);
   }
 
-  if (BARE.includes(pathname)) return null;
+  if (BARE.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur-md">

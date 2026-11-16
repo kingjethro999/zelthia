@@ -2,6 +2,7 @@ import { NextResponse, connection } from "next/server";
 import { endSession, getSessionUser } from "@/lib/server/auth";
 import { getProfile, sanitizeProfile, saveProfile } from "@/lib/server/profile";
 import { query } from "@/lib/server/db";
+import { deletePrivate } from "@/lib/server/storage";
 
 /** Save the health profile; `complete: true` marks account setup as finished. */
 export async function PUT(req: Request) {
@@ -68,8 +69,20 @@ export async function DELETE() {
     const user = await getSessionUser();
     if (!user)
       return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+    const files = await query<{ storage_id: string; resource_type: string; format: string }>(
+      "select storage_id, resource_type, format from attachments where user_id = $1 and storage_id is not null",
+      [user.id],
+    );
     await endSession();
     await query("delete from users where id = $1", [user.id]);
+    // Uploaded documents are health data: remove them from storage too.
+    const results = await Promise.allSettled(
+      files.map((f) =>
+        deletePrivate({ storageId: f.storage_id, resourceType: f.resource_type, format: f.format }),
+      ),
+    );
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed) console.error(`Account deleted but ${failed} stored file(s) failed to delete`, user.id);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("DELETE /api/account failed", err);

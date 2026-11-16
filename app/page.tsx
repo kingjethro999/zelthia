@@ -244,7 +244,7 @@ function ForFacilities() {
             List your facility
             <ArrowRight className="h-5 w-5" aria-hidden />
           </ButtonLink>
-          <ButtonLink href="/inventory?mode=provider" size="lg" variant="secondary">
+          <ButtonLink href="/provider" size="lg" variant="secondary">
             See the inventory tools
           </ButtonLink>
         </div>

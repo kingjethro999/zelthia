@@ -25,4 +25,5 @@ export const EMPTY_PROFILE: BiometricProfile = {
   chronicConditions: [],
   currentMedications: [],
   notes: "",
+  location: "",
 };
