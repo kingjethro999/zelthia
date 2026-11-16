@@ -12,12 +12,16 @@ function createPool() {
     throw new Error("DATABASE_URL is not set");
   }
   const local = /localhost|127\.0\.0\.1/.test(connectionString);
-  return new Pool({
+  const pool = new Pool({
     connectionString,
     ssl: local ? undefined : { rejectUnauthorized: false },
     max: 5,
     idleTimeoutMillis: 30_000,
   });
+  // The host drops idle connections; without this listener that error would
+  // crash the process. The pool discards the dead client and opens a new one.
+  pool.on("error", (err) => console.warn("Postgres idle client error", err.message));
+  return pool;
 }
 
 export function pool(): Pool {
@@ -116,6 +120,11 @@ create table if not exists products (
   updated_at timestamptz not null default now()
 );
 create index if not exists products_facility_idx on products(facility_id);
+alter table facilities add column if not exists directions_audio_id uuid references attachments(id) on delete set null;
+alter table facilities add column if not exists verification_status text not null default 'none';
+alter table facilities add column if not exists verification_note text not null default '';
+alter table facilities add column if not exists verification_url text not null default '';
+alter table facilities add column if not exists verified_at timestamptz;
 `;
 
 /** Creates tables on first use so deploys need no manual migration step. */

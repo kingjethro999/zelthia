@@ -1,4 +1,5 @@
-import { Clock, ExternalLink, Globe, MapPinned, PackageCheck, Phone, Stethoscope } from "lucide-react";
+import { BadgeCheck, Clock, ExternalLink, Globe, MapPinned, PackageCheck, Phone, Stethoscope } from "lucide-react";
+import { AudioPlayer } from "@/components/ui/AudioPlayer";
 import {
   FACILITY_KIND_LABEL,
   formatNaira,
@@ -12,19 +13,25 @@ import { cn } from "@/lib/utils";
 export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
   if (!matches.length) return null;
   return (
-    <section className="mt-4">
+    <section className="mt-5">
       <h4 className="mb-2 text-sm font-semibold text-ink">Listed on Zelthia</h4>
-      <ul className="grid gap-2 sm:grid-cols-2">
+      <ul className="grid gap-3 md:grid-cols-2">
         {matches.slice(0, 6).map((m, i) => {
           const status = m.product ? stockStatus(m.product) : null;
+          const verified = m.facility.verification?.status === "verified";
           return (
-            <li key={`${m.facility.id}-${m.product?.id ?? m.service}-${i}`} className="rounded-2xl border border-line bg-surface p-3.5">
-              <div className="flex items-start justify-between gap-2">
+            <li
+              key={`${m.facility.id}-${m.product?.id ?? m.service}-${i}`}
+              className="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface"
+            >
+              <div className="flex items-start justify-between gap-3 p-4 pb-3">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-ink">{m.product?.name ?? m.service}</p>
-                  <p className="truncate text-sm text-muted">
-                    {m.facility.name}, {FACILITY_KIND_LABEL[m.facility.kind]}
-                  </p>
+                  <p className="font-semibold leading-snug text-ink">{m.product?.name ?? m.service}</p>
+                  {m.product && (
+                    <p className="mt-0.5 text-sm text-muted">
+                      {[m.product.strength, m.product.packSize, formatNaira(m.product.priceNgn)].filter(Boolean).join(", ")}
+                    </p>
+                  )}
                 </div>
                 {m.product ? (
                   <span
@@ -43,21 +50,40 @@ export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
                   </span>
                 )}
               </div>
-              {m.product && <p className="mt-1.5 text-sm text-ink">{formatNaira(m.product.priceNgn)}</p>}
-              <div className="mt-2 space-y-1 text-sm text-muted">
-                <p className="flex items-start gap-1.5">
-                  <MapPinned className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                  {m.facility.directions || `${m.facility.address}, ${m.facility.city}`}
+
+              <div className="flex flex-1 flex-col gap-2.5 border-t border-line p-4 pt-3 text-sm">
+                <p className="flex items-center gap-1.5 font-medium text-ink">
+                  <span className="truncate">{m.facility.name}</span>
+                  {verified ? (
+                    <BadgeCheck className="h-4 w-4 shrink-0 text-brand" aria-label="Verified facility" />
+                  ) : null}
+                  <span className="shrink-0 rounded-full bg-mist px-2 py-0.5 text-xs font-normal text-muted">
+                    {FACILITY_KIND_LABEL[m.facility.kind]}
+                  </span>
                 </p>
+                {verified && <p className="-mt-1.5 text-xs font-medium text-brand">Licence verified</p>}
+                <p className="flex items-start gap-1.5 text-muted">
+                  <MapPinned className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                  <span>
+                    {m.facility.address}, {m.facility.city}
+                    {m.facility.directions && <span className="mt-0.5 block text-ink">{m.facility.directions}</span>}
+                  </span>
+                </p>
+                {m.facility.directionsAudioUrl && (
+                  <AudioPlayer src={m.facility.directionsAudioUrl} label="Listen to directions" />
+                )}
                 {m.facility.openingHours && (
-                  <p className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <p className="flex items-center gap-1.5 text-muted">
+                    <Clock className="h-4 w-4 shrink-0" aria-hidden />
                     {m.facility.openingHours}
                   </p>
                 )}
-                <a href={`tel:${m.facility.phone.replace(/\s/g, "")}`} className="flex items-center gap-1.5 font-medium text-brand hover:underline">
-                  <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  {m.facility.phone}
+                <a
+                  href={`tel:${m.facility.phone.replace(/\s/g, "")}`}
+                  className="mt-auto inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand px-4 font-semibold text-white hover:bg-brand-strong dark:text-[#06231a]"
+                >
+                  <Phone className="h-4 w-4" aria-hidden />
+                  Call {m.facility.phone}
                 </a>
               </div>
             </li>

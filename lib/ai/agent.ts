@@ -253,6 +253,8 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
                 matches.slice(0, 12).map((m) => ({
                   facility: m.facility.name,
                   kind: m.facility.kind,
+                  licence_verified: m.facility.verification?.status === "verified",
+                  has_recorded_directions: Boolean(m.facility.directionsAudioUrl),
                   address: `${m.facility.address}, ${m.facility.city}`,
                   phone: m.facility.phone,
                   hours: m.facility.openingHours,
@@ -282,7 +284,9 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
     ? `GROUNDING RULES (strict):
 - The only businesses you may name are those in ZELTHIA DIRECTORY RESULTS and WEB RESULTS above. Do not name any other pharmacy, hospital, clinic, store or brand of shop, not even as an example or "e.g.".
 - If you want to suggest looking locally, describe the type of place (e.g. "a community pharmacy" or "a teaching hospital's cardiology unit") without naming one.
-- Copy phone numbers, prices and addresses only when complete in the results.`
+- Copy phone numbers, prices and addresses only when complete in the results.
+- Call a facility "verified" only when licence_verified is true. If it has recorded directions, mention they can listen to them on the card below.
+- Facility cards with phone, directions and stock are shown under your answer, so keep your own summary short.`
     : "";
   const system = [buildSystemPrompt(profile), context, grounding].filter(Boolean).join("\n\n");
   let raw = "";

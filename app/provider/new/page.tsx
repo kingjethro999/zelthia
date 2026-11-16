@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { NewFacility } from "@/components/inventory/ProviderDashboard";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function NewFacilityPage() {
-  return <NewFacility />;
+  return (
+    <Suspense>
+      <NewFacility />
+    </Suspense>
+  );
 }

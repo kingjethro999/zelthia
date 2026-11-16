@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   FileText,
@@ -15,6 +16,8 @@ import {
   UserRound,
   Menu,
   AlertCircle,
+  ArrowRight,
+  Store,
 } from "lucide-react";
 import { useChat } from "@/lib/store/chat";
 import { useSession } from "@/lib/store/session";
@@ -37,6 +40,7 @@ export function ChatApp() {
   const user = useSession((s) => s.user);
   const sessionStatus = useSession((s) => s.status);
   const profile = useSession((s) => s.profile);
+  const facilityCount = useSession((s) => s.facilityCount);
   const chat = useChat();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
@@ -221,7 +225,7 @@ export function ChatApp() {
           }}
           className="min-h-0 flex-1 overflow-y-auto"
         >
-          <div className={cn("mx-auto flex w-full max-w-3xl flex-col px-4 sm:px-6", empty ? "min-h-full justify-center pb-[12vh]" : "pb-10 pt-4")}>
+          <div className={cn("mx-auto flex w-full max-w-3xl flex-col px-4 sm:px-6", empty ? "pb-16 pt-[12vh] sm:pt-[18vh]" : "pb-10 pt-4")}>
             {empty ? (
               <div className="animate-rise py-8">
                 {chat.temporary ? (
@@ -243,6 +247,21 @@ export function ChatApp() {
                       explain it and find where to go next.
                     </p>
                   </>
+                )}
+                {user?.role === "provider" && facilityCount === 0 && !chat.temporary && (
+                  <Link
+                    href="/provider/new?welcome=1"
+                    className="mt-6 flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand-soft/60 p-4 transition-colors hover:border-brand"
+                  >
+                    <Store className="h-6 w-6 shrink-0 text-brand" aria-hidden />
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-ink">Finish setting up your facility</span>
+                      <span className="block text-sm text-muted">
+                        Patients can&apos;t find your stock until you add your address, directions and products.
+                      </span>
+                    </span>
+                    <ArrowRight className="h-5 w-5 shrink-0 text-brand" aria-hidden />
+                  </Link>
                 )}
                 <div className="mt-8">{composerBlock}</div>
               </div>

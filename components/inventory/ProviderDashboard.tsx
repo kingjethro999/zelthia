@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   Boxes,
+  CircleCheck,
   Building2,
   CalendarClock,
   Minus,
@@ -32,8 +33,10 @@ import {
   type Product,
 } from "@/lib/inventory-types";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/lib/store/session";
 import { FacilityForm, type FacilityDraft } from "./FacilityForm";
 import { ProductDialog, type ProductDraft } from "./ProductDialog";
+import { VerificationBadge, verificationMessage } from "./VerificationBadge";
 
 type Tab = "stock" | "services" | "details";
 
@@ -61,6 +64,12 @@ export function ProviderDashboard() {
   const selectedId = params.get("facility") ?? facilities?.[0]?.id ?? null;
   const facility = facilities?.find((f) => f.id === selectedId) ?? facilities?.[0] ?? null;
   const [tab, setTab] = useState<Tab>("stock");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [seenCreated, setSeenCreated] = useState(false);
+  if (!seenCreated && facility && params.get("created") === "1") {
+    setSeenCreated(true);
+    setNotice(verificationMessage(facility.verification));
+  }
 
   useEffect(() => {
     let live = true;
@@ -103,7 +112,10 @@ export function ProviderDashboard() {
     <Shell>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="text-sm text-muted">{FACILITY_KIND_LABEL[facility.kind]}, {facility.city}</p>
+          <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
+            {FACILITY_KIND_LABEL[facility.kind]}, {facility.city}
+            <VerificationBadge v={facility.verification} />
+          </p>
           <h1 className="truncate font-display text-3xl font-semibold text-ink sm:text-4xl">{facility.name}</h1>
         </div>
         <div className="flex flex-wrap items-end gap-2">
@@ -124,6 +136,16 @@ export function ProviderDashboard() {
           </ButtonLink>
         </div>
       </div>
+
+      {notice && (
+        <div role="status" className="animate-rise mt-5 flex items-start gap-3 rounded-2xl border border-line bg-surface p-4">
+          <VerificationBadge v={facility.verification} className="shrink-0" />
+          <p className="flex-1 text-sm text-ink">{notice}</p>
+          <button type="button" onClick={() => setNotice(null)} className="text-sm font-medium text-muted hover:text-ink">
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <ChoiceGroup<Tab>
         label="Section"
@@ -152,7 +174,12 @@ export function ProviderDashboard() {
           <DetailsTab
             key={facility.id}
             facility={facility}
-            onSaved={(f) => setFacilities((fs) => fs!.map((x) => (x.id === f.id ? f : x)))}
+            onSaved={(f) => {
+              setFacilities((fs) => fs!.map((x) => (x.id === f.id ? f : x)));
+              if (f.licenseNumber !== facility.licenseNumber || f.verification.status !== facility.verification.status) {
+                setNotice(verificationMessage(f.verification));
+              }
+            }}
             onDeleted={(id) => {
               setFacilities((fs) => fs!.filter((x) => x.id !== id));
               setTab("stock");
@@ -434,9 +461,10 @@ function StockTab({ facility }: { facility: Facility }) {
 }
 
 function toDraft(f: Facility): FacilityDraft {
-  const { id: _id, createdAt: _c, ...rest } = f;
+  const { id: _id, createdAt: _c, verification: _v, ...rest } = f;
   void _id;
   void _c;
+  void _v;
   return rest;
 }
 
@@ -549,19 +577,34 @@ function DetailsTab({
 
 export function NewFacility() {
   const router = useRouter();
+  const welcome = useSearchParams().get("welcome") === "1";
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
-      <Link href="/provider" className="text-sm font-medium text-muted hover:text-ink">
-        Back to dashboard
-      </Link>
-      <h1 className="mt-3 font-display text-3xl font-semibold text-ink sm:text-4xl">Register your facility</h1>
-      <p className="mb-8 mt-2 text-muted">You can change any of this later.</p>
+      {welcome ? (
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-sm font-medium text-brand-strong">
+          <CircleCheck className="h-4 w-4" aria-hidden />
+          Your profile is set up. Step 2 of 2
+        </p>
+      ) : (
+        <Link href="/provider" className="text-sm font-medium text-muted hover:text-ink">
+          Back to dashboard
+        </Link>
+      )}
+      <h1 className="mt-3 font-display text-3xl font-semibold text-ink sm:text-4xl">
+        {welcome ? "Now set up your facility" : "Register your facility"}
+      </h1>
+      <p className="mb-8 mt-2 text-muted">
+        {welcome
+          ? "Add where you are and how to find you, then start listing what you stock. You can change any of this later."
+          : "You can change any of this later."}
+      </p>
       <FacilityForm
         submitLabel="Register facility"
         onSubmit={async (draft) => {
           const res = await api<{ facility: Facility }>("/api/facilities", { method: "POST", body: JSON.stringify(draft) });
           if (!res.ok) return res;
-          router.replace(`/provider?facility=${res.data.facility.id}`);
+          void useSession.getState().hydrate();
+          router.replace(`/provider?facility=${res.data.facility.id}&created=1`);
           return { ok: true };
         }}
       />

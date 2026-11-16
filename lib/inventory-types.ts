@@ -60,6 +60,19 @@ export interface Facility {
   licenseNumber: string;
   services: string[];
   createdAt: string;
+  /** Public URL of the recorded directions, if any. */
+  directionsAudioUrl: string | null;
+  directionsAudioId: string | null;
+  verification: Verification;
+}
+
+/** "verified" is set by an automated check that found proof, or by an admin. */
+export type VerificationStatus = "none" | "pending" | "verified";
+
+export interface Verification {
+  status: VerificationStatus;
+  note: string;
+  url: string;
 }
 
 export interface Product {

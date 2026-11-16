@@ -6,6 +6,7 @@ import {
   type Facility,
   type FacilityKind,
   type Product,
+  type VerificationStatus,
 } from "@/lib/inventory-types";
 import { query } from "./db";
 
@@ -26,6 +27,10 @@ interface FacilityRow {
   license_number: string;
   services: string[];
   created_at: Date;
+  directions_audio_id: string | null;
+  verification_status: string;
+  verification_note: string;
+  verification_url: string;
 }
 
 interface ProductRow {
@@ -61,6 +66,15 @@ export const toFacility = (r: FacilityRow): Facility => ({
   licenseNumber: r.license_number,
   services: r.services ?? [],
   createdAt: new Date(r.created_at).toISOString(),
+  directionsAudioId: r.directions_audio_id ?? null,
+  directionsAudioUrl: r.directions_audio_id ? `/api/facilities/${r.id}/audio` : null,
+  verification: {
+    status: (["none", "pending", "verified"].includes(r.verification_status)
+      ? r.verification_status
+      : "none") as VerificationStatus,
+    note: r.verification_note ?? "",
+    url: r.verification_url ?? "",
+  },
 });
 
 const isoDate = (d: Date | null) =>
@@ -128,6 +142,10 @@ export function parseFacilityInput(body: Record<string, unknown>) {
     openingHours: str(body.openingHours, 160),
     licenseNumber: str(body.licenseNumber, 80),
     services,
+    directionsAudioId:
+      typeof body.directionsAudioId === "string" && isUuid(body.directionsAudioId)
+        ? body.directionsAudioId
+        : null,
   };
 }
 
@@ -195,10 +213,12 @@ export async function getOwnedFacility(id: string, ownerId: string) {
 export async function createFacility(ownerId: string, f: ReturnType<typeof parseFacilityInput>) {
   const rows = await query<FacilityRow>(
     `insert into facilities (owner_id, name, kind, phone, email, address, city, state,
-       directions, opening_hours, license_number, services)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) returning *`,
+       directions, opening_hours, license_number, services, directions_audio_id)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
+       (select id from attachments where id = $13 and user_id = $1))
+     returning *`,
     [ownerId, f.name, f.kind, f.phone, f.email, f.address, f.city, f.state,
-      f.directions, f.openingHours, f.licenseNumber, f.services],
+      f.directions, f.openingHours, f.licenseNumber, f.services, f.directionsAudioId],
   );
   await query("update users set role = 'provider' where id = $1", [ownerId]);
   return toFacility(rows[0]);
@@ -211,10 +231,14 @@ export async function updateFacility(
 ) {
   const rows = await query<FacilityRow>(
     `update facilities set name=$3, kind=$4, phone=$5, email=$6, address=$7, city=$8, state=$9,
-       directions=$10, opening_hours=$11, license_number=$12, services=$13, updated_at=now()
+       directions=$10, opening_hours=$11, license_number=$12, services=$13,
+       directions_audio_id=(select id from attachments where id = $14 and user_id = $2),
+       -- A changed licence number has to be checked again.
+       verification_status = case when license_number is distinct from $12 then 'none' else verification_status end,
+       updated_at=now()
      where id=$1 and owner_id=$2 returning *`,
     [id, ownerId, f.name, f.kind, f.phone, f.email, f.address, f.city, f.state,
-      f.directions, f.openingHours, f.licenseNumber, f.services],
+      f.directions, f.openingHours, f.licenseNumber, f.services, f.directionsAudioId],
   );
   return rows[0] ? toFacility(rows[0]) : null;
 }
@@ -352,4 +376,29 @@ export async function directoryCities() {
 
 export function isUuid(v: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+}
+
+export async function setVerification(
+  id: string,
+  v: { status: VerificationStatus; note: string; url: string },
+) {
+  const rows = await query<FacilityRow>(
+    `update facilities set verification_status=$2, verification_note=$3, verification_url=$4,
+       verified_at = case when $2 = 'verified' then now() else null end
+     where id=$1 returning *`,
+    [id, v.status, v.note, v.url],
+  );
+  return rows[0] ? toFacility(rows[0]) : null;
+}
+
+/** Public: the recorded directions for a facility (directions are public info). */
+export async function getFacilityAudio(facilityId: string) {
+  if (!isUuid(facilityId)) return null;
+  const rows = await query<{ mime: string; storage_id: string; resource_type: string; format: string }>(
+    `select a.mime, a.storage_id, a.resource_type, a.format
+       from facilities f join attachments a on a.id = f.directions_audio_id
+      where f.id = $1 and a.storage_id is not null`,
+    [facilityId],
+  );
+  return rows[0] ?? null;
 }

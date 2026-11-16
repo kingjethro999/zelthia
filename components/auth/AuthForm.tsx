@@ -54,7 +54,7 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
     }
     const user = useSession.getState().user;
     if (user && !user.onboarded) {
-      const dest = next ?? (role === "provider" ? "/provider" : null);
+      const dest = next && next !== "/provider" ? next : role === "provider" ? "/provider/new?welcome=1" : next;
       router.replace(`/setup${dest ? `?next=${encodeURIComponent(dest)}` : ""}`);
     } else {
       router.replace(next ?? (user?.role === "provider" ? "/provider" : "/chat"));

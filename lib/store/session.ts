@@ -21,6 +21,8 @@ interface ApiResult {
 interface SessionState {
   status: Status;
   user: SessionUser | null;
+  /** Owned facilities for provider accounts; null when unknown or personal. */
+  facilityCount: number | null;
   /** Server copy when signed in; device-local copy for guests. */
   profile: BiometricProfile;
   hydrate: () => Promise<void>;
@@ -61,6 +63,7 @@ export const useSession = create<SessionState>()(
     (set, get) => ({
       status: "idle",
       user: null,
+      facilityCount: null,
       profile: EMPTY_PROFILE,
 
       hydrate: async () => {
@@ -72,6 +75,7 @@ export const useSession = create<SessionState>()(
           set({
             status: res.ok ? "ready" : "error",
             user: data.user,
+            facilityCount: data.facilityCount ?? null,
             profile: data.user
               ? { ...EMPTY_PROFILE, ...(data.profile ?? {}) }
               : get().user
@@ -91,19 +95,20 @@ export const useSession = create<SessionState>()(
           profile: { ...EMPTY_PROFILE, ...(data.profile ?? get().profile) },
           status: "ready",
         });
+        void get().hydrate();
         return { ok: true };
       },
 
       signUp: async (input) => {
         const { res, data } = await post("/api/auth/signup", input);
         if (!res?.ok) return { ok: false, error: data.error, field: data.field };
-        set({ user: data.user, status: "ready" });
+        set({ user: data.user, status: "ready", facilityCount: data.user.role === "provider" ? 0 : null });
         return { ok: true };
       },
 
       signOut: async () => {
         await post("/api/auth/signout");
-        set({ user: null, profile: EMPTY_PROFILE, status: "ready" });
+        set({ user: null, profile: EMPTY_PROFILE, status: "ready", facilityCount: null });
       },
 
       saveProfile: async (profile, opts = {}) => {
@@ -132,7 +137,7 @@ export const useSession = create<SessionState>()(
       name: "zelthia-session",
       storage: createJSONStorage(() => localStorage),
       // The user object is cached only to avoid a signed-out flash; the server stays the source of truth.
-      partialize: (s) => ({ user: s.user, profile: s.profile }),
+      partialize: (s) => ({ user: s.user, profile: s.profile, facilityCount: s.facilityCount }),
       skipHydration: true,
     },
   ),

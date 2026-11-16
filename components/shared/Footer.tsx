@@ -33,8 +33,8 @@ const COLUMNS = [
 
 export function Footer() {
   const pathname = usePathname();
-  // App-like screens and auth flows have no marketing footer.
-  if (/^\/(chat|signin|signup|setup|provider)(\/|$)/.test(pathname)) return null;
+  // The marketing footer belongs on the landing page only.
+  if (pathname !== "/") return null;
 
   return (
     <footer className="mt-auto border-t border-line bg-surface">

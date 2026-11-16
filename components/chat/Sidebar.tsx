@@ -56,6 +56,7 @@ export function Sidebar({
   onCloseMobile: () => void;
 }) {
   const user = useSession((s) => s.user);
+  const facilityCount = useSession((s) => s.facilityCount);
   const { conversations, listStatus, activeId, newChat, rename, remove } = useChat();
   const groups = useMemo(() => group(conversations), [conversations]);
   const [editing, setEditing] = useState<string | null>(null);
@@ -95,12 +96,22 @@ export function Sidebar({
           <Pill className="h-[18px] w-[18px] text-muted" aria-hidden />
           Find medicine
         </Link>
-        {user && (
-          <Link href="/provider" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist">
-            <Boxes className="h-[18px] w-[18px] text-muted" aria-hidden />
-            Manage stock
-          </Link>
-        )}
+        {user?.role === "provider" &&
+          (facilityCount === 0 ? (
+            <Link
+              href="/provider/new?welcome=1"
+              className="flex items-center gap-3 rounded-xl bg-brand-soft px-3 py-2 text-sm font-medium text-brand-strong hover:bg-brand-soft/70"
+            >
+              <Boxes className="h-[18px] w-[18px]" aria-hidden />
+              Set up your facility
+              <span className="ml-auto h-2 w-2 rounded-full bg-brand" aria-hidden />
+            </Link>
+          ) : (
+            <Link href="/provider" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist">
+              <Boxes className="h-[18px] w-[18px] text-muted" aria-hidden />
+              Manage stock
+            </Link>
+          ))}
       </nav>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-2 pb-3">

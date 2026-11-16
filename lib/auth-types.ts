@@ -13,6 +13,8 @@ export interface SessionUser {
 export interface SessionPayload {
   user: SessionUser | null;
   profile: BiometricProfile | null;
+  /** Facilities the user owns; null for personal accounts. */
+  facilityCount: number | null;
 }
 
 export const EMPTY_PROFILE: BiometricProfile = {

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { AlertCircle, AlertTriangle, Check, CircleCheck, Copy, FileText } from "lucide-react";
+import { AlertCircle, AlertTriangle, Check, CircleCheck, Copy, ExternalLink, FileText } from "lucide-react";
+import { Dialog } from "@/components/ui/Dialog";
 import type { AgentStep, AttachmentView, ChatMessageView } from "@/lib/chat-types";
 import type { TriageLevel } from "@/lib/ai/types";
 import { stripTags } from "@/lib/ai/parser";
@@ -20,13 +21,36 @@ const TRIAGE: Record<TriageLevel, { label: string; icon: typeof AlertCircle; cla
 const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
 export function AttachmentThumb({ a, size = "md" }: { a: AttachmentView; size?: "sm" | "md" }) {
+  const [open, setOpen] = useState(false);
   const isImage = a.mime.startsWith("image/") && a.url;
-  const box = size === "sm" ? "h-14 w-14" : "h-24 w-24 sm:h-28 sm:w-28";
+  const box = size === "sm" ? "h-14 w-14" : "h-28 w-28 sm:h-36 sm:w-36";
   if (isImage) {
     return (
-      <a href={a.url} target="_blank" rel="noopener noreferrer" className={cn("relative block overflow-hidden rounded-xl border border-line bg-mist", box)} title={a.name}>
-        <Image src={a.url!} alt={a.name} fill unoptimized className="object-cover" sizes="112px" />
-      </a>
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={cn("group relative block overflow-hidden rounded-2xl border border-line bg-mist", box)}
+          aria-label={`View ${a.name}`}
+        >
+          <Image src={a.url!} alt={a.name} fill unoptimized className="object-cover transition-transform duration-200 group-hover:scale-[1.03]" sizes="144px" />
+        </button>
+        <Dialog
+          open={open}
+          onClose={() => setOpen(false)}
+          title={a.name}
+          className="sm:max-w-4xl"
+          footer={
+            <a href={a.url} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium text-ink hover:bg-mist">
+              <ExternalLink className="h-4 w-4" aria-hidden />
+              Open full size
+            </a>
+          }
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- private, auth-gated URL; Next image optimisation can't fetch it */}
+          <img src={a.url} alt={a.name} className="mx-auto max-h-[70dvh] w-auto rounded-xl object-contain" />
+        </Dialog>
+      </>
     );
   }
   const body = (
@@ -98,9 +122,8 @@ export function AssistantMessage({
   };
 
   return (
-    <div className="animate-rise flex items-start gap-3">
-      <Image src="/icons/icon-96.png" alt="" width={28} height={28} unoptimized className="mt-0.5 shrink-0" />
-      <div className="min-w-0 flex-1">
+    <div className="animate-rise">
+      <div className="min-w-0">
         <StepsPanel steps={steps} live={Boolean(live)} />
         {triage && (
           <p className={cn("mb-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold", triage.className)}>

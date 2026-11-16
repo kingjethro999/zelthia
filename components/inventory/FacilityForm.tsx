@@ -14,12 +14,14 @@ import {
   Stethoscope,
   Store,
   Pill,
+  BadgeCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ChoiceGroup } from "@/components/ui/Choice";
 import { TagInput, TextArea, TextField } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
 import { FACILITY_KIND_LABEL, type Facility, type FacilityKind } from "@/lib/inventory-types";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 const STATES = [
   "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", "Cross River",
@@ -54,7 +56,7 @@ const KIND_ICONS: Record<FacilityKind, typeof Store> = {
   store: Store,
 };
 
-export type FacilityDraft = Omit<Facility, "id" | "createdAt">;
+export type FacilityDraft = Omit<Facility, "id" | "createdAt" | "verification">;
 
 export const EMPTY_FACILITY: FacilityDraft = {
   name: "",
@@ -68,6 +70,8 @@ export const EMPTY_FACILITY: FacilityDraft = {
   openingHours: "",
   licenseNumber: "",
   services: [],
+  directionsAudioId: null,
+  directionsAudioUrl: null,
 };
 
 export function FacilityForm({
@@ -117,7 +121,16 @@ export function FacilityForm({
           <TextField label="Phone number" type="tel" icon={Phone} value={f.phone} onChange={(e) => set("phone", e.target.value)} error={fieldError("phone")} placeholder="0803 000 0000" autoComplete="tel" />
           <TextField label="Email (optional)" type="email" icon={Mail} value={f.email} onChange={(e) => set("email", e.target.value)} placeholder="desk@example.com" />
         </div>
-        <TextField label="Licence or registration number (optional)" icon={FileBadge} value={f.licenseNumber} onChange={(e) => set("licenseNumber", e.target.value)} hint="PCN, MDCN or state registration. Shown to patients." />
+        <div>
+          <TextField label="Licence or registration number (optional)" icon={FileBadge} value={f.licenseNumber} onChange={(e) => set("licenseNumber", e.target.value)} hint="PCN, MDCN, HEFAMAA or state ministry number." />
+          <p className="mt-2 flex items-start gap-2 rounded-xl bg-brand-soft/60 p-3 text-sm text-ink">
+            <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+            <span>
+              Only facilities with a licence or registration number get the green verified tick in search and chat. We
+              check it automatically when you save. If we can&apos;t confirm it online, a person reviews it within 7 days.
+            </span>
+          </p>
+        </div>
       </section>
 
       <section className="space-y-5">
@@ -127,7 +140,21 @@ export function FacilityForm({
           <TextField label="City or town" value={f.city} onChange={(e) => set("city", e.target.value)} error={fieldError("city")} placeholder="Abuja" />
           <Select label="State" value={f.state} onChange={(v) => set("state", v)} placeholder="Choose a state" options={STATES.map((s) => ({ value: s, label: s }))} />
         </div>
-        <TextArea label="Directions using landmarks" value={f.directions} onChange={(e) => set("directions", e.target.value)} placeholder="Opposite First Bank, first gate after the Total filling station. Blue building with a green cross." hint="Describe the way in using places people know. Shown with every search result." rows={3} />
+        <div className="space-y-3">
+          <TextArea label="Directions using landmarks" value={f.directions} onChange={(e) => set("directions", e.target.value)} placeholder="Opposite First Bank, first gate after the Total filling station. Blue building with a green cross." hint="Type them, record them, or both. Patients can read and listen to them with every result." rows={3} />
+          <VoiceRecorder
+            audioUrl={f.directionsAudioUrl}
+            onSaved={({ id, url, transcript }) =>
+              setF((d) => ({
+                ...d,
+                directionsAudioId: id,
+                directionsAudioUrl: url,
+                directions: transcript ? (d.directions.trim() ? `${d.directions.trim()}\n${transcript}` : transcript) : d.directions,
+              }))
+            }
+            onRemove={() => setF((d) => ({ ...d, directionsAudioId: null, directionsAudioUrl: null }))}
+          />
+        </div>
         <TextField label="Opening hours" icon={Clock} value={f.openingHours} onChange={(e) => set("openingHours", e.target.value)} placeholder="Mon to Sat, 8am to 9pm" />
       </section>
 
@@ -152,7 +179,7 @@ export function FacilityForm({
       )}
 
       <Button type="submit" size="lg" loading={saving} className="w-full sm:w-auto">
-        {submitLabel}
+        {saving && f.licenseNumber ? "Saving and checking licence" : submitLabel}
       </Button>
     </form>
   );

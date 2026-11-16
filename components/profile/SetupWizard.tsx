@@ -101,7 +101,9 @@ function SetupForm() {
     setSaving(false);
     if (!res.ok) return setError(res.error ?? "Your profile wasn't saved.");
     const next = safeNext(params.get("next"));
-    router.replace(next ?? (user?.role === "provider" ? "/provider" : "/chat"));
+    router.replace(
+      next ?? (user?.role === "provider" && !useSession.getState().facilityCount ? "/provider/new?welcome=1" : user?.role === "provider" ? "/provider" : "/chat"),
+    );
   };
 
   const go = (to: number) => {
@@ -109,9 +111,10 @@ function SetupForm() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const isProvider = user?.role === "provider";
   const skipTo =
     safeNext(params.get("next")) ??
-    (user?.role === "provider" ? "/provider" : "/chat");
+    (isProvider ? "/provider/new?welcome=1" : "/chat");
 
   return (
     <div className="flex h-dvh flex-col">
@@ -149,6 +152,9 @@ function SetupForm() {
             <p className="mb-1 text-sm text-muted">
               Step {step + 1} of {STEPS.length}
             </p>
+          {isProvider && (
+            <p className="mb-3 text-sm font-medium text-brand">Next: your facility details</p>
+          )}
             <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-line lg:hidden">
               <div
                 className="h-full rounded-full bg-brand transition-[width] duration-300"
