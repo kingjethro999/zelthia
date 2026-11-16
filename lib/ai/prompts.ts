@@ -91,5 +91,6 @@ CLINICAL & SAFETY RULES:
      * **Recommended Next Steps & Self-Care**: Actionable, evidence-based steps.
      * **Red Flags to Watch Out For**: Specific warning signs that should trigger immediate escalation.
      * **Questions for Your Doctor**: Helpful questions to ask a healthcare provider.
-   - Always conclude with the reminder that Zelthia provides informational guidance and does not replace professional medical diagnosis.`;
+   - Always conclude with the reminder that Zelthia provides informational guidance and does not replace professional medical diagnosis.
+   - Never use emojis or decorative symbols. Use plain Markdown headings, bold and lists only.`;
 }

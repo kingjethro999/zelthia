@@ -58,7 +58,7 @@ export function generateClinicalFallback(
           actionText: "Find Nearest Emergency Facility",
           reason: "Immediate in-person emergency evaluation is required.",
         },
-        message: `### 🚨 Urgent Medical Alert: Immediate Emergency Evaluation Required
+        message: `### Urgent Medical Alert: Immediate Emergency Evaluation Required
 
 **Your safety is the absolute priority.** The symptoms you described (${kw}) can be indicators of a life-threatening acute emergency.
 
@@ -95,7 +95,7 @@ export function generateClinicalFallback(
         query.includes("penicillin")
       ) {
         bioAlerts.push(
-          "⚠️ **Severe Allergy Contraindication**: You have a documented **Penicillin allergy**. Amoxicillin, Ampicillin, and Augmentin belong to the beta-lactam penicillin family and pose a high risk of anaphylaxis. Do not take these without direct allergist/physician clearance.",
+          "**Severe Allergy Contraindication**: You have a documented **Penicillin allergy**. Amoxicillin, Ampicillin, and Augmentin belong to the beta-lactam penicillin family and pose a high risk of anaphylaxis. Do not take these without direct allergist/physician clearance.",
         );
       }
     }
@@ -108,7 +108,7 @@ export function generateClinicalFallback(
         query.includes("sulfa")
       ) {
         bioAlerts.push(
-          "⚠️ **Sulfa Allergy Contraindication**: Your profile lists a **Sulfa allergy**. Sulfonamide antibiotics like Septrin/Bactrim must be avoided to prevent hypersensitivity reactions or severe cutaneous drug reactions.",
+          "**Sulfa Allergy Contraindication**: Your profile lists a **Sulfa allergy**. Sulfonamide antibiotics like Septrin/Bactrim must be avoided to prevent hypersensitivity reactions or severe cutaneous drug reactions.",
         );
       }
     }
@@ -128,7 +128,7 @@ export function generateClinicalFallback(
         query.includes("naproxen")
       ) {
         bioAlerts.push(
-          "⚠️ **NSAID Allergy Alert**: Your profile lists an **NSAID / Aspirin allergy**. Avoid Ibuprofen, Diclofenac, and Naproxen. Consider Paracetamol (Acetaminophen) for analgesia instead.",
+          "**NSAID Allergy Alert**: Your profile lists an **NSAID / Aspirin allergy**. Avoid Ibuprofen, Diclofenac, and Naproxen. Consider Paracetamol (Acetaminophen) for analgesia instead.",
         );
       }
     }
@@ -146,7 +146,7 @@ export function generateClinicalFallback(
         query.includes("sinus")
       ) {
         bioAlerts.push(
-          "⚠️ **Hypertension Precaution**: Many OTC multi-symptom cold/sinus remedies contain **pseudoephedrine or phenylephrine**, which can dangerously elevate blood pressure. Look for decongestant-free cold formulas or consult your pharmacist.",
+          "**Hypertension Precaution**: Many OTC multi-symptom cold/sinus remedies contain **pseudoephedrine or phenylephrine**, which can dangerously elevate blood pressure. Look for decongestant-free cold formulas or consult your pharmacist.",
         );
       }
     }
@@ -158,7 +158,7 @@ export function generateClinicalFallback(
         query.includes("diclofenac")
       ) {
         bioAlerts.push(
-          "⚠️ **Asthma Precaution**: NSAIDs (Ibuprofen, Aspirin) can trigger bronchospasm in up to 10-20% of asthmatic individuals (aspirin-exacerbated respiratory disease). Exercise caution and prioritize Paracetamol.",
+          "**Asthma Precaution**: NSAIDs (Ibuprofen, Aspirin) can trigger bronchospasm in up to 10-20% of asthmatic individuals (aspirin-exacerbated respiratory disease). Exercise caution and prioritize Paracetamol.",
         );
       }
     }
@@ -166,7 +166,7 @@ export function generateClinicalFallback(
     if (conditions.some((c) => c.includes("diabetes"))) {
       if (query.includes("cough syrup") || query.includes("syrup")) {
         bioAlerts.push(
-          "⚠️ **Diabetes Precaution**: Standard liquid cough syrups frequently contain high concentrations of sucrose or corn syrup. Request sugar-free formulation at the pharmacy to avoid glycemic spikes.",
+          "**Diabetes Precaution**: Standard liquid cough syrups frequently contain high concentrations of sucrose or corn syrup. Request sugar-free formulation at the pharmacy to avoid glycemic spikes.",
         );
       }
     }
@@ -186,7 +186,7 @@ export function generateClinicalFallback(
         query.includes("pain relief")
       ) {
         bioAlerts.push(
-          "⚠️ **Medication Interaction**: You are taking an ACE inhibitor. Combining ACE inhibitors with regular NSAIDs can reduce antihypertensive efficacy and increase renal strain.",
+          "**Medication Interaction**: You are taking an ACE inhibitor. Combining ACE inhibitors with regular NSAIDs can reduce antihypertensive efficacy and increase renal strain.",
         );
       }
     }
@@ -194,7 +194,7 @@ export function generateClinicalFallback(
 
   const bioSection =
     bioAlerts.length > 0
-      ? `\n\n### 🛡️ Biometric Safety Cross-Check\n${bioAlerts.join("\n\n")}\n`
+      ? `\n\n### Safety check against your profile\n${bioAlerts.join("\n\n")}\n`
       : "";
 
   // 3. Scenario: Fever / Malaria / Body aches

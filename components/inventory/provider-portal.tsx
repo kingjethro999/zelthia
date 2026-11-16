@@ -390,7 +390,7 @@ export function ProviderPortal({
                   <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
                     <span>Inventory Health Attention Required</span>
                     <span className="px-2 py-0.5 text-[11px] rounded-full bg-amber-200/70 dark:bg-amber-800/60 font-semibold text-amber-900 dark:text-amber-100">
-                      {lowStockItems.length} low stock • {expiringItems.length}{" "}
+                      {lowStockItems.length} low stock, {expiringItems.length}{" "}
                       expiring soon
                     </span>
                   </h4>
@@ -552,7 +552,7 @@ export function ProviderPortal({
                           )}
                         </div>
                         <div className="text-[11px] text-muted font-mono mt-0.5">
-                          {item.genericFormula} • {item.strength}
+                          {item.genericFormula}, {item.strength}
                         </div>
                       </td>
 
