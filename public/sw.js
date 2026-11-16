@@ -1,6 +1,6 @@
 // Zelthia service worker: offline shell + cache-first static assets.
 // API calls and auth are never cached.
-const VERSION = "zelthia-v1";
+const VERSION = "zelthia-v2";
 const SHELL = ["/offline.html", "/icons/icon-192.png", "/icons/icon-96.png"];
 
 self.addEventListener("install", (event) => {
@@ -39,8 +39,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Hashed build assets and icons: cache first.
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
+  // Only content-hashed build files are safe to serve from cache forever.
+  // Other /_next/static files keep the same name across builds and must
+  // always come from the network, or old code runs against new pages.
+  if (url.pathname.startsWith("/_next/static/immutable/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(
       caches.match(request).then(
         (cached) =>
