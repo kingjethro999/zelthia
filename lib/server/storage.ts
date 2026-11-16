@@ -1,4 +1,5 @@
 import "server-only";
+import { fetchService } from "./http";
 import { createHash } from "node:crypto";
 
 /** Private Cloudinary storage: assets are `authenticated` and served via our API only. */
@@ -36,12 +37,12 @@ export async function uploadPrivate(
   form.append("api_key", key);
   form.append("signature", sign(params, secret));
   form.append("file", dataUri);
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/auto/upload`, {
+  const res = await fetchService("Cloudinary", `https://api.cloudinary.com/v1_1/${cloud}/auto/upload`, {
     method: "POST",
     body: form,
     signal: AbortSignal.timeout(30000),
   });
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok || data.error) throw new Error(data.error?.message ?? `Upload failed (${res.status})`);
   return { storageId: data.public_id, resourceType: data.resource_type, format: data.format ?? "" };
 }
@@ -62,7 +63,7 @@ export async function downloadPrivate(file: StoredFile): Promise<Response> {
   );
   qs.set("api_key", key);
   qs.set("signature", sign(params, secret));
-  return fetch(`https://api.cloudinary.com/v1_1/${cloud}/${file.resourceType}/download?${qs}`, {
+  return fetchService("Cloudinary", `https://api.cloudinary.com/v1_1/${cloud}/${file.resourceType}/download?${qs}`, {
     signal: AbortSignal.timeout(30000),
   });
 }
@@ -78,7 +79,7 @@ export async function deletePrivate(file: StoredFile) {
   for (const [k, v] of Object.entries(params)) form.append(k, String(v));
   form.append("api_key", key);
   form.append("signature", sign(params, secret));
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/${file.resourceType}/destroy`, {
+  const res = await fetchService("Cloudinary", `https://api.cloudinary.com/v1_1/${cloud}/${file.resourceType}/destroy`, {
     method: "POST",
     body: form,
     signal: AbortSignal.timeout(20000),

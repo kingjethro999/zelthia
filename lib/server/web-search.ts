@@ -1,4 +1,5 @@
 import "server-only";
+import { fetchService } from "./http";
 import type { WebPlace } from "@/lib/inventory-types";
 
 const TIMEOUT_MS = 15000;
@@ -6,7 +7,7 @@ const TIMEOUT_MS = 15000;
 async function firecrawl(q: string, limit: number): Promise<WebPlace[]> {
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) throw new Error("FIRECRAWL_API_KEY not set");
-  const res = await fetch("https://api.firecrawl.dev/v2/search", {
+  const res = await fetchService("Firecrawl", "https://api.firecrawl.dev/v2/search", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({ query: q, limit, country: "NG" }),
@@ -28,7 +29,7 @@ async function firecrawl(q: string, limit: number): Promise<WebPlace[]> {
 async function jina(q: string, limit: number): Promise<WebPlace[]> {
   const key = process.env.JINA_API_KEY;
   if (!key) throw new Error("JINA_API_KEY not set");
-  const res = await fetch(`https://s.jina.ai/?q=${encodeURIComponent(q)}`, {
+  const res = await fetchService("Jina", `https://s.jina.ai/?q=${encodeURIComponent(q)}`, {
     headers: {
       Authorization: `Bearer ${key}`,
       Accept: "application/json",

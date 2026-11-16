@@ -55,10 +55,13 @@ export async function POST(req: NextRequest) {
   }
 
   let user = null;
+  let sessionFailed = false;
   try {
     user = await getSessionUser();
   } catch (err) {
+    // Recover by answering as a guest; the user is told once the stream opens.
     console.warn("Chat: session lookup failed, continuing as guest", err);
+    sessionFailed = true;
   }
   const limit = user ? rateLimit(`chat:u:${user.id}`, 40, 10 * 60_000) : rateLimit(`chat:ip:${clientIp(req)}`, 15, 10 * 60_000);
   if (!limit.ok) return bad(`You're sending messages quickly. Try again in ${limit.retryAfter} seconds.`, 429);
@@ -76,7 +79,15 @@ export async function POST(req: NextRequest) {
   const streamBody = new ReadableStream({
     async start(controller) {
       const emit = (e: ChatEvent) => controller.enqueue(encoder.encode(`${JSON.stringify(e)}\n`));
+      const steps = new StepTracker(emit);
       try {
+        if (sessionFailed) {
+          steps.finish(
+            steps.start("Checking your account"),
+            "Couldn't reach your account, so this chat won't be saved. Your answer is unaffected.",
+            "failed",
+          );
+        }
         if (saved && !conversationId) {
           const conv = await createConversation(user!.id, "New chat");
           conversationId = conv.id;
@@ -101,7 +112,6 @@ export async function POST(req: NextRequest) {
             .map((t) => ({ role: t.role, content: t.content.slice(0, 12000) }));
         }
 
-        const steps = new StepTracker(emit);
         const read = await readFiles(files, steps);
 
         // Save the user's message and files before answering, so a dropped connection loses nothing.
@@ -121,7 +131,13 @@ export async function POST(req: NextRequest) {
               try {
                 stored = await uploadPrivate(`data:${f.mime};base64,${f.base64}`, `zelthia/chat/${user!.id}`);
               } catch (err) {
+                // Recover: the file was already read for this answer; tell the user it isn't stored.
                 console.error("Attachment upload failed; keeping the transcript only", err);
+                steps.finish(
+                  steps.start(`Saving ${f.name}`),
+                  "Couldn't store this file, so it won't open from your history. It was still read for this answer.",
+                  "failed",
+                );
               }
               const id = await insertAttachment({
                 userId: user!.id,

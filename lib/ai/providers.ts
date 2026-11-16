@@ -1,4 +1,5 @@
 import "server-only";
+import { fetchService } from "@/lib/server/http";
 
 export type Turn = { role: "user" | "assistant"; content: string };
 
@@ -137,7 +138,7 @@ async function failIfBad(res: Response, id: string) {
 
 async function completeOne(p: ProviderCfg, system: string, turns: Turn[], json: boolean) {
   if (p.kind === "gemini") {
-    const res = await fetch(`${p.baseUrl}/models/${p.model}:generateContent`, {
+    const res = await fetchService(p.id, `${p.baseUrl}/models/${p.model}:generateContent`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": p.apiKey },
       body: JSON.stringify(geminiBody(p, system, turns, json)),
@@ -151,7 +152,7 @@ async function completeOne(p: ProviderCfg, system: string, turns: Turn[], json: 
     if (!text) throw new Error(`${p.id} returned no text`);
     return text as string;
   }
-  const res = await fetch(`${p.baseUrl}/chat/completions`, {
+  const res = await fetchService(p.id, `${p.baseUrl}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${p.apiKey}` },
     body: JSON.stringify(
@@ -213,7 +214,7 @@ async function streamOne(
 ) {
   let text = "";
   if (p.kind === "gemini") {
-    const res = await fetch(`${p.baseUrl}/models/${p.model}:streamGenerateContent?alt=sse`, {
+    const res = await fetchService(p.id, `${p.baseUrl}/models/${p.model}:streamGenerateContent?alt=sse`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": p.apiKey },
       body: JSON.stringify(geminiBody(p, system, turns)),
@@ -233,7 +234,7 @@ async function streamOne(
       }
     }
   } else {
-    const res = await fetch(`${p.baseUrl}/chat/completions`, {
+    const res = await fetchService(p.id, `${p.baseUrl}/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${p.apiKey}` },
       body: JSON.stringify(openaiBody(p, system, turns, { stream: true })),
@@ -294,7 +295,7 @@ export async function readWithVision(prompt: string, file: BinaryInput) {
     if (!p.visionModel || (isPdf && !p.pdf)) continue;
     try {
       if (p.kind === "gemini") {
-        const res = await fetch(`${p.baseUrl}/models/${p.visionModel}:generateContent`, {
+        const res = await fetchService(p.id, `${p.baseUrl}/models/${p.visionModel}:generateContent`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": p.apiKey },
           body: JSON.stringify({
@@ -319,7 +320,7 @@ export async function readWithVision(prompt: string, file: BinaryInput) {
         if (text.trim()) return { text, model: p.visionModel };
         throw new Error(`${p.id} vision returned no text`);
       }
-      const res = await fetch(`${p.baseUrl}/chat/completions`, {
+      const res = await fetchService(p.id, `${p.baseUrl}/chat/completions`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${p.apiKey}` },
         body: JSON.stringify({

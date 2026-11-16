@@ -45,6 +45,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             ref={ref}
             id={id}
             type={isPassword && reveal ? "text" : type}
+            aria-label={label}
             aria-invalid={Boolean(error) || undefined}
             aria-describedby={
               error ? `${id}-err` : hint ? `${id}-hint` : undefined
@@ -101,6 +102,7 @@ export function TextArea({ label, hint, className, ...props }: TextAreaProps) {
       </label>
       <textarea
         id={id}
+        aria-label={label}
         aria-describedby={hint ? `${id}-hint` : undefined}
         className={cn(inputBase, "min-h-24 resize-y py-2.5")}
         {...props}
@@ -172,6 +174,7 @@ export function Stepper({
         <div className="flex flex-1 items-center justify-center gap-1 border-x border-line">
           <input
             id={id}
+            aria-label={unit ? `${label} (${unit})` : label}
             inputMode="numeric"
             value={value ?? ""}
             placeholder="--"
@@ -280,6 +283,7 @@ export function TagInput({
         ))}
         <input
           id={id}
+          aria-label={label}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
