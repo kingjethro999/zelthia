@@ -85,7 +85,8 @@ export async function readFiles(files: IncomingFile[], steps: StepTracker): Prom
         const { text } = await readWithVision(READ_PROMPT, { mime: f.mime, base64: f.base64 });
         const kind = firstLine("DOCUMENT TYPE", text);
         const point = text.match(/KEY POINTS:\s*\n?\s*[-*]?\s*([^\n]+)/i)?.[1]?.replace(/[*_]/g, "").trim();
-        steps.finish(step, [kind, point].filter(Boolean).join(". ") || "Read the file");
+        const detail = [kind, point].filter(Boolean).map((t) => t!.replace(/[.\s]+$/, "")).join(". ");
+        steps.finish(step, detail || "Read the file");
         return { ...f, extracted: text };
       } catch (err) {
         console.error("Attachment read failed", f.name, err);
