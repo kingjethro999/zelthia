@@ -1,56 +1,47 @@
 export interface FaqItem {
   question: string;
   answer: string;
-  category: "General" | "Biometrics & AI" | "Inventory & Navigation" | "Safety & Privacy";
 }
 
 export const FAQ_DATA: FaqItem[] = [
   {
-    category: "General",
-    question: "What is Zelthia and what problems does it solve?",
+    question: "What is Zelthia?",
     answer:
-      "Zelthia is a biometric-aware AI health companion and multi-tenant healthcare navigation platform. It solves two critical healthcare access challenges: the uncertainty of generic online health advice, and the physical exhaustion of walking from pharmacy to pharmacy searching for out-of-stock medications. Zelthia pairs personalized symptom triage with real-time pharmacy inventory and landmark-guided clinic directions.",
+      "Zelthia is a health companion and medicine finder. You can describe symptoms or ask about a medicine, and Zelthia answers with your allergies, long-term conditions and current medicines in mind. It can then show which pharmacy, clinic or hospital near you has that medicine in stock, with directions based on landmarks.",
   },
   {
-    category: "Biometrics & AI",
-    question: "How does the Biometric-Aware AI Chat personalize health guidance?",
+    question: "Is Zelthia free?",
     answer:
-      "When using Zelthia AI Health Chat, you can input key biometric profile attributes such as your age, biological sex, blood group, allergies (e.g., penicillin), and chronic conditions (e.g., asthma, hypertension). Our AI models (powered by Gemini and Groq) incorporate these parameters into every health assessment to ensure guidance avoids contraindications and provides safe, realistic next steps.",
+      "Yes. Asking questions, searching for medicine and keeping a health profile are free for patients.",
   },
   {
-    category: "Inventory & Navigation",
-    question: "How does Zelthia verify pharmacy and clinic inventory?",
+    question: "Does Zelthia replace a doctor?",
     answer:
-      "Zelthia operates a multi-tenant provider portal where registered community pharmacies, clinics, and hospitals maintain live stock records for essential medications, antimalarials, antibiotics, dermatology creams, and emergency items. When you search for a medication, Zelthia displays real-time stock levels, pack sizes, unit prices, and operational hours.",
+      "No. Zelthia gives general guidance and helps you find care. It does not diagnose or prescribe. If you have chest pain, trouble breathing, heavy bleeding, sudden weakness or confusion, call 112 or go to the nearest emergency unit straight away.",
   },
   {
-    category: "Inventory & Navigation",
-    question: "What are Plain-English Landmark Directions and why use them instead of GPS?",
+    question: "Why does Zelthia ask for my height, weight and allergies?",
     answer:
-      "In many peri-urban areas, informal settlements, and university campuses, street numbering is inconsistent and GPS pins often lead to closed alleys or inaccurate locations. Zelthia’s registered providers supply plain-English, step-by-step directions using recognizable physical landmarks—such as 'directly opposite First Bank gate, 50m past the Total filling station'—making navigation foolproof regardless of map literacy.",
+      "Safe advice depends on who is asking. Allergies and current medicines let Zelthia warn you about reactions and interactions, and age, height and weight help it sense-check doses. Every field is optional and you can change or delete it from your account at any time.",
   },
   {
-    category: "General",
-    question: "Is Zelthia free to use for patients and everyday users?",
+    question: "How does the medicine search know what is in stock?",
     answer:
-      "Yes. Zelthia is 100% free for patients and everyday community members. There are no subscription fees, consultation costs, or search charges. All you need is an internet-connected smartphone or browser.",
+      "Pharmacies, clinics and hospitals keep their stock up to date in Zelthia's inventory tools. When you search, you see their current quantity, price, opening hours and how to get there.",
   },
   {
-    category: "Safety & Privacy",
-    question: "Does Zelthia replace a doctor or medical emergency care?",
+    question: "Why landmark directions instead of a map pin?",
     answer:
-      "No. Zelthia provides informational guidance and connects you to licensed care providers. It is not a substitute for formal diagnosis, professional medical treatment, or emergency intervention. If you experience severe symptoms—such as acute chest pain, severe bleeding, or difficulty breathing—you must immediately contact local emergency services (112 / 911) or visit the nearest emergency room.",
+      "Street numbers are often missing and map pins can land on the wrong side of a road or inside a campus. Facilities describe the way in using places people already know, such as a bank, a filling station or a school gate.",
   },
   {
-    category: "Inventory & Navigation",
-    question: "How do pharmacies, clinics, and hospitals register their inventory?",
+    question: "Can my pharmacy, clinic or hospital use Zelthia?",
     answer:
-      "Healthcare facilities can access the Provider Portal at '/inventory' to register their facility name, license credentials, operating hours, landmark navigation instructions, and upload their pharmaceutical stock. The platform allows instant stock count updates and alert triggers when medications restock.",
+      "Yes. Create an account as a facility to record stock, get warned about expiring batches and low stock, and appear in local searches when patients look for a medicine you have.",
   },
   {
-    category: "Safety & Privacy",
-    question: "How is my personal health and biometric data protected?",
+    question: "What happens to my health information?",
     answer:
-      "Zelthia follows strict privacy-by-design principles. User biometrics are encrypted in transit and at rest. We never sell or monetize personal medical data. Personal identifiers are stripped during AI model queries, and users have complete control to edit or permanently delete their profile and chat history at any moment.",
+      "Your profile is stored with your account and used to tailor answers. We don't sell it. You can delete your account from the account page, which permanently removes your profile. Read the privacy policy for the details.",
   },
 ];

@@ -1,4 +1,6 @@
 "use client";
+import { Select } from "@/components/ui/Select";
+import { Switch } from "@/components/ui/Choice";
 
 import React, { useState, useMemo } from "react";
 import {
@@ -19,10 +21,11 @@ import {
   Copy,
   Check,
   Building2,
-  Sparkles,
   Navigation,
   Compass,
   HeartHandshake,
+  Layers,
+  Pill,
 } from "lucide-react";
 
 interface PatientSearchProps {
@@ -136,46 +139,26 @@ export function PatientSearch({
 
   return (
     <div className="space-y-6">
-      {/* Patient Search Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-teal-900 via-teal-800 to-emerald-900 text-white p-6 sm:p-10 shadow-xl border border-teal-700/50">
-        {/* Subtle background glow */}
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-teal-400/20 blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-teal-700/80 text-teal-100 border border-teal-500/40 backdrop-blur-xs">
-            <Sparkles className="w-3.5 h-3.5 text-teal-300" />
-            <span>Verified Medicine Stock & Landmark Guidance</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-            Find Available Medicine Near You — Without the Guesswork.
-          </h1>
-
-          <p className="text-sm sm:text-base text-teal-100/90 leading-relaxed max-w-2xl">
-            Never walk from pharmacy to pharmacy again. Search live medication
-            stocks across verified university clinics, community pharmacies, and
-            hospitals with plain-English landmark directions to guide you
-            straight to the counter.
-          </p>
-
+      {/* Search */}
+      <div className="space-y-3">
           {/* Search Input Bar */}
           <div className="pt-2">
-            <div className="relative flex items-center bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-1.5 border border-teal-200/50 dark:border-zinc-700">
-              <div className="p-3 text-teal-600 dark:text-teal-400">
+            <div className="relative flex items-center rounded-2xl border border-line bg-surface p-1.5 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+              <div className="p-3 text-brand">
                 <Search className="w-6 h-6" />
               </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search medication (e.g. Hydrocortisone cream, Artemether, Insulin, Paracetamol)..."
-                className="w-full py-2.5 pr-4 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 bg-transparent focus:outline-none"
+                aria-label="Search for a medicine"
+                placeholder="Search a medicine, e.g. paracetamol or artemether"
+                className="w-full py-2.5 pr-4 text-sm sm:text-base text-ink placeholder:text-muted bg-transparent focus:outline-none"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="px-3 py-1 text-xs font-semibold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                  className="px-3 py-1 text-xs font-semibold text-muted hover:text-zinc-600 dark:hover:text-zinc-200"
                 >
                   Clear
                 </button>
@@ -185,88 +168,88 @@ export function PatientSearch({
 
           {/* Quick Suggestions Chips */}
           <div className="flex flex-wrap items-center gap-2 pt-2">
-            <span className="text-xs font-medium text-teal-200/80">
-              Popular searches:
-            </span>
+            <span className="text-sm text-muted">Try</span>
             {SUGGESTIONS.map((item) => (
               <button
                 key={item}
                 onClick={() => setSearchQuery(item)}
-                className="px-3 py-1 text-xs rounded-full bg-teal-800/60 hover:bg-teal-700/80 text-teal-100 border border-teal-600/40 transition-colors backdrop-blur-xs"
+                type="button"
+                className="h-8 rounded-full border border-line bg-surface px-3 text-sm text-ink transition-colors hover:border-brand/50"
               >
                 {item}
               </button>
             ))}
           </div>
-        </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-xs">
+      <div className="bg-surface border border-line rounded-2xl p-4 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Category Dropdown */}
           <div className="flex flex-wrap items-center gap-2">
-            <select
+            <Select
+              label="Category"
+              hideLabel
+              size="sm"
+              icon={Layers}
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 text-xs font-medium rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="ALL">All Categories</option>
-              <option value="Dermatology/Creams">Dermatology / Creams</option>
-              <option value="Antimalarials">Antimalarials</option>
-              <option value="Antibiotics">Antibiotics</option>
-              <option value="Pain Relief">Pain Relief</option>
-              <option value="Emergency Supplies">Emergency Supplies</option>
-              <option value="Chronic Care">Chronic Care</option>
-              <option value="Vitamins & Supplements">
-                Vitamins & Supplements
-              </option>
-            </select>
+              onChange={setSelectedCategory}
+              options={[
+                { value: "ALL", label: "All categories" },
+                { value: "Antimalarials", label: "Antimalarials" },
+                { value: "Antibiotics", label: "Antibiotics" },
+                { value: "Pain Relief", label: "Pain relief" },
+                { value: "Dermatology/Creams", label: "Skin creams" },
+                { value: "Emergency Supplies", label: "Emergency supplies" },
+                { value: "Chronic Care", label: "Chronic care" },
+                { value: "Vitamins & Supplements", label: "Vitamins and supplements" },
+              ]}
+            />
 
             {/* City Dropdown */}
-            <select
+            <Select
+              label="City"
+              hideLabel
+              size="sm"
+              icon={MapPin}
               value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="px-3 py-2 text-xs font-medium rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="ALL">All Cities / Regions</option>
-              {cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedCity}
+              options={[
+                { value: "ALL", label: "All cities" },
+                ...cities.map((city) => ({ value: city, label: city })),
+              ]}
+            />
 
             {/* Dosage Form Dropdown */}
-            <select
+            <Select
+              label="Dosage form"
+              hideLabel
+              size="sm"
+              icon={Pill}
               value={selectedDosageForm}
-              onChange={(e) => setSelectedDosageForm(e.target.value)}
-              className="px-3 py-2 text-xs font-medium rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="ALL">All Dosage Forms</option>
-              <option value="Cream">Cream / Ointment</option>
-              <option value="Tablet">Tablet</option>
-              <option value="Capsule">Capsule</option>
-              <option value="Syrup">Syrup</option>
-              <option value="Inhaler">Inhaler</option>
-              <option value="Injection">Injection</option>
-              <option value="Suspension">Suspension</option>
-            </select>
+              onChange={setSelectedDosageForm}
+              options={[
+                { value: "ALL", label: "All forms" },
+                { value: "Cream", label: "Cream or ointment" },
+                { value: "Tablet", label: "Tablet" },
+                { value: "Capsule", label: "Capsule" },
+                { value: "Syrup", label: "Syrup" },
+                { value: "Inhaler", label: "Inhaler" },
+                { value: "Injection", label: "Injection" },
+                { value: "Suspension", label: "Suspension" },
+              ]}
+            />
           </div>
 
           {/* In Stock Only Checkbox */}
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={onlyInStock}
-                onChange={(e) => setOnlyInStock(e.target.checked)}
-                className="w-4 h-4 text-teal-600 rounded border-zinc-300 dark:border-zinc-700 focus:ring-teal-500"
-              />
-              <span>In Stock Only</span>
-            </label>
+            <Switch
+              checked={onlyInStock}
+              onChange={setOnlyInStock}
+              label="In stock only"
+            />
 
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+            <span className="text-xs text-muted font-medium">
               Found <strong>{filteredResults.length}</strong> available options
             </span>
           </div>
@@ -274,16 +257,15 @@ export function PatientSearch({
       </div>
 
       {/* Campus Survey Inspiration Note (Founder Story) */}
-      <div className="bg-teal-50/70 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800/60 rounded-2xl p-4 flex items-start gap-3">
-        <div className="p-2 rounded-xl bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 flex-none">
+      <div className="bg-brand-soft border border-brand/25 rounded-2xl p-4 flex items-start gap-3">
+        <div className="p-2 rounded-xl bg-surface text-brand-strong flex-none">
           <HeartHandshake className="w-5 h-5" />
         </div>
         <div className="space-y-1">
-          <h4 className="text-xs font-bold text-teal-900 dark:text-teal-200">
-            Real Community Impact — Grounded in Lincoln University College
-            Campus Surveys
-          </h4>
-          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+          <h2 className="text-sm font-semibold text-ink">
+            Why Zelthia exists
+          </h2>
+          <p className="text-xs text-ink leading-relaxed">
             Zelthia was built directly from our campus survey experience when
             students and residents walked through streets looking for specific
             treatments (like hydrocortisone skin cream) only to find them out of
@@ -297,17 +279,17 @@ export function PatientSearch({
       {/* Results List */}
       <div className="space-y-4">
         {filteredResults.length === 0 ? (
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-12 text-center shadow-xs">
-            <div className="w-12 h-12 mx-auto rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 flex items-center justify-center mb-3">
+          <div className="bg-surface border border-line rounded-3xl p-12 text-center shadow-xs">
+            <div className="w-12 h-12 mx-auto rounded-full bg-mist text-muted flex items-center justify-center mb-3">
               <Search className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200">
+            <h3 className="text-base font-bold text-ink">
               No matching medications in stock
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-md mx-auto">
-              We couldn&apos;t find any medications matching &ldquo;{searchQuery}&rdquo;. Try
-              loosening your search filters or unchecking &ldquo;In Stock Only&rdquo; to
-              view out-of-stock items.
+            <p className="text-xs text-muted mt-1 max-w-md mx-auto">
+              We couldn&apos;t find any medications matching &ldquo;
+              {searchQuery}&rdquo;. Try loosening your search filters or
+              unchecking &ldquo;In Stock Only&rdquo; to view out-of-stock items.
             </p>
             <button
               onClick={() => {
@@ -317,7 +299,7 @@ export function PatientSearch({
                 setSelectedDosageForm("ALL");
                 setOnlyInStock(false);
               }}
-              className="mt-4 px-4 py-2 text-xs font-semibold text-teal-600 dark:text-teal-400 hover:underline"
+              className="mt-4 px-4 py-2 text-xs font-semibold text-brand hover:underline"
             >
               Reset all filters
             </button>
@@ -330,19 +312,19 @@ export function PatientSearch({
             return (
               <div
                 key={item.id}
-                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs hover:border-teal-500/40 dark:hover:border-teal-500/40 transition-all"
+                className="bg-surface border border-line rounded-2xl p-5 shadow-xs hover:border-teal-500/40 dark:hover:border-teal-500/40 transition-all"
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
                   {/* Left: Drug Details */}
                   <div className="space-y-2 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                      <h3 className="text-base sm:text-lg font-bold text-ink">
                         {item.name}
                       </h3>
-                      <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-mist text-ink border border-line">
                         {item.dosageForm}
                       </span>
-                      <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-brand-soft text-brand-strong border border-brand/25">
                         {item.category}
                       </span>
                       {item.requiresPrescription && (
@@ -352,21 +334,21 @@ export function PatientSearch({
                       )}
                     </div>
 
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 font-mono">
+                    <p className="text-xs text-zinc-600 dark:text-muted font-mono">
                       Formula: <strong>{item.genericFormula}</strong> (
                       {item.strength})
                     </p>
 
                     {item.notes && (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
+                      <p className="text-xs text-muted italic">
                         &ldquo;{item.notes}&rdquo;
                       </p>
                     )}
 
                     {/* Facility Identity Card */}
-                    <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
-                      <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-zinc-100">
-                        <Building2 className="w-4 h-4 text-teal-600 flex-none" />
+                    <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-muted">
+                      <div className="flex items-center gap-1.5 font-bold text-ink">
+                        <Building2 className="w-4 h-4 text-brand flex-none" />
                         <span>{item.facility.name}</span>
                       </div>
                       <span className="text-zinc-300 dark:text-zinc-700">
@@ -385,7 +367,7 @@ export function PatientSearch({
                       <span className="text-zinc-300 dark:text-zinc-700">
                         •
                       </span>
-                      <div className="flex items-center gap-1 text-zinc-500">
+                      <div className="flex items-center gap-1 text-muted">
                         <MapPin className="w-3.5 h-3.5" />
                         <span>
                           {item.facility.city}, {item.facility.state}
@@ -395,9 +377,9 @@ export function PatientSearch({
                   </div>
 
                   {/* Right: Availability, Price & Actions */}
-                  <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-3 flex-none lg:w-56 pt-2 lg:pt-0 border-t sm:border-t-0 border-zinc-200 dark:border-zinc-800">
+                  <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-3 flex-none lg:w-56 pt-2 lg:pt-0 border-t sm:border-t-0 border-line">
                     <div className="text-left lg:text-right">
-                      <div className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-50">
+                      <div className="text-xl sm:text-2xl font-black text-ink">
                         {formatNaira(item.unitPrice)}
                       </div>
                       <div className="mt-1">
@@ -425,7 +407,7 @@ export function PatientSearch({
                     <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
                       <a
                         href={`tel:${item.facility.phone}`}
-                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl transition-colors flex-1 sm:flex-none"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-ink bg-mist hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl transition-colors flex-1 sm:flex-none"
                       >
                         <Phone className="w-3.5 h-3.5" />
                         <span>Call Facility</span>
@@ -437,7 +419,7 @@ export function PatientSearch({
                             isDirectionsOpen ? null : item.id,
                           )
                         }
-                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-colors flex-1 sm:flex-none shadow-xs"
+                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand-strong rounded-xl transition-colors flex-1 sm:flex-none shadow-xs"
                       >
                         <Navigation className="w-3.5 h-3.5" />
                         <span>
@@ -451,11 +433,11 @@ export function PatientSearch({
                 </div>
 
                 {/* Plain-English Landmark Navigation Card */}
-                <div className="mt-4 pt-3.5 border-t border-zinc-200 dark:border-zinc-800/80">
-                  <div className="bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200/80 dark:border-teal-800/60 rounded-xl p-3.5">
+                <div className="mt-4 pt-3.5 border-t border-line">
+                  <div className="bg-brand-soft border border-teal-200/80 dark:border-teal-800/60 rounded-xl p-3.5">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="p-1 rounded-md bg-teal-600 text-white">
+                        <span className="p-1 rounded-md bg-brand text-white">
                           <Compass className="w-3.5 h-3.5" />
                         </span>
                         <h4 className="text-xs font-bold text-teal-950 dark:text-teal-200">
@@ -465,7 +447,7 @@ export function PatientSearch({
 
                       <button
                         onClick={() => handleCopyLandmark(item)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 dark:text-teal-300 hover:underline"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-strong hover:underline"
                       >
                         {copiedFacilityId === item.id ? (
                           <>
@@ -481,20 +463,20 @@ export function PatientSearch({
                       </button>
                     </div>
 
-                    <p className="text-xs text-zinc-800 dark:text-zinc-200 font-medium leading-relaxed">
+                    <p className="text-xs text-ink font-medium leading-relaxed">
                       &ldquo;{item.facility.landmarkDirections}&rdquo;
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-4 text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 pt-2 border-t border-teal-200/50 dark:border-teal-800/40">
+                    <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted mt-2 pt-2 border-t border-teal-200/50 dark:border-teal-800/40">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-zinc-400" />
+                        <Clock className="w-3 h-3 text-muted" />
                         {item.facility.operatingHours}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-zinc-400" />
+                        <Phone className="w-3 h-3 text-muted" />
                         {item.facility.phone}
                       </span>
-                      <span className="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-medium">
+                      <span className="flex items-center gap-1 text-brand font-medium">
                         <ShieldCheck className="w-3 h-3" />
                         License: {item.facility.licenseNumber}
                       </span>
@@ -503,7 +485,7 @@ export function PatientSearch({
                     {/* Expanded Step-by-Step Waypoints */}
                     {isDirectionsOpen &&
                       item.facility.stepByStepLandmarks.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-teal-200 dark:border-teal-800 space-y-2">
+                        <div className="mt-3 pt-3 border-t border-brand/25 space-y-2">
                           <h5 className="text-[11px] font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300">
                             Step-by-Step Walking / Driving Turn Guidance:
                           </h5>
@@ -512,7 +494,7 @@ export function PatientSearch({
                               (step: string, idx: number) => (
                                 <div
                                   key={idx}
-                                  className="flex items-start gap-2 text-xs text-zinc-800 dark:text-zinc-200"
+                                  className="flex items-start gap-2 text-xs text-ink"
                                 >
                                   <span className="flex-none w-5 h-5 rounded-full bg-teal-200/80 dark:bg-teal-900/60 text-teal-900 dark:text-teal-200 text-[10px] font-bold flex items-center justify-center">
                                     {idx + 1}

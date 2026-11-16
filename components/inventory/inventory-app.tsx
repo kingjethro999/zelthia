@@ -1,4 +1,8 @@
 "use client";
+import Link from "next/link";
+import { Info } from "lucide-react";
+import { ChoiceGroup } from "@/components/ui/Choice";
+import { useSession } from "@/lib/store/session";
 
 import React, { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -16,8 +20,6 @@ import { DrugModal } from "./drug-modal";
 import {
   Search,
   Building2,
-  Layers,
-  ArrowRight,
   CheckCircle2,
   RefreshCw,
 } from "lucide-react";
@@ -34,6 +36,7 @@ function InventoryAppContent({
   initialMetrics,
 }: InventoryAppContentProps) {
   const searchParams = useSearchParams();
+  const user = useSession((st) => st.user);
   const querySearch = searchParams?.get("search") || "";
   const queryMode = searchParams?.get("mode") || "";
 
@@ -75,6 +78,7 @@ function InventoryAppContent({
       }
     } catch (err) {
       console.error("Failed to refresh data", err);
+      showToast("Couldn't refresh stock. Check your connection and try again.");
     }
   };
 
@@ -157,95 +161,42 @@ function InventoryAppContent({
   });
 
   return (
-    <div className="min-h-screen bg-zinc-50/70 dark:bg-black text-zinc-900 dark:text-zinc-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Navigation / Mode Switcher Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3 sm:p-4 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-teal-600 text-white shadow-xs">
-              <Layers className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-                  Zelthia Health Directory & Inventory Network
-                </h2>
-                <span className="hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                  Multi-Tenant
-                </span>
-              </div>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Bridging patient drug discovery with provider supply-chain
-                transparency.
-              </p>
-            </div>
+    <div className="w-full px-4 py-8 sm:px-6 lg:py-12">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+              {activeMode === "patient" ? "Find medicine near you" : "Manage your stock"}
+            </h1>
+            <p className="mt-2 max-w-xl text-muted">
+              {activeMode === "patient"
+                ? "See which pharmacy, clinic or hospital has it, what it costs, and how to get there."
+                : "Keep quantities, prices and expiry dates current so patients find you."}
+            </p>
           </div>
-
-          {/* Mode Switcher Tabs */}
-          <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
-            <button
-              onClick={() => setActiveMode("patient")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                activeMode === "patient"
-                  ? "bg-white dark:bg-zinc-900 text-teal-700 dark:text-teal-400 shadow-xs"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-              }`}
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>Patient Drug Finder</span>
-            </button>
-
-            <button
-              onClick={() => setActiveMode("provider")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                activeMode === "provider"
-                  ? "bg-white dark:bg-zinc-900 text-teal-700 dark:text-teal-400 shadow-xs"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-              }`}
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>Provider Portal Mode</span>
-            </button>
-          </div>
+          <ChoiceGroup<"patient" | "provider">
+            label="View"
+            hideLabel
+            variant="pills"
+            value={activeMode}
+            onChange={setActiveMode}
+            options={[
+              { value: "patient", label: "Find medicine", icon: Search },
+              { value: "provider", label: "Manage stock", icon: Building2 },
+            ]}
+          />
         </div>
 
-        {/* Mode Explainer Pill */}
-        <div className="flex items-center justify-between text-xs px-2 text-zinc-500 dark:text-zinc-400">
-          <div className="flex items-center gap-1.5">
-            {activeMode === "patient" ? (
-              <>
-                <Search className="w-3.5 h-3.5 text-teal-600" />
-                <span>
-                  Currently in <strong>Patient Mode</strong>: Search verified
-                  medication stock and landmark directions across registered
-                  care centers.
-                </span>
-              </>
-            ) : (
-              <>
-                <Building2 className="w-3.5 h-3.5 text-teal-600" />
-                <span>
-                  Currently in <strong>Provider Portal Mode</strong>: Managing
-                  live medical inventory, thresholds, and facility profile for
-                  accredited tenants.
-                </span>
-              </>
-            )}
-          </div>
-
-          <button
-            onClick={() =>
-              setActiveMode(activeMode === "patient" ? "provider" : "patient")
-            }
-            className="text-teal-600 dark:text-teal-400 hover:underline font-medium inline-flex items-center gap-1"
-          >
-            <span>
-              Switch to{" "}
-              {activeMode === "patient" ? "Provider Portal" : "Patient Search"}
-            </span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
+        {activeMode === "provider" && !user && (
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-sky/25 bg-sky-soft px-4 py-3 text-sm text-ink">
+            <Info className="h-4 w-4 shrink-0 text-sky" aria-hidden />
+            You&apos;re viewing sample facilities.
+            <Link href="/signup" className="font-semibold text-sky underline-offset-4 hover:underline">
+              Create a facility account
+            </Link>
+            to list your own stock.
+          </p>
+        )}
 
         {/* Main Content Area */}
         {activeMode === "patient" ? (
@@ -320,8 +271,11 @@ function InventoryAppContent({
 
         {/* Global Toast Alert */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-2xl shadow-2xl text-xs font-semibold border border-zinc-700/50 dark:border-zinc-300 animate-in fade-in slide-in-from-bottom-4">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600 flex-none" />
+          <div
+            role="status"
+            className="animate-rise fixed inset-x-4 bottom-4 z-50 flex items-center gap-2 rounded-2xl bg-ink px-4 py-3 text-sm font-medium text-paper shadow-2xl sm:inset-x-auto sm:right-6 sm:bottom-6"
+          >
+            <CheckCircle2 className="h-4 w-4 flex-none" aria-hidden />
             <span>{toastMessage}</span>
           </div>
         )}
@@ -334,10 +288,10 @@ export function InventoryApp(props: InventoryAppContentProps) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-black">
-          <div className="flex items-center gap-3 text-zinc-500 text-sm font-medium">
-            <RefreshCw className="w-5 h-5 animate-spin text-teal-600" />
-            <span>Loading Zelthia Inventory & Care Directory...</span>
+        <div className="flex flex-1 items-center justify-center py-24">
+          <div className="flex items-center gap-3 text-sm font-medium text-muted">
+            <RefreshCw className="h-5 w-5 animate-spin text-brand" aria-hidden />
+            <span>Loading stock</span>
           </div>
         </div>
       }

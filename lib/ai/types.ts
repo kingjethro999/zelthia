@@ -8,6 +8,10 @@ export interface BiometricProfile {
   age?: number | string;
   biologicalSex?: BiologicalSex;
   bloodGroup?: BloodGroup;
+  /** Height in centimetres. */
+  heightCm?: number | null;
+  /** Weight in kilograms. */
+  weightKg?: number | null;
   allergies?: string[];
   chronicConditions?: string[];
   currentMedications?: string[];
@@ -59,6 +63,8 @@ export function hasActiveBiometrics(
     (Boolean(profile.biologicalSex) &&
       profile.biologicalSex !== "prefer-not-to-say") ||
     (Boolean(profile.bloodGroup) && profile.bloodGroup !== "Unknown") ||
+    Boolean(profile.heightCm) ||
+    Boolean(profile.weightKg) ||
     (profile.allergies && profile.allergies.length > 0) ||
     (profile.chronicConditions && profile.chronicConditions.length > 0) ||
     (profile.currentMedications && profile.currentMedications.length > 0),

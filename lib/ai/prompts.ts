@@ -13,6 +13,14 @@ export function buildSystemPrompt(biometrics?: BiometricProfile): string {
       details.push(`- Biological Sex: ${biometrics.biologicalSex}`);
     if (biometrics.bloodGroup)
       details.push(`- Blood Group: ${biometrics.bloodGroup}`);
+    if (biometrics.heightCm)
+      details.push(`- Height: ${biometrics.heightCm} cm`);
+    if (biometrics.weightKg)
+      details.push(`- Weight: ${biometrics.weightKg} kg`);
+    if (biometrics.heightCm && biometrics.weightKg) {
+      const bmi = biometrics.weightKg / (biometrics.heightCm / 100) ** 2;
+      details.push(`- BMI: ${bmi.toFixed(1)} (use for weight-based dosing sense checks)`);
+    }
     if (biometrics.allergies && biometrics.allergies.length > 0) {
       details.push(
         `- ALLERGIES: ${biometrics.allergies.join(", ")} (STRICT CONTRAINDICATION ALERT)`,

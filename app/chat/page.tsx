@@ -2,34 +2,23 @@ import type { Metadata } from "next";
 import { ChatContainer } from "@/components/chat/ChatContainer";
 
 export const metadata: Metadata = {
-  title: "AI Health Companion Chat | Zelthia",
+  title: "AI health chat: symptom checker that knows your allergies",
   description:
-    "Consult Zelthia AI Health Companion with real-time biometric awareness, clinical triage safety guardrails, drug interaction alerts, and verified local pharmacy stock navigation in Nigeria.",
+    "Ask Zelthia about symptoms or medicines. Answers check your allergies, conditions and current medicines, flag emergencies, and point you to pharmacies with stock nearby.",
   keywords: [
-    "AI health companion",
-    "medical symptom checker",
-    "biometric health chat",
+    "AI symptom checker",
+    "health chat Nigeria",
     "drug interaction checker",
-    "pharmacy stock Nigeria",
-    "clinic locator",
-    "malaria triage",
-    "healthcare navigator",
-    "Zelthia",
+    "malaria symptoms",
+    "is it safe to take",
+    "allergy medicine check",
   ],
+  alternates: { canonical: "/chat" },
   openGraph: {
-    title: "AI Health Companion Chat | Zelthia",
+    title: "AI health chat | Zelthia",
     description:
-      "Consult Zelthia AI Health Companion with real-time biometric awareness, clinical triage, and verified local pharmacy stock navigation.",
+      "Symptom and medicine questions answered with your allergies and medicines in mind.",
     url: "/chat",
-    siteName: "Zelthia",
-    locale: "en_NG",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "AI Health Companion Chat | Zelthia",
-    description:
-      "Biometric-aware clinical triage, safety guardrails, and real-time pharmacy stock finder in Nigeria.",
   },
 };
 

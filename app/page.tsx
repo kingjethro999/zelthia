@@ -1,177 +1,314 @@
 import type { Metadata } from "next";
-import { HeroSection } from "@/components/marketing/HeroSection";
-import { FeatureHighlights } from "@/components/marketing/FeatureHighlights";
-import { ProblemSolutionSection } from "@/components/marketing/ProblemSolutionSection";
-import { FaqSection } from "@/components/marketing/FaqSection";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BellRing,
+  Building2,
+  CalendarClock,
+  ChevronDown,
+  Clock,
+  Layers,
+  MapPinned,
+  MessageCircleHeart,
+  PackageCheck,
+  Pill,
+  UserRound,
+} from "lucide-react";
+import { ButtonLink } from "@/components/ui/Button";
 import { FAQ_DATA } from "@/components/marketing/faq-data";
-import { CtaBanner } from "@/components/marketing/CtaBanner";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://zelthia.health";
+import { SITE_URL } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title:
-    "Zelthia | Your Biometric-Aware AI Health Companion & Community Care Navigator",
-  description:
-    "Instant, context-aware AI health guidance paired with real-time local pharmacy inventory, drug verification, and plain-English landmark directions.",
-  keywords: [
-    "Zelthia",
-    "AI health companion",
-    "pharmacy inventory system",
-    "hospital stock tracker",
-    "clinic medicine finder",
-    "landmark health directions",
-    "biometric medical chat",
-    "healthcare Nigeria",
-    "last-mile medicine search",
-    "Lincoln University College health survey",
-    "community health directory",
-    "drug availability checker",
-  ],
-  alternates: {
-    canonical: siteUrl,
+  title: {
+    absolute: "Zelthia: AI health companion and medicine stock finder",
   },
-  openGraph: {
-    title:
-      "Zelthia | Your Biometric-Aware AI Health Companion & Care Navigator",
-    description:
-      "Triage symptoms with personal biometric context, search verified nearby pharmacy inventory, and follow clear landmark directions without map confusion.",
-    url: siteUrl,
-    siteName: "Zelthia",
-    type: "website",
-    locale: "en_US",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Zelthia Healthcare Platform Preview",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Zelthia | AI Health Companion & Community Care Navigator",
-    description:
-      "Personalized biometric AI triage, live pharmacy stock directory, and landmark-guided directions.",
-    images: ["/og-image.png"],
-    creator: "@zelthiahealth",
-  },
+  alternates: { canonical: "/" },
 };
 
-export default function HomePage() {
-  // Structured Data (JSON-LD)
-  const organizationSchema = {
+const jsonLd = [
+  {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Zelthia Health Technologies",
-    alternateName: "Zelthia",
-    url: siteUrl,
-    logo: `${siteUrl}/logo.png`,
-    description:
-      "Zelthia bridges healthcare access by combining biometric-aware AI health guidance with a verified multi-tenant directory of local pharmacies and plain-English landmark navigation.",
-    areaServed: {
-      "@type": "AdministrativeArea",
-      name: "Nigeria & Global Underserved Communities",
-    },
-    knowsAbout: [
-      "Artificial Intelligence in Healthcare",
-      "Biometric Health Triage",
-      "Pharmaceutical Inventory Management",
-      "Community Care Directory",
-      "Landmark Navigation",
-    ],
-  };
-
-  const softwareApplicationSchema = {
+    name: "Zelthia",
+    url: SITE_URL,
+    logo: `${SITE_URL}/icons/icon-512.png`,
+  },
+  {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Zelthia Health",
+    "@type": "WebSite",
+    name: "Zelthia",
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/inventory?search={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Zelthia",
+    url: SITE_URL,
     applicationCategory: "HealthApplication",
-    operatingSystem: "Web, iOS, Android",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
-    },
-    description:
-      "Biometric-aware health companion that provides tailored triage, verified clinic/pharmacy stock searches, and landmark-based directions.",
+    operatingSystem: "Any",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "NGN" },
     featureList: [
-      "Biometric-Aware AI Consultation",
-      "Multi-Tenant Live Medicine Stock Directory",
-      "Plain-English Step-by-Step Landmark Navigation",
-      "OpenFDA Product & Drug Verification",
+      "AI health guidance that accounts for allergies, conditions and medicines",
+      "Live medicine stock at pharmacies, clinics and hospitals",
+      "Inventory management for pharmacies, clinics and hospitals",
+      "Landmark-based directions",
     ],
-  };
-
-  const medicalWebPageSchema = {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    name: "Zelthia: Biometric-Aware AI Health Companion & Care Navigator",
-    url: siteUrl,
-    description:
-      "Evidence-backed digital healthcare platform connecting patients with AI symptom triage, verified local medication stock, and landmark navigation.",
-    medicalAudience: {
-      "@type": "MedicalAudience",
-      medicalAudienceType: "Patient",
-    },
-    about: [
-      {
-        "@type": "MedicalCondition",
-        name: "General Health Symptoms, Dermatological Reactions, and Primary Care Triage",
-      },
-      {
-        "@type": "MedicalBusiness",
-        name: "Community Pharmacies, Primary Care Clinics, and Hospitals",
-      },
-    ],
-  };
-
-  const faqPageSchema = {
+  },
+  {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: FAQ_DATA.map((faq) => ({
+    mainEntity: FAQ_DATA.map((f) => ({
       "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.answer,
-      },
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
     })),
-  };
+  },
+];
 
+export default function HomePage() {
   return (
     <>
-      {/* Schema.org Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(softwareApplicationSchema),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(medicalWebPageSchema),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageSchema) }}
-      />
-
-      {/* Landing Page Content Sections */}
-      <div className="flex flex-col">
-        <HeroSection />
-        <FeatureHighlights />
-        <ProblemSolutionSection />
-        <FaqSection />
-        <CtaBanner />
-      </div>
+      <Hero />
+      <HowItWorks />
+      <ForFacilities />
+      <Faq />
+      <Closing />
     </>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16 lg:pb-24 lg:pt-20">
+      <div>
+        <h1 className="font-display text-[2.6rem] font-semibold leading-[1.04] text-ink sm:text-6xl">
+          Know what&apos;s safe to take, and where to get it.
+        </h1>
+        <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
+          Zelthia answers health questions with your allergies, conditions and
+          medicines in mind, then shows which pharmacy, clinic or hospital near
+          you has it in stock.
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <ButtonLink href="/chat" size="lg">
+            <MessageCircleHeart className="h-5 w-5" aria-hidden />
+            Start a health chat
+          </ButtonLink>
+          <ButtonLink href="/inventory" size="lg" variant="secondary">
+            <Pill className="h-5 w-5" aria-hidden />
+            Find medicine
+          </ButtonLink>
+        </div>
+        <p className="mt-6 text-sm text-muted">
+          Free for patients. No account needed to try it.
+        </p>
+      </div>
+
+      <ConversationPreview />
+    </section>
+  );
+}
+
+/** Static illustration of a real Zelthia exchange; no client JS. */
+function ConversationPreview() {
+  return (
+    <figure
+      aria-label="Example conversation with Zelthia"
+      className="relative rounded-[28px] border border-line bg-surface p-4 shadow-[0_24px_60px_-30px_rgba(13,59,53,0.35)] sm:p-6"
+    >
+      <div className="flex items-center gap-2 border-b border-line pb-3 text-sm text-muted">
+        <UserRound className="h-4 w-4" aria-hidden />
+        Profile: allergic to penicillin, has asthma
+      </div>
+
+      <div className="mt-4 space-y-3">
+        <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-brand px-4 py-3 text-[15px] text-white dark:text-[#06231a]">
+          My throat is sore and swollen. Can I take amoxicillin?
+        </p>
+
+        <div className="max-w-[92%] rounded-2xl rounded-bl-md border border-line bg-paper px-4 py-3 text-[15px] text-ink">
+          <p className="flex items-start gap-2 font-semibold text-alert">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            Avoid amoxicillin: it&apos;s a penicillin.
+          </p>
+          <p className="mt-1.5 text-muted">
+            Ibuprofen can also trigger asthma. For the pain, paracetamol is the
+            safer choice. See a pharmacist if it lasts beyond three days.
+          </p>
+        </div>
+
+        <div className="max-w-[92%] rounded-2xl border border-brand/30 bg-brand-soft/60 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-semibold text-ink">Paracetamol 500 mg</p>
+              <p className="text-sm text-muted">Campus Health Centre, Nsukka</p>
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-brand">
+              <PackageCheck className="h-3.5 w-3.5" aria-hidden />
+              240 in stock
+            </span>
+          </div>
+          <p className="mt-3 flex items-start gap-2 text-sm text-ink">
+            <MapPinned className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+            Enter by the main gate, it&apos;s the white building just past the
+            bookshop.
+          </p>
+          <p className="mt-1.5 flex items-center gap-2 text-sm text-muted">
+            <Clock className="h-4 w-4 shrink-0" aria-hidden />
+            Open until 8 pm
+          </p>
+        </div>
+      </div>
+    </figure>
+  );
+}
+
+const STEPS = [
+  {
+    icon: UserRound,
+    title: "Tell Zelthia about yourself",
+    body: "Add your age, height, weight, allergies and regular medicines once. Skip anything you'd rather not share.",
+  },
+  {
+    icon: MessageCircleHeart,
+    title: "Ask in your own words",
+    body: "Describe a symptom or name a medicine. Answers flag reactions and interactions, and say plainly when you need a doctor.",
+  },
+  {
+    icon: MapPinned,
+    title: "Go where it's in stock",
+    body: "See which nearby facility has it, what it costs and when they close, with directions by landmarks.",
+  },
+];
+
+function HowItWorks() {
+  return (
+    <section className="border-y border-line bg-surface">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
+        <h2 className="max-w-2xl font-display text-3xl font-semibold text-ink sm:text-4xl">
+          From &ldquo;is this safe?&rdquo; to the pharmacy counter.
+        </h2>
+        <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+          {STEPS.map(({ icon: Icon, title, body }, i) => (
+            <li key={title} className="relative">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft text-brand">
+                  <Icon className="h-5 w-5" aria-hidden />
+                </span>
+                <span className="font-display text-sm font-semibold text-muted">
+                  Step {i + 1}
+                </span>
+              </div>
+              <h3 className="mt-5 font-display text-xl font-semibold text-ink">{title}</h3>
+              <p className="mt-2 leading-relaxed text-muted">{body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+const FACILITY_FEATURES = [
+  { icon: Layers, title: "Stock across branches", body: "Track quantity, price and batch for every medicine, per facility." },
+  { icon: CalendarClock, title: "Expiry warnings", body: "See batches expiring in the next 90 days before they go to waste." },
+  { icon: BellRing, title: "Low-stock alerts", body: "Know when an item drops below the level you set." },
+  { icon: MapPinned, title: "Directions patients follow", body: "Describe the way in once; it appears on every search result." },
+];
+
+function ForFacilities() {
+  return (
+    <section className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16 lg:py-24">
+      <div>
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-sky-soft text-sky">
+          <Building2 className="h-5 w-5" aria-hidden />
+        </span>
+        <h2 className="mt-5 font-display text-3xl font-semibold text-ink sm:text-4xl">
+          Inventory for pharmacies, clinics and hospitals.
+        </h2>
+        <p className="mt-4 max-w-lg text-lg leading-relaxed text-muted">
+          Keep stock accurate in one place, and every update shows up when
+          someone nearby searches for that medicine.
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <ButtonLink href="/signup" size="lg">
+            List your facility
+            <ArrowRight className="h-5 w-5" aria-hidden />
+          </ButtonLink>
+          <ButtonLink href="/inventory?mode=provider" size="lg" variant="secondary">
+            See the inventory tools
+          </ButtonLink>
+        </div>
+      </div>
+      <ul className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2">
+        {FACILITY_FEATURES.map(({ icon: Icon, title, body }) => (
+          <li key={title} className="bg-surface p-6">
+            <Icon className="h-5 w-5 text-sky" aria-hidden />
+            <h3 className="mt-4 text-base font-semibold text-ink">{title}</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted">{body}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function Faq() {
+  return (
+    <section id="faq" className="scroll-mt-20 border-t border-line bg-surface">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:py-24">
+        <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+          Questions people ask
+        </h2>
+        <div className="divide-y divide-line border-y border-line">
+          {FAQ_DATA.map((f) => (
+            <details key={f.question} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                {f.question}
+                <ChevronDown
+                  className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180"
+                  aria-hidden
+                />
+              </summary>
+              <p className="pb-5 pr-8 leading-relaxed text-muted">{f.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Closing() {
+  return (
+    <section className="bg-[#0d3b35] text-white">
+      <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 py-16 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-20">
+        <div className="max-w-xl">
+          <h2 className="font-display text-3xl font-semibold sm:text-4xl">
+            Set up your health profile in about a minute.
+          </h2>
+          <p className="mt-3 text-lg text-white/75">
+            Every answer after that takes your history into account.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <ButtonLink href="/signup" size="lg" className="bg-white text-[#0d3b35] hover:bg-[#dcefe6] dark:text-[#0d3b35]">
+            Create a free account
+          </ButtonLink>
+          <ButtonLink href="/chat" size="lg" variant="ghost" className="text-white hover:bg-white/10">
+            Try the chat first
+          </ButtonLink>
+        </div>
+      </div>
+    </section>
   );
 }

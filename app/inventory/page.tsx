@@ -7,7 +7,8 @@ import {
 import { InventoryApp } from "@/components/inventory/inventory-app";
 
 export const metadata: Metadata = {
-  title: "Medical Inventory & Pharmacy Stock Directory | Zelthia",
+  alternates: { canonical: "/inventory" },
+  title: "Find medicine in stock near you",
   description:
     "Verified multi-tenant pharmaceutical inventory and clinic directory for Zelthia. Find live drug availability, check pharmacy stock near you, and navigate with plain-English landmark directions.",
   keywords: [
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     "antimalarials stock",
   ],
   openGraph: {
-    title: "Medical Inventory & Pharmacy Stock Directory | Zelthia",
+    title: "Find medicine in stock near you | Zelthia",
     description:
       "Search live medication stocks across verified university clinics, community pharmacies, and hospitals with plain-English landmark directions.",
     type: "website",
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Medical Inventory & Pharmacy Stock Directory | Zelthia",
+    title: "Find medicine in stock near you | Zelthia",
     description:
       "Live medicine stock tracker and verified healthcare facility directory with landmark navigation.",
   },
