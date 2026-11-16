@@ -66,6 +66,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "Zelthia", statusBarStyle: "default" },
   formatDetection: { telephone: false },
+  // Google Search Console ownership (the HTML file in public/ verifies it too).
+  verification: { google: "lPK13chagDv8i5bMS5lDIzUcGerNFMeaPLkS1DXWn7U" },
   openGraph: {
     type: "website",
     locale: "en_NG",
