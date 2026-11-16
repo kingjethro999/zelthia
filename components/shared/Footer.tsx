@@ -10,20 +10,21 @@ const COLUMNS = [
     title: "Use Zelthia",
     links: [
       { href: "/chat", label: "Health chat" },
+      { href: "/doctors-note-reader", label: "Doctor's note reader" },
       { href: "/inventory", label: "Find medicine" },
-      { href: "/signup", label: "Create an account" },
     ],
   },
   {
     title: "Facilities",
     links: [
-      { href: "/provider", label: "Manage your stock" },
-      { href: "/signup", label: "List your pharmacy" },
+      { href: "/for-facilities", label: "Inventory for facilities" },
+      { href: "/signup?role=provider", label: "List your facility" },
     ],
   },
   {
     title: "About",
     links: [
+      { href: "/about", label: "About Zelthia" },
       { href: "/#faq", label: "Questions" },
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" },

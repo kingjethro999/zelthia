@@ -7,7 +7,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["", 1, "weekly"],
     ["/chat", 0.9, "weekly"],
     ["/inventory", 0.9, "daily"],
-    ["/signup", 0.6, "monthly"],
+    ["/doctors-note-reader", 0.8, "monthly"],
+    ["/for-facilities", 0.8, "monthly"],
+    ["/about", 0.7, "monthly"],
+    ["/signup", 0.5, "monthly"],
     ["/privacy", 0.3, "yearly"],
     ["/terms", 0.3, "yearly"],
   ];

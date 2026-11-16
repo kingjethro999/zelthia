@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { AlertCircle, AlertTriangle, Check, CircleCheck, Copy, ExternalLink, FileText } from "lucide-react";
+import { AlertCircle, AlertTriangle, Check, CircleCheck, Copy, ExternalLink, FileText, LoaderCircle } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import type { AgentStep, AttachmentView, ChatMessageView } from "@/lib/chat-types";
 import type { TriageLevel } from "@/lib/ai/types";
@@ -107,9 +107,17 @@ export function AssistantMessage({
   liveText?: string;
 }) {
   const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
-  const steps = live ? (liveSteps ?? []) : (message?.meta?.steps ?? []);
+  const saved = message?.meta?.steps ?? [];
+  // A lone planning step with nothing looked up isn't worth showing on a finished reply.
+  const steps = live
+    ? (liveSteps ?? [])
+    : saved.length === 1 && saved[0].label === "Working out what you need"
+      ? []
+      : saved;
   const text = live ? stripTags(liveText ?? "") : (message?.content ?? "");
-  const triage = !live && message?.meta?.triage ? TRIAGE[message.meta.triage] : null;
+  // Only flag answers that need action; "low" on a greeting or simple question is noise.
+  const level = !live ? message?.meta?.triage : undefined;
+  const triage = level && level !== "low" ? TRIAGE[level] : null;
 
   const copy = async () => {
     try {
@@ -138,7 +146,10 @@ export function AssistantMessage({
             {live && <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-brand align-middle" aria-hidden />}
           </div>
         ) : live && !steps.length ? (
-          <p className="text-sm text-muted">Starting</p>
+          <p className="flex items-center gap-2 text-sm text-muted" role="status">
+            <LoaderCircle className="h-4 w-4 animate-spin text-brand" aria-hidden />
+            Thinking
+          </p>
         ) : null}
         {!live && message && (
           <>

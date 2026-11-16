@@ -57,7 +57,7 @@ export function Sidebar({
 }) {
   const user = useSession((s) => s.user);
   const facilityCount = useSession((s) => s.facilityCount);
-  const { conversations, listStatus, activeId, newChat, rename, remove } = useChat();
+  const { conversations, listStatus, activeId, newChat, rename, remove, openConversation } = useChat();
   const groups = useMemo(() => group(conversations), [conversations]);
   const [editing, setEditing] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<ConversationSummary | null>(null);
@@ -131,7 +131,7 @@ export function Sidebar({
               </ButtonLink>
             </div>
           </div>
-        ) : listStatus === "loading" && !conversations.length ? (
+        ) : (listStatus === "loading" || listStatus === "idle") && !conversations.length ? (
           <div className="space-y-2 px-3" aria-label="Loading chats">
             {[70, 50, 85, 60].map((w) => (
               <div key={w} className="h-4 animate-pulse rounded bg-mist" style={{ width: `${w}%` }} />
@@ -153,6 +153,7 @@ export function Sidebar({
                     active={c.id === activeId}
                     editing={editing === c.id}
                     onNavigate={onCloseMobile}
+                    onOpen={() => void openConversation(c.id)}
                     onEdit={() => setEditing(c.id)}
                     onRename={async (t) => {
                       setEditing(null);
@@ -232,6 +233,7 @@ function ConversationRow({
   active,
   editing,
   onNavigate,
+  onOpen,
   onEdit,
   onRename,
   onDelete,
@@ -240,6 +242,7 @@ function ConversationRow({
   active: boolean;
   editing: boolean;
   onNavigate: () => void;
+  onOpen: () => void;
   onEdit: () => void;
   onRename: (title: string) => void;
   onDelete: () => void;
@@ -280,7 +283,14 @@ function ConversationRow({
     <li ref={ref} className="group relative">
       <Link
         href={`/chat/${c.id}`}
-        onClick={onNavigate}
+        onClick={(e) => {
+          // Open in place: the chat shell is already loaded, so no page navigation is needed.
+          if (!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
+            e.preventDefault();
+            onOpen();
+          }
+          onNavigate();
+        }}
         aria-current={active ? "page" : undefined}
         className={cn(
           "block truncate rounded-xl py-2 pl-3 pr-9 text-sm transition-colors",

@@ -104,7 +104,7 @@ function AccountForm() {
         </section>
       </div>
 
-      <div className="sticky bottom-0 z-10 -mx-4 mt-6 flex items-center justify-end gap-3 border-t border-line bg-paper/95 px-4 py-4 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+      <div className="sticky bottom-0 z-10 -mx-4 mt-6 flex items-center justify-end gap-3 border-t border-line bg-paper px-4 py-3 sm:mx-0 sm:rounded-2xl sm:border sm:bg-surface sm:shadow-lg">
         {notice && (
           <p role="status" className={`mr-auto flex items-center gap-1.5 text-sm ${notice.ok ? "text-brand" : "text-alert"}`}>
             {notice.ok ? <Check className="h-4 w-4" aria-hidden /> : <AlertCircle className="h-4 w-4" aria-hidden />}

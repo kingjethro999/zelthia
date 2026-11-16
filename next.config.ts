@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
     agentFeedback: true,
   },
   cacheComponents: true,
+  // Keep the dev badge away from the chat sidebar's account button.
+  devIndicators: { position: "bottom-right" },
   partialPrefetching: true,
   turbopack: {
     rules: {

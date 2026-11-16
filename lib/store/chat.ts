@@ -58,9 +58,15 @@ interface ChatState {
 
 let controller: AbortController | null = null;
 
-const setUrl = (path: string) => {
+/**
+ * Updates the address bar without a server round trip; the chat shell is
+ * already mounted. "push" adds a history entry so Back returns to the
+ * previous chat.
+ */
+const setUrl = (path: string, mode: "push" | "replace" = "replace") => {
   if (typeof window !== "undefined" && window.location.pathname !== path) {
-    window.history.replaceState(null, "", path);
+    if (mode === "push") window.history.pushState(null, "", path);
+    else window.history.replaceState(null, "", path);
   }
 };
 
@@ -96,6 +102,7 @@ export const useChat = create<ChatState>()((set, get) => ({
     if (get().activeId === id && get().messages.length) return;
     get().stop();
     set({ activeId: id, messages: [], loadingThread: true, threadError: null, temporary: false, localTurns: [], sendError: null });
+    setUrl(`/chat/${id}`, "push");
     try {
       const res = await fetch(`/api/conversations/${id}`, { cache: "no-store" });
       const data = await res.json();
@@ -109,6 +116,7 @@ export const useChat = create<ChatState>()((set, get) => ({
 
   newChat: (opts = {}) => {
     get().stop();
+    const hadThread = Boolean(get().activeId);
     set({
       activeId: null,
       messages: [],
@@ -119,7 +127,7 @@ export const useChat = create<ChatState>()((set, get) => ({
       threadError: null,
       temporary: Boolean(opts.temporary),
     });
-    setUrl("/chat");
+    setUrl("/chat", hadThread ? "push" : "replace");
   },
 
   setTemporary: (on) => {

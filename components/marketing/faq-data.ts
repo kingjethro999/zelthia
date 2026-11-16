@@ -10,6 +10,11 @@ export const FAQ_DATA: FaqItem[] = [
       "Zelthia is a health companion and medicine finder. You can describe symptoms or ask about a medicine, and Zelthia answers with your allergies, long-term conditions and current medicines in mind. It can then show which pharmacy, clinic or hospital near you has that medicine in stock, with directions based on landmarks.",
   },
   {
+    question: "Can Zelthia read my doctor's handwriting?",
+    answer:
+      "Yes. Upload a photo or PDF of a doctor's note, prescription, referral card or result in the health chat. Zelthia writes out what it says, explains the medical shorthand, and looks for where to get any test, scan or medicine it mentions.",
+  },
+  {
     question: "Is Zelthia free?",
     answer:
       "Yes. Asking questions, searching for medicine and keeping a health profile are free for patients.",
@@ -27,7 +32,7 @@ export const FAQ_DATA: FaqItem[] = [
   {
     question: "How does the medicine search know what is in stock?",
     answer:
-      "Pharmacies, clinics and hospitals keep their stock up to date in Zelthia's inventory tools. When you search, you see their current quantity, price, opening hours and how to get there.",
+      "Pharmacies, clinics, hospitals and health stores keep their own stock up to date in Zelthia's inventory tools. When you search, you see their quantity, price, opening hours and directions. If nothing is listed, Zelthia says so and can search the web instead, linking to its sources.",
   },
   {
     question: "Why landmark directions instead of a map pin?",
@@ -37,7 +42,7 @@ export const FAQ_DATA: FaqItem[] = [
   {
     question: "Can my pharmacy, clinic or hospital use Zelthia?",
     answer:
-      "Yes. Create an account as a facility to record stock, get warned about expiring batches and low stock, and appear in local searches when patients look for a medicine you have.",
+      "Yes, for free. Create a facility account to record stock, see low stock and expiring batches, list services such as scans and tests, and appear when patients search for what you have. Facilities with a confirmed licence number get a verified badge.",
   },
   {
     question: "What happens to my health information?",

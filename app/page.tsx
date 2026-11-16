@@ -20,7 +20,7 @@ import { SITE_URL } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Zelthia: AI health companion and medicine stock finder",
+    absolute: "Zelthia: AI health chat, doctor's note reader and medicine finder",
   },
   alternates: { canonical: "/" },
 };
@@ -32,6 +32,10 @@ const jsonLd = [
     name: "Zelthia",
     url: SITE_URL,
     logo: `${SITE_URL}/icons/icon-512.png`,
+    slogan: "Your health and care companion",
+    description:
+      "A free health and care companion for Nigeria: AI health chat, doctor's note reader, medicine and health product search, and inventory tools for facilities.",
+    areaServed: { "@type": "Country", name: "Nigeria" },
   },
   {
     "@context": "https://schema.org",
@@ -54,9 +58,10 @@ const jsonLd = [
     offers: { "@type": "Offer", price: "0", priceCurrency: "NGN" },
     featureList: [
       "AI health guidance that accounts for allergies, conditions and medicines",
-      "Live medicine stock at pharmacies, clinics and hospitals",
-      "Inventory management for pharmacies, clinics and hospitals",
-      "Landmark-based directions",
+      "Reads doctor's notes, prescriptions and results from a photo or PDF",
+      "Finds where to get a medicine, health product, test or scan, with sources",
+      "Stock, prices and landmark directions listed by pharmacies, clinics and hospitals",
+      "Free inventory management for health facilities",
     ],
   },
   {
@@ -174,8 +179,8 @@ const STEPS = [
   },
   {
     icon: MessageCircleHeart,
-    title: "Ask in your own words",
-    body: "Describe a symptom or name a medicine. Answers flag reactions and interactions, and say plainly when you need a doctor.",
+    title: "Ask, or upload a note",
+    body: "Describe a symptom, name a medicine, or photograph a doctor's note or a product. Answers flag reactions and say plainly when you need a doctor.",
   },
   {
     icon: MapPinned,
@@ -234,11 +239,11 @@ function ForFacilities() {
           someone nearby searches for that medicine.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <ButtonLink href="/signup" size="lg">
+          <ButtonLink href="/signup?role=provider" size="lg">
             List your facility
             <ArrowRight className="h-5 w-5" aria-hidden />
           </ButtonLink>
-          <ButtonLink href="/provider" size="lg" variant="secondary">
+          <ButtonLink href="/for-facilities" size="lg" variant="secondary">
             See the inventory tools
           </ButtonLink>
         </div>

@@ -185,10 +185,16 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
   const turns: Turn[] = [...history, { role: "user", content: userText }];
   const fallbackTitle = (text.trim() || files[0]?.name || "New chat").split(/\s+/).slice(0, 6).join(" ");
 
-  // 2. Plan
-  const planStep = steps.start("Working out what you need");
+  // 2. Plan. Greetings and small talk need no planning call or visible step.
   let plan: Plan = { title: fallbackTitle, emergency: false, location: null, needs: [] };
-  try {
+  const smallTalk =
+    !files.length &&
+    text.trim().length < 40 &&
+    /^(hi|hello|hey|yo|good (morning|afternoon|evening|day)|thanks?( you)?|thank you|ok(ay)?|how are you|who are you|what can you do|help)[\s!.?,]*$/i.test(
+      text.trim(),
+    );
+  const planStep = smallTalk ? null : steps.start("Working out what you need");
+  if (planStep) try {
     const recent = turns.slice(-6).map((t) => `${t.role.toUpperCase()}: ${t.content.slice(0, 3000)}`).join("\n\n");
     const { text: out } = await complete(PLAN_PROMPT, [{ role: "user", content: recent }], { json: true });
     plan = parsePlan(out, fallbackTitle);
@@ -320,7 +326,11 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
     content: parsed.message,
     title: plan.title,
     meta: {
-      steps: steps.steps,
+      // A lone planning step that found nothing to look up isn't worth showing afterwards.
+      steps:
+        steps.steps.length === 1 && steps.steps[0].label === "Working out what you need"
+          ? []
+          : steps.steps,
       triage: plan.emergency ? "urgent" : parsed.triageLevel,
       matches: matches.slice(0, 12),
       places: places.slice(0, 8),

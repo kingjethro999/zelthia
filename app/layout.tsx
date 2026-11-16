@@ -31,14 +31,13 @@ export const viewport: Viewport = {
 };
 
 const description =
-  "Zelthia is a free AI health companion that checks advice against your allergies and medicines, then shows which pharmacy, clinic or hospital near you has the medicine in stock, with landmark directions.";
+  "Zelthia is a free health and care companion for Nigeria. Ask an AI health chat that knows your allergies, get a doctor's note or prescription explained from a photo, and find which pharmacy, clinic or hospital has your medicine or test.";
+
+const title = "Zelthia: AI health chat, doctor's note reader and medicine finder";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: {
-    default: "Zelthia: AI health companion and medicine stock finder",
-    template: "%s | Zelthia",
-  },
+  title: { default: title, template: "%s | Zelthia" },
   description,
   applicationName: "Zelthia",
   authors: [{ name: "Zelthia", url: SITE_URL }],
@@ -47,39 +46,35 @@ export const metadata: Metadata = {
   category: "health",
   keywords: [
     "Zelthia",
-    "AI health assistant",
+    "AI health assistant Nigeria",
     "symptom checker Nigeria",
+    "read doctor's handwriting",
+    "explain my prescription",
     "find medicine near me",
-    "pharmacy stock checker",
-    "drug availability Nigeria",
-    "pharmacy inventory software",
-    "clinic inventory management",
-    "hospital stock management",
+    "pharmacy near me with stock",
+    "where to do a scan in Nigeria",
     "drug interaction checker",
-    "allergy-aware health advice",
-    "pharmacy near me Abuja",
+    "pharmacy inventory software Nigeria",
+    "clinic and hospital inventory management",
+    "health products and skin care stock",
   ],
-  alternates: { canonical: "/" },
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    title: "Zelthia",
-    statusBarStyle: "default",
+  alternates: {
+    canonical: "/",
+    // Plain-text description for AI agents and answer engines.
+    types: { "text/plain": "/llms.txt" },
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Zelthia", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   openGraph: {
     type: "website",
     locale: "en_NG",
     url: SITE_URL,
     siteName: "Zelthia",
-    title: "Zelthia: AI health companion and medicine stock finder",
+    title,
     description,
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Zelthia: AI health companion and medicine stock finder",
-    description,
-  },
+  twitter: { card: "summary_large_image", title, description },
   robots: {
     index: true,
     follow: true,

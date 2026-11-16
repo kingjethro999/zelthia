@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/chat", label: "Health chat", icon: MessageCircleHeart },
   { href: "/inventory", label: "Find medicine", icon: Pill },
-  { href: "/provider", label: "For facilities", icon: Building2 },
+  { href: "/for-facilities", label: "For facilities", icon: Building2 },
 ];
 
 /** Routes that render their own full-height chrome. */
