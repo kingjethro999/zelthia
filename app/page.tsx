@@ -6,11 +6,11 @@ import {
   Building2,
   CalendarClock,
   ChevronDown,
-  Clock,
+  CircleCheck,
+  Globe,
   Layers,
   MapPinned,
   MessageCircleHeart,
-  PackageCheck,
   Pill,
   UserRound,
 } from "lucide-react";
@@ -125,6 +125,7 @@ function ConversationPreview() {
       aria-label="Example conversation with Zelthia"
       className="relative rounded-[28px] border border-line bg-surface p-4 shadow-[0_24px_60px_-30px_rgba(13,59,53,0.35)] sm:p-6"
     >
+      <figcaption className="mb-3 text-xs font-medium text-muted">Example</figcaption>
       <div className="flex items-center gap-2 border-b border-line pb-3 text-sm text-muted">
         <UserRound className="h-4 w-4" aria-hidden />
         Profile: allergic to penicillin, has asthma
@@ -146,27 +147,20 @@ function ConversationPreview() {
           </p>
         </div>
 
-        <div className="max-w-[92%] rounded-2xl border border-brand/30 bg-brand-soft/60 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-semibold text-ink">Paracetamol 500 mg</p>
-              <p className="text-sm text-muted">Campus Health Centre, Nsukka</p>
-            </div>
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-brand">
-              <PackageCheck className="h-3.5 w-3.5" aria-hidden />
-              240 in stock
-            </span>
-          </div>
-          <p className="mt-3 flex items-start gap-2 text-sm text-ink">
+        <ol className="max-w-[92%] space-y-2 rounded-2xl border border-line bg-paper p-4 text-sm">
+          <li className="flex items-start gap-2 text-ink">
+            <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+            Checked pharmacies on Zelthia near you for paracetamol
+          </li>
+          <li className="flex items-start gap-2 text-ink">
+            <Globe className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+            Searched the web for nearby stockists, with photos and links
+          </li>
+          <li className="flex items-start gap-2 text-ink">
             <MapPinned className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
-            Enter by the main gate, it&apos;s the white building just past the
-            bookshop.
-          </p>
-          <p className="mt-1.5 flex items-center gap-2 text-sm text-muted">
-            <Clock className="h-4 w-4 shrink-0" aria-hidden />
-            Open until 8 pm
-          </p>
-        </div>
+            Shows landmark directions and a call button when a pharmacy has listed it
+          </li>
+        </ol>
       </div>
     </figure>
   );

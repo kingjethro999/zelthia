@@ -98,7 +98,7 @@ export function ChatApp() {
               pending={chat.pending}
               onSend={send}
               onStop={chat.stop}
-              placeholder={empty ? "Describe a symptom, ask about a medicine, or attach a note" : "Reply to Zelthia"}
+              placeholder={empty ? "Ask a health question or attach a photo" : "Reply to Zelthia"}
             />
             {empty && (
               <div className="mt-3 flex flex-wrap gap-2">

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Markdown } from "./Markdown";
 import { StepsPanel } from "./StepsPanel";
 import { DirectoryMatches, WebSources } from "./ResultCards";
+import { ImageGallery } from "./ImageGallery";
 
 const TRIAGE: Record<TriageLevel, { label: string; icon: typeof AlertCircle; className: string }> = {
   urgent: { label: "Get emergency care now: call 112", icon: AlertTriangle, className: "border-alert/30 bg-alert-soft text-alert" },
@@ -142,6 +143,7 @@ export function AssistantMessage({
         {!live && message && (
           <>
             <DirectoryMatches matches={message.meta?.matches ?? []} />
+            <ImageGallery images={message.meta?.images ?? []} />
             <WebSources places={message.meta?.places ?? []} />
             <div className="mt-2 flex items-center gap-1 text-xs text-muted">
               <button

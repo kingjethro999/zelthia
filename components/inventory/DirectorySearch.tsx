@@ -8,7 +8,8 @@ import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Choice";
 import { ButtonLink, Button } from "@/components/ui/Button";
 import { DirectoryMatches, WebSources } from "@/components/chat/ResultCards";
-import { PRODUCT_CATEGORIES, type DirectoryMatch, type WebPlace } from "@/lib/inventory-types";
+import { PRODUCT_CATEGORIES, type DirectoryMatch, type WebImage, type WebPlace } from "@/lib/inventory-types";
+import { ImageGallery } from "@/components/chat/ImageGallery";
 
 export function DirectorySearch() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export function DirectorySearch() {
   const [cities, setCities] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [web, setWeb] = useState<{ status: "idle" | "loading" | "done" | "error"; places: WebPlace[]; error?: string }>({ status: "idle", places: [] });
+  const [web, setWeb] = useState<{ status: "idle" | "loading" | "done" | "error"; places: WebPlace[]; images?: WebImage[]; error?: string }>({ status: "idle", places: [] });
 
   const run = useCallback(async () => {
     setLoading(true);
@@ -57,7 +58,7 @@ export function DirectorySearch() {
       const res = await fetch(`/api/directory/web?${qs}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setWeb({ status: "done", places: data.places });
+      setWeb({ status: "done", places: data.places, images: data.images ?? [] });
     } catch (err) {
       setWeb({ status: "error", places: [], error: (err as Error).message || "Web search failed." });
     }
@@ -90,12 +91,12 @@ export function DirectorySearch() {
         <Button type="submit" className="shrink-0">Search</Button>
       </form>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Select label="City" hideLabel size="sm" icon={MapPin} className="w-44" value={city} onChange={setCity}
+      <div className="mt-3 grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
+        <Select label="City" hideLabel size="sm" icon={MapPin} className="min-w-0 sm:w-44" value={city} onChange={setCity}
           options={[{ value: "ALL", label: "All cities" }, ...cities.map((c) => ({ value: c, label: c }))]} />
-        <Select label="Category" hideLabel size="sm" icon={Layers} className="w-60" value={category} onChange={setCategory}
+        <Select label="Category" hideLabel size="sm" icon={Layers} className="min-w-0 sm:w-60" value={category} onChange={setCategory}
           options={[{ value: "ALL", label: "All categories" }, ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c }))]} />
-        <Switch checked={inStock} onChange={setInStock} label="In stock only" className="ml-1 gap-3" />
+        <Switch checked={inStock} onChange={setInStock} label="In stock only" className="col-span-2 justify-start gap-3 sm:ml-1" />
       </div>
 
       <div className="mt-8" aria-live="polite">
@@ -146,8 +147,11 @@ export function DirectorySearch() {
             </div>
             {web.status === "error" && <p role="alert" className="mt-4 text-sm text-alert">{web.error}</p>}
             {web.status === "done" &&
-              (web.places.length ? (
-                <WebSources places={web.places} />
+              (web.places.length || web.images?.length ? (
+                <>
+                  <ImageGallery images={web.images ?? []} />
+                  <WebSources places={web.places} />
+                </>
               ) : (
                 <p className="mt-4 text-sm text-muted">The web search didn&apos;t find useful pages either. Try a different spelling.</p>
               ))}

@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { searchPlaces } from "@/lib/server/web-search";
+import { searchImages, searchPlaces } from "@/lib/server/web-search";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 import { handle, json } from "@/lib/server/api";
 
@@ -13,8 +13,8 @@ export async function GET(req: Request) {
     const limit = rateLimit(`web:${clientIp(req)}`, 10, 10 * 60_000);
     if (!limit.ok) return json({ error: `Too many searches. Try again in ${limit.retryAfter} seconds.` }, 429);
     const city = url.searchParams.get("city")?.trim() || null;
-    const { places } = await searchPlaces(q, city, 8);
-    return json({ places });
+    const [{ places }, images] = await Promise.all([searchPlaces(q, city, 8), searchImages(q, city, 8)]);
+    return json({ places, images });
   } catch (err) {
     return handle("GET /api/directory/web", err);
   }

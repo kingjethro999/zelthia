@@ -114,7 +114,17 @@ export interface WebPlace {
   title: string;
   url: string;
   description: string;
-  source: "firecrawl" | "jina";
+  source: "firecrawl" | "tavily" | "jina";
+}
+
+/** A photo found by web search, linked to the page it came from. */
+export interface WebImage {
+  imageUrl: string;
+  title: string;
+  /** Page the image appears on; falls back to the image's own site. */
+  sourceUrl: string;
+  width?: number;
+  height?: number;
 }
 
 export function formatNaira(n: number | null) {

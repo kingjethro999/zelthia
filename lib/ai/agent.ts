@@ -1,13 +1,13 @@
 import "server-only";
 import type { AgentStep, ChatEvent, MessageMeta } from "@/lib/chat-types";
-import type { DirectoryMatch, WebPlace } from "@/lib/inventory-types";
+import type { DirectoryMatch, WebImage, WebPlace } from "@/lib/inventory-types";
 import type { BiometricProfile } from "./types";
 import { buildSystemPrompt } from "./prompts";
 import { parseAiResponse, stripTags } from "./parser";
 import { complete, readWithVision, stream, type Turn } from "./providers";
 import { generateClinicalFallback } from "./fallback";
 import { searchDirectory } from "@/lib/server/inventory";
-import { searchPlaces } from "@/lib/server/web-search";
+import { searchImages, searchPlaces } from "@/lib/server/web-search";
 
 export interface IncomingFile {
   name: string;
@@ -120,6 +120,7 @@ Return only JSON:
  "needs": [{"what": "plain name, e.g. 2D echocardiogram", "kind": "product" | "service",
             "terms": ["2-4 short search keywords and common spellings, e.g. echo, echocardiogram, echocardiography"]}]}
 Rules:
+- If the user attached a photo of a product (a medicine pack, cream, device, carton or label), include that product as a need of kind "product", using the brand and product name read from the photo. The user wants to know where to get it.
 - If an attached document or the conversation says the user should get a test, scan, procedure or medicine (e.g. "Plan: MRI, 2D ECHO", "Rx: ..."), include each test or scan as a need: the user has to find where to do it. Prefer tests and scans over routine medicines.
 - "needs" is [] only when the user just wants advice or information and nothing has to be obtained.
 - At most 2 needs. Never invent a location.`;
@@ -207,6 +208,7 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
   const location = plan.location ?? (profile.location?.trim() || null);
   const matches: DirectoryMatch[] = [];
   const places: WebPlace[] = [];
+  const images: WebImage[] = [];
 
   // 3-4. Directory first, then the web, for each need.
   for (const need of plan.needs) {
@@ -233,12 +235,20 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
       const webStep = steps.start(
         `Searching the web for ${need.what}${location ? ` near ${location}` : " in Nigeria"}`,
       );
-      const { places: web } = await searchPlaces(need.what, location, 6);
+      const [{ places: web }, pics] = await Promise.all([
+        searchPlaces(need.what, location, 6),
+        searchImages(need.what, location, 8),
+      ]);
       places.push(...web);
+      images.push(...pics.filter((p) => !images.some((x) => x.imageUrl === p.imageUrl)));
+      const found = [
+        web.length ? `${web.length} pages` : "",
+        pics.length ? `${pics.length} photos` : "",
+      ].filter(Boolean);
       steps.finish(
         webStep,
-        web.length ? `Found ${web.length} pages to check (not verified by Zelthia)` : "No useful pages found",
-        web.length ? "done" : "failed",
+        found.length ? `Found ${found.join(" and ")} to check (not verified by Zelthia)` : "No useful pages found",
+        found.length ? "done" : "failed",
       );
     }
   }
@@ -286,7 +296,9 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
 - If you want to suggest looking locally, describe the type of place (e.g. "a community pharmacy" or "a teaching hospital's cardiology unit") without naming one.
 - Copy phone numbers, prices and addresses only when complete in the results.
 - Call a facility "verified" only when licence_verified is true. If it has recorded directions, mention they can listen to them on the card below.
-- Facility cards with phone, directions and stock are shown under your answer, so keep your own summary short.`
+- Facility cards with phone, directions and stock are shown under your answer, so keep your own summary short.
+- Photos from the web search are shown under your answer and link to their source pages; you may refer to them.
+- If ZELTHIA DIRECTORY RESULTS is "none", say clearly at the start that no facility on Zelthia has it in stock yet, then point to the web results.`
     : "";
   const system = [buildSystemPrompt(profile), context, grounding].filter(Boolean).join("\n\n");
   let raw = "";
@@ -312,6 +324,7 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
       triage: plan.emergency ? "urgent" : parsed.triageLevel,
       matches: matches.slice(0, 12),
       places: places.slice(0, 8),
+      images: images.slice(0, 12),
       model,
     },
   };
