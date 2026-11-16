@@ -72,12 +72,42 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
+/* Tracking and leading follow size. Headings sit in the base layer so
+   utilities on a given heading still win; large display headings opt into
+   tighter tracking with .display / .title below. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+    font-optical-sizing: auto;
+  }
+}
+
+@layer utilities {
+  /* Hero-sized type: letters read too far apart as they grow. */
+  .display {
+    letter-spacing: -0.032em;
+    line-height: 1.04;
+  }
+  /* Section titles (text-3xl to text-5xl). */
+  .title {
+    letter-spacing: -0.024em;
+    line-height: 1.12;
+  }
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern", "calt";
+}
+
+/* Figures in stats, counts and prices line up as they change. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 p {
@@ -97,42 +127,244 @@ p {
   }
 }
 
+/* Motion tokens. One critically damped curve for everything that enters
+   (the iOS sheet curve), a quicker accelerating one for exits, since a
+   surface that leaves should get out of the way. */
+:root {
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dur-enter: 340ms;
+  --dur-exit: 220ms;
+  --dur-press: 120ms;
+}
+
 @keyframes rise {
   from {
     opacity: 0;
     transform: translateY(6px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
+/* Popovers grow out of their trigger; the origin is set per menu. */
 @keyframes pop {
   from {
     opacity: 0;
-    transform: scale(0.97) translateY(-4px);
+    transform: scale(0.96);
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+@keyframes sheet-right {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@keyframes sheet-left {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
   }
 }
 
 .animate-rise {
-  animation: rise 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: rise 300ms var(--ease-out) both;
 }
 
 .animate-pop {
-  animation: pop 160ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: pop 180ms var(--ease-out) both;
 }
 
+.animate-fade {
+  animation: fade var(--dur-enter) var(--ease-out) both;
+}
+
+.animate-sheet-up {
+  animation: sheet-up var(--dur-enter) var(--ease-out) both;
+}
+
+.animate-sheet-right {
+  animation: sheet-right var(--dur-enter) var(--ease-out) both;
+}
+
+.animate-sheet-left {
+  animation: sheet-left var(--dur-enter) var(--ease-out) both;
+}
+
+.animate-dialog-in {
+  animation: dialog-in 260ms var(--ease-out) both;
+}
+
+/* Dialogs are bottom sheets on phones; on wider screens a centred dialog
+   materialises in place and a side sheet slides in from the right. */
+.animate-modal {
+  animation: sheet-up var(--dur-enter) var(--ease-out) both;
+}
+.animate-side-sheet {
+  animation: sheet-up var(--dur-enter) var(--ease-out) both;
+}
+[data-closing] .animate-modal,
+[data-closing] .animate-side-sheet {
+  animation: sheet-up var(--dur-exit) var(--ease-in) reverse both;
+}
+@media (min-width: 640px) {
+  .animate-modal {
+    animation: dialog-in 260ms var(--ease-out) both;
+  }
+  .animate-side-sheet {
+    animation: sheet-right var(--dur-enter) var(--ease-out) both;
+  }
+  [data-closing] .animate-modal {
+    animation: dialog-in var(--dur-exit) var(--ease-in) reverse both;
+  }
+  [data-closing] .animate-side-sheet {
+    animation: sheet-right var(--dur-exit) var(--ease-in) reverse both;
+  }
+}
+
+/* Exits run the same keyframes backwards, so a surface leaves along the
+   path it arrived on. */
+[data-closing] .animate-fade,
+[data-closing].animate-fade {
+  animation: fade var(--dur-exit) var(--ease-in) reverse both;
+}
+[data-closing] .animate-sheet-up {
+  animation: sheet-up var(--dur-exit) var(--ease-in) reverse both;
+}
+[data-closing] .animate-sheet-right {
+  animation: sheet-right var(--dur-exit) var(--ease-in) reverse both;
+}
+[data-closing] .animate-sheet-left {
+  animation: sheet-left var(--dur-exit) var(--ease-in) reverse both;
+}
+[data-closing] .animate-dialog-in {
+  animation: dialog-in var(--dur-exit) var(--ease-in) reverse both;
+}
+
+/* Press feedback lands on pointer-down. Opt in with .press on icon buttons
+   and tappable cards that are not built from <Button>. */
+.press {
+  transition-property: transform, background-color, border-color, color, opacity;
+  transition-duration: var(--dur-press);
+  transition-timing-function: var(--ease-out);
+}
+.press:active {
+  transform: scale(0.94);
+}
+.press-soft:active {
+  transform: scale(0.985);
+}
+
+/* Floating chrome: a translucent layer content scrolls under. */
+.material-bar {
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: blur(20px) saturate(170%);
+}
+
+/* Popovers sit on a near-opaque surface with a soft two-step shadow, so they
+   read as lifted without stacking glass on glass. */
+.material-popover {
+  background: var(--surface);
+  box-shadow:
+    0 1px 2px rgb(6 25 26 / 0.06),
+    0 12px 32px -8px rgb(6 25 26 / 0.18);
+}
+
+.scrim {
+  background: rgb(6 25 26 / 0.45);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .material-popover {
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.04),
+      0 16px 40px -8px rgb(0 0 0 / 0.6);
+  }
+  .scrim {
+    background: rgb(0 0 0 / 0.55);
+  }
+}
+
+/* Reduced motion keeps the feedback but swaps travel for a short cross-fade:
+   nothing slides, scales or springs. */
 @media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-pop,
+  .animate-sheet-up,
+  .animate-sheet-right,
+  .animate-sheet-left,
+  .animate-dialog-in,
+  .animate-modal,
+  .animate-side-sheet {
+    animation: fade 160ms ease both !important;
+  }
+  [data-closing] .animate-sheet-up,
+  [data-closing] .animate-sheet-right,
+  [data-closing] .animate-sheet-left,
+  [data-closing] .animate-dialog-in,
+  [data-closing] .animate-modal,
+  [data-closing] .animate-side-sheet,
+  [data-closing] .animate-fade,
+  [data-closing].animate-fade {
+    animation: none !important;
+    opacity: 0;
+  }
+  .press:active,
+  .press-soft:active,
+  .active\:scale-\[0\.97\]:active {
+    transform: none;
+  }
   *,
   *::before,
   *::after {
-    animation-duration: 1ms !important;
-    transition-duration: 1ms !important;
     scroll-behavior: auto !important;
+  }
+  .animate-pulse {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .material-bar {
+    background: var(--paper);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .scrim {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(6 25 26 / 0.6);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .material-bar {
+    background: var(--paper);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-bottom-color: var(--ink) !important;
+  }
+  .material-popover {
+    border-color: var(--ink) !important;
   }
 }

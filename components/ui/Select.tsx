@@ -185,7 +185,7 @@ export function Select<T extends string>({
           role="listbox"
           aria-labelledby={`${id}-label`}
           className={cn(
-            "animate-pop absolute z-50 mt-1.5 max-h-72 min-w-full overflow-auto rounded-xl border border-line bg-surface p-1 shadow-lg shadow-black/5",
+            "animate-pop material-popover absolute z-50 mt-1.5 max-h-72 min-w-full origin-top overflow-auto overscroll-contain rounded-xl border border-line p-1",
             align === "right" ? "right-0" : "left-0",
           )}
         >

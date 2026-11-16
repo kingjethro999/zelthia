@@ -95,7 +95,7 @@ function Hero() {
   return (
     <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16 lg:pb-24 lg:pt-20">
       <div>
-        <h1 className="font-display text-[2.6rem] font-semibold leading-[1.04] text-ink sm:text-6xl">
+        <h1 className="display font-display text-[2.6rem] font-semibold text-ink sm:text-6xl">
           Know what&apos;s safe to take, and where to get it.
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
@@ -193,7 +193,7 @@ function HowItWorks() {
   return (
     <section className="border-y border-line bg-surface">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
-        <h2 className="max-w-2xl font-display text-3xl font-semibold text-ink sm:text-4xl">
+        <h2 className="max-w-2xl title font-display text-3xl font-semibold text-ink sm:text-4xl">
           From &ldquo;is this safe?&rdquo; to the pharmacy counter.
         </h2>
         <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
@@ -231,7 +231,7 @@ function ForFacilities() {
         <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-sky-soft text-sky">
           <Building2 className="h-5 w-5" aria-hidden />
         </span>
-        <h2 className="mt-5 font-display text-3xl font-semibold text-ink sm:text-4xl">
+        <h2 className="mt-5 title font-display text-3xl font-semibold text-ink sm:text-4xl">
           Inventory for pharmacies, clinics and hospitals.
         </h2>
         <p className="mt-4 max-w-lg text-lg leading-relaxed text-muted">
@@ -265,7 +265,7 @@ function Faq() {
   return (
     <section id="faq" className="scroll-mt-20 border-t border-line bg-surface">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:py-24">
-        <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+        <h2 className="title font-display text-3xl font-semibold text-ink sm:text-4xl">
           Questions people ask
         </h2>
         <div className="divide-y divide-line border-y border-line">
@@ -292,7 +292,7 @@ function Closing() {
     <section className="bg-[#0d3b35] text-white">
       <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 py-16 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-20">
         <div className="max-w-xl">
-          <h2 className="font-display text-3xl font-semibold sm:text-4xl">
+          <h2 className="title font-display text-3xl font-semibold sm:text-4xl">
             Set up your health profile in about a minute.
           </h2>
           <p className="mt-3 text-lg text-white/75">

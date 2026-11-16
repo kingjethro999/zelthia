@@ -214,13 +214,13 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
             onClick={() => setMenu((m) => !m)}
             aria-haspopup="menu"
             aria-expanded={menu}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-colors hover:bg-mist hover:text-ink"
+            className="press flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted hover:bg-mist hover:text-ink"
             aria-label="Add photos or files"
           >
             <Plus className="h-[18px] w-[18px]" aria-hidden />
           </button>
           {menu && (
-            <div role="menu" className="animate-pop absolute bottom-11 left-0 z-20 w-64 rounded-2xl border border-line bg-surface p-1.5 shadow-lg">
+            <div role="menu" className="animate-pop material-popover absolute bottom-11 left-0 z-20 w-64 origin-bottom-left rounded-2xl border border-line p-1.5">
               <button
                 role="menuitem"
                 type="button"
@@ -294,7 +294,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
             type="submit"
             disabled={!canSend}
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-full transition-colors",
+              "press flex h-9 w-9 items-center justify-center rounded-full",
               canSend ? "bg-brand text-white hover:bg-brand-strong dark:text-[#06231a]" : "bg-mist text-muted",
             )}
             aria-label="Send message"

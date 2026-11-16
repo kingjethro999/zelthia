@@ -80,7 +80,7 @@ export function InfoPage(p: InfoPageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <article>
         <header className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:pb-16 lg:pt-20">
-          <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.08] text-ink sm:text-5xl">
+          <h1 className="max-w-3xl display font-display text-4xl font-semibold text-ink sm:text-5xl">
             {p.title}
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{p.lead}</p>
@@ -107,7 +107,7 @@ export function InfoPage(p: InfoPageProps) {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
-          <h2 className="max-w-2xl font-display text-3xl font-semibold text-ink sm:text-4xl">{p.sectionsTitle}</h2>
+          <h2 className="max-w-2xl title font-display text-3xl font-semibold text-ink sm:text-4xl">{p.sectionsTitle}</h2>
           <ul
             className={cn(
               "mt-10 grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2",
@@ -128,7 +128,7 @@ export function InfoPage(p: InfoPageProps) {
         {p.steps && (
           <section className="border-t border-line bg-surface">
             <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
-              <h2 className="max-w-2xl font-display text-3xl font-semibold text-ink sm:text-4xl">{p.steps.title}</h2>
+              <h2 className="max-w-2xl title font-display text-3xl font-semibold text-ink sm:text-4xl">{p.steps.title}</h2>
               <ol className="mt-10 grid gap-8 md:grid-cols-3">
                 {p.steps.items.map((s, i) => (
                   <li key={s.name}>
@@ -144,7 +144,7 @@ export function InfoPage(p: InfoPageProps) {
 
         <section className="border-t border-line">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:py-20">
-            <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">Common questions</h2>
+            <h2 className="title font-display text-3xl font-semibold text-ink sm:text-4xl">Common questions</h2>
             <div className="divide-y divide-line border-y border-line">
               {p.faqs.map((f) => (
                 <details key={f.question} className="group">

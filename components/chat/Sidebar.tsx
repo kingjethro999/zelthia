@@ -24,6 +24,7 @@ import type { ConversationSummary } from "@/lib/chat-types";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useDragDismiss, useLastDefined, usePresence } from "@/lib/motion";
 
 function group(list: ConversationSummary[]) {
   const startOfDay = new Date();
@@ -61,7 +62,11 @@ export function Sidebar({
   const groups = useMemo(() => group(conversations), [conversations]);
   const [editing, setEditing] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<ConversationSummary | null>(null);
+  const shownConfirm = useLastDefined(confirm);
   const [deleting, setDeleting] = useState(false);
+  const drawer = usePresence(mobileOpen);
+  const drawerRef = useRef<HTMLElement>(null);
+  const swipe = useDragDismiss(drawerRef, "left", onCloseMobile);
 
   const panel = (
     <div className="flex h-full w-72 flex-col bg-surface">
@@ -174,7 +179,7 @@ export function Sidebar({
         open={Boolean(confirm)}
         onClose={() => setConfirm(null)}
         title="Delete this chat?"
-        description={`"${confirm?.title}" and any files in it will be deleted. This can't be undone.`}
+        description={`"${shownConfirm?.title}" and any files in it will be deleted. This can't be undone.`}
         footer={
           <>
             <Button variant="ghost" onClick={() => setConfirm(null)}>
@@ -211,15 +216,20 @@ export function Sidebar({
       >
         {panel}
       </aside>
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+      {drawer.mounted && (
+        <div data-closing={drawer.closing || undefined} inert={drawer.closing || undefined} className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-[#06191a]/50"
+            className="scrim animate-fade absolute inset-0"
             aria-label="Close sidebar"
             onClick={onCloseMobile}
           />
-          <aside className="animate-rise absolute inset-y-0 left-0 shadow-2xl" aria-label="Chat history">
+          <aside
+            ref={drawerRef}
+            {...swipe}
+            className="animate-sheet-left absolute inset-y-0 left-0 touch-pan-y shadow-2xl"
+            aria-label="Chat history"
+          >
             {panel}
           </aside>
         </div>
@@ -313,7 +323,7 @@ function ConversationRow({
         <Ellipsis className="h-4 w-4" aria-hidden />
       </button>
       {menu && (
-        <div role="menu" className="animate-pop absolute right-0 top-9 z-20 w-40 rounded-xl border border-line bg-surface p-1 shadow-lg">
+        <div role="menu" className="animate-pop material-popover absolute right-0 top-9 z-20 w-40 origin-top-right rounded-xl border border-line p-1">
           <button
             role="menuitem"
             type="button"
@@ -367,7 +377,7 @@ function AccountFooter() {
   return (
     <div ref={ref} className="relative border-t border-line p-2">
       {open && (
-        <div role="menu" className="animate-pop absolute bottom-full left-2 right-2 mb-1 rounded-2xl border border-line bg-surface p-1.5 shadow-lg">
+        <div role="menu" className="animate-pop material-popover absolute bottom-full left-2 right-2 mb-1 origin-bottom rounded-2xl border border-line p-1.5">
           <p className="truncate px-3 py-2 text-xs text-muted">{user.email}</p>
           <Link role="menuitem" href="/account" className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist">
             <CircleUserRound className="h-4 w-4 text-muted" aria-hidden />

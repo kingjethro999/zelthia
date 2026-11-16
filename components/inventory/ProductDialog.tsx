@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertCircle, Barcode, Layers, Package } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
+import { usePresence } from "@/lib/motion";
 import { Button } from "@/components/ui/Button";
 import { Stepper, TextArea, TextField } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
@@ -46,15 +47,20 @@ export function ProductDialog({
   onClose: () => void;
   onSave: (draft: ProductDraft) => Promise<{ ok: boolean; error?: string; field?: string }>;
 }) {
-  if (!open) return null;
-  return <ProductDialogInner initial={initial} onClose={onClose} onSave={onSave} />;
+  // Stay mounted through the exit so the sheet leaves the way it came; a
+  // fresh open after that starts from a clean draft.
+  const { mounted } = usePresence(open);
+  if (!mounted) return null;
+  return <ProductDialogInner open={open} initial={initial} onClose={onClose} onSave={onSave} />;
 }
 
 function ProductDialogInner({
+  open,
   initial,
   onClose,
   onSave,
 }: {
+  open: boolean;
   initial: ProductDraft | null;
   onClose: () => void;
   onSave: (draft: ProductDraft) => Promise<{ ok: boolean; error?: string; field?: string }>;
@@ -80,7 +86,7 @@ function ProductDialogInner({
 
   return (
     <Dialog
-      open
+      open={open}
       onClose={onClose}
       variant="sheet"
       title={initial ? "Edit product" : "Add a product"}

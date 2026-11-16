@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDragDismiss, usePresence } from "@/lib/motion";
 
 interface DialogProps {
   open: boolean;
@@ -29,6 +30,10 @@ export function Dialog({
   const id = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
+  const { mounted, closing } = usePresence(open);
+  // Phones get a bottom sheet the thumb can pull down; wider screens keep
+  // the close button and Escape.
+  const drag = useDragDismiss(panelRef, "down", onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -65,12 +70,14 @@ export function Dialog({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   return (
     <div
+      data-closing={closing || undefined}
+      inert={closing || undefined}
       className={cn(
-        "fixed inset-0 z-[60] flex bg-[#06191a]/50 backdrop-blur-[2px]",
+        "fixed inset-0 z-[60] flex",
         variant === "center"
           ? "items-end justify-center p-0 sm:items-center sm:p-4"
           : "items-end justify-end sm:items-stretch",
@@ -81,7 +88,7 @@ export function Dialog({
         data-close
         aria-label="Close"
         tabIndex={-1}
-        className="absolute inset-0 cursor-default"
+        className="scrim animate-fade absolute inset-0 cursor-default"
         onClick={onClose}
       />
       <div
@@ -92,14 +99,19 @@ export function Dialog({
         aria-describedby={description ? `${id}-d` : undefined}
         tabIndex={-1}
         className={cn(
-          "animate-pop relative flex max-h-[92dvh] w-full flex-col bg-surface shadow-2xl outline-none",
+          "relative flex max-h-[92dvh] w-full flex-col bg-surface shadow-2xl outline-none",
+          variant === "center" ? "animate-modal" : "animate-side-sheet",
           variant === "center"
             ? "rounded-t-3xl sm:max-w-lg sm:rounded-3xl"
             : "rounded-t-3xl sm:h-full sm:max-h-none sm:max-w-xl sm:rounded-none sm:rounded-l-3xl",
           className,
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
+        <div
+          {...drag}
+          className="relative flex touch-none items-start justify-between gap-4 border-b border-line px-5 pb-4 pt-5 sm:touch-auto sm:py-4 sm:px-6"
+        >
+          <span aria-hidden className="absolute left-1/2 top-2 h-1 w-9 -translate-x-1/2 rounded-full bg-line sm:hidden" />
           <div>
             <h2 id={`${id}-t`} className="font-display text-lg font-semibold text-ink">
               {title}
@@ -113,15 +125,19 @@ export function Dialog({
           <button
             type="button"
             onClick={onClose}
-            className="-mr-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-mist hover:text-ink"
+            className="press -mr-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted hover:bg-mist hover:text-ink"
             aria-label="Close dialog"
           >
             <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
-        {children && <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">{children}</div>}
+        {children && (
+          <div data-scroll className="flex-1 overscroll-contain overflow-y-auto px-5 py-5 sm:px-6">
+            {children}
+          </div>
+        )}
         {footer && (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-4 sm:px-6">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
             {footer}
           </div>
         )}

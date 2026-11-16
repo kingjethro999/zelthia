@@ -40,7 +40,7 @@ export function Header() {
   if (BARE.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur-md">
+    <header className="material-bar sticky top-0 z-40 border-b border-line/60">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
         <Logo />
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
@@ -67,7 +67,7 @@ export function Header() {
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-ink hover:bg-mist md:hidden"
+          className="press ml-auto flex h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-mist md:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -77,7 +77,7 @@ export function Header() {
       </div>
 
       {open && (
-        <div id="mobile-nav" className="animate-rise border-t border-line bg-paper px-4 pb-6 pt-3 md:hidden">
+        <div id="mobile-nav" className="animate-rise origin-top border-t border-line px-4 pb-6 pt-3 md:hidden">
           <nav aria-label="Main" className="flex flex-col">
             {NAV.map(({ href, label, icon: Icon }) => (
               <Link
@@ -174,7 +174,7 @@ export function AccountControls({ stacked = false }: { stacked?: boolean }) {
         onClick={() => setMenu((m) => !m)}
         aria-haspopup="menu"
         aria-expanded={menu}
-        className="flex h-10 items-center gap-2 rounded-full border border-line bg-surface pl-1 pr-2.5 hover:border-brand/50"
+        className="press press-soft flex h-10 items-center gap-2 rounded-full border border-line bg-surface pl-1 pr-2.5 hover:border-brand/50"
       >
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-soft text-xs font-semibold text-brand-strong">
           {initials || <CircleUserRound className="h-4 w-4" aria-hidden />}
@@ -183,7 +183,7 @@ export function AccountControls({ stacked = false }: { stacked?: boolean }) {
         <ChevronDown className="h-4 w-4 text-muted" aria-hidden />
       </button>
       {menu && (
-        <div role="menu" className="animate-pop absolute right-0 mt-2 w-64 rounded-2xl border border-line bg-surface p-1.5 shadow-lg shadow-black/5">
+        <div role="menu" className="animate-pop material-popover absolute right-0 mt-2 w-64 origin-top-right rounded-2xl border border-line p-1.5">
           <div className="px-3 py-2">
             <p className="truncate text-sm font-semibold text-ink">{user.name}</p>
             <p className="truncate text-xs text-muted">{user.email}</p>

@@ -210,7 +210,7 @@ function SetupForm() {
 
           <section className="min-w-0">
             <div key={current.key} className="animate-rise">
-              <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+              <h1 className="title font-display text-3xl font-semibold text-ink sm:text-4xl">
                 {current.title}
               </h1>
               <p className="mt-2 text-muted">

@@ -52,7 +52,7 @@ export function AuthShell({
         <div className="flex flex-1 flex-col justify-center gap-10">
           <div className="max-w-md">
             <ScanText className="h-7 w-7 text-[#7fe0b6]" aria-hidden />
-            <h2 className="mt-4 font-display text-3xl font-semibold leading-tight xl:text-4xl">
+            <h2 className="mt-4 title font-display text-3xl font-semibold xl:text-4xl">
               Can&apos;t read what the doctor wrote? Zelthia can.
             </h2>
             <p className="mt-3 text-white/75">

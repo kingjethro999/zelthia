@@ -66,7 +66,7 @@ export function DirectorySearch() {
 
   return (
     <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
-      <h1 className="font-display text-3xl font-semibold text-ink sm:text-4xl">Find medicine and health products</h1>
+      <h1 className="title font-display text-3xl font-semibold text-ink sm:text-4xl">Find medicine and health products</h1>
       <p className="mt-2 max-w-2xl text-muted">
         Search stock and services listed by pharmacies, clinics, hospitals and stores on Zelthia. Medicines, skin care,
         muscle rubs, devices and tests.

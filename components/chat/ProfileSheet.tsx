@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertCircle, Info } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
+import { usePresence } from "@/lib/motion";
 import { Button } from "@/components/ui/Button";
 import { ChoiceGroup } from "@/components/ui/Choice";
 import { useSession } from "@/lib/store/session";
@@ -13,11 +14,14 @@ import { AboutFields, BodyFields, HistoryFields, NotesField } from "@/components
 type Tab = "about" | "body" | "history" | "notes";
 
 export function ProfileSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  if (!open) return null;
-  return <ProfileSheetInner onClose={onClose} />;
+  // Stay mounted through the exit so the sheet leaves the way it came; a
+  // fresh open after that starts from a clean draft.
+  const { mounted } = usePresence(open);
+  if (!mounted) return null;
+  return <ProfileSheetInner open={open} onClose={onClose} />;
 }
 
-function ProfileSheetInner({ onClose }: { onClose: () => void }) {
+function ProfileSheetInner({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { profile, user, saveProfile } = useSession();
   const [draft, setDraft] = useState<BiometricProfile>(profile);
   const [tab, setTab] = useState<Tab>("history");
@@ -36,7 +40,7 @@ function ProfileSheetInner({ onClose }: { onClose: () => void }) {
 
   return (
     <Dialog
-      open
+      open={open}
       onClose={onClose}
       variant="sheet"
       title="Your health profile"

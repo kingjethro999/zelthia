@@ -35,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/store/session";
 import { FacilityForm, type FacilityDraft } from "./FacilityForm";
+import { useLastDefined } from "@/lib/motion";
 import { ProductDialog, type ProductDraft } from "./ProductDialog";
 import { VerificationBadge, verificationMessage } from "./VerificationBadge";
 
@@ -116,7 +117,7 @@ export function ProviderDashboard() {
             {FACILITY_KIND_LABEL[facility.kind]}, {facility.city}
             <VerificationBadge v={facility.verification} />
           </p>
-          <h1 className="truncate font-display text-3xl font-semibold text-ink sm:text-4xl">{facility.name}</h1>
+          <h1 className="truncate title font-display text-3xl font-semibold text-ink sm:text-4xl">{facility.name}</h1>
         </div>
         <div className="flex flex-wrap items-end gap-2">
           {facilities.length > 1 && (
@@ -206,7 +207,7 @@ function NoFacility() {
     <Shell>
       <div className="max-w-2xl">
         <PackageOpen className="h-9 w-9 text-brand" aria-hidden />
-        <h1 className="mt-4 font-display text-3xl font-semibold text-ink sm:text-4xl">You haven&apos;t listed a facility yet</h1>
+        <h1 className="mt-4 title font-display text-3xl font-semibold text-ink sm:text-4xl">You haven&apos;t listed a facility yet</h1>
         <p className="mt-3 text-lg text-muted">
           Register your pharmacy, clinic, hospital, scan centre or health store. People searching on Zelthia, including
           the health chat, will see your real stock and services.
@@ -243,6 +244,7 @@ function StockTab({ facility }: { facility: Facility }) {
   const [filter, setFilter] = useState<"all" | "low" | "out" | "expiring">("all");
   const [editing, setEditing] = useState<Product | "new" | null>(null);
   const [confirm, setConfirm] = useState<Product | null>(null);
+  const shownConfirm = useLastDefined(confirm);
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -435,7 +437,7 @@ function StockTab({ facility }: { facility: Facility }) {
       <Dialog
         open={Boolean(confirm)}
         onClose={() => setConfirm(null)}
-        title={`Delete ${confirm?.name ?? "product"}?`}
+        title={`Delete ${shownConfirm?.name ?? "product"}?`}
         description="It will stop appearing in searches. This can't be undone."
         footer={
           <>
@@ -590,7 +592,7 @@ export function NewFacility() {
           Back to dashboard
         </Link>
       )}
-      <h1 className="mt-3 font-display text-3xl font-semibold text-ink sm:text-4xl">
+      <h1 className="mt-3 title font-display text-3xl font-semibold text-ink sm:text-4xl">
         {welcome ? "Now set up your facility" : "Register your facility"}
       </h1>
       <p className="mb-8 mt-2 text-muted">

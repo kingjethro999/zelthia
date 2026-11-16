@@ -192,7 +192,7 @@ export function ChatApp() {
             type="button"
             onClick={() => setSheet(true)}
             className={cn(
-              "inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors",
+              "press press-soft inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium",
               hasProfile ? "border-brand/30 bg-brand-soft text-brand-strong" : "border-line text-ink hover:bg-mist",
             )}
           >
@@ -207,7 +207,7 @@ export function ChatApp() {
               aria-pressed={chat.temporary}
               title={chat.temporary ? "Turn off temporary chat" : "Temporary chat: not saved to your history"}
               className={cn(
-                "flex h-9 w-9 items-center justify-center rounded-full transition-colors",
+                "press flex h-9 w-9 items-center justify-center rounded-full",
                 chat.temporary ? "bg-ink text-paper" : "text-muted hover:bg-mist hover:text-ink",
               )}
               aria-label={chat.temporary ? "Turn off temporary chat" : "Start a temporary chat"}
@@ -231,7 +231,7 @@ export function ChatApp() {
                 {chat.temporary ? (
                   <>
                     <MessageCircleDashed className="h-9 w-9 text-ink" aria-hidden />
-                    <h2 className="mt-4 font-display text-3xl font-semibold text-ink sm:text-4xl">Temporary chat</h2>
+                    <h2 className="mt-4 title font-display text-3xl font-semibold text-ink sm:text-4xl">Temporary chat</h2>
                     <p className="mt-2 max-w-lg text-muted">
                       This chat won&apos;t appear in your history and isn&apos;t used to remember anything about you.
                       Handy when you&apos;re asking for someone else.
@@ -239,7 +239,7 @@ export function ChatApp() {
                   </>
                 ) : (
                   <>
-                    <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+                    <h2 className="title font-display text-3xl font-semibold text-ink sm:text-4xl">
                       {user ? `How can I help, ${user.name.split(" ")[0]}?` : "How can I help?"}
                     </h2>
                     <p className="mt-2 max-w-lg text-muted">
