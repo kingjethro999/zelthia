@@ -11,13 +11,13 @@ import {
   handle,
   json,
   readJson,
-  requireUser,
+  requireProvider,
 } from "@/lib/server/api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 async function owned(params: Ctx["params"]) {
-  const user = await requireUser();
+  const user = await requireProvider();
   const { id } = await params;
   const facility = await getOwnedFacility(id, user.id);
   if (!facility) throw new HttpError("Facility not found.", 404);

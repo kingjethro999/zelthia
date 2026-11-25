@@ -271,7 +271,9 @@ export async function createFacility(
     `insert into facilities (owner_id, name, kind, phone, email, address, city, state,
        directions, opening_hours, license_number, services, directions_audio_id)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
-       (select id from attachments where id = $13 and user_id = $1))
+       (select id from attachments
+         where id = $13 and user_id = $1 and message_id is null
+           and encrypted = false and mime like 'audio/%'))
      returning *`,
     [
       ownerId,
@@ -289,19 +291,42 @@ export async function createFacility(
       f.directionsAudioId,
     ],
   );
-  await query("update users set role = 'provider' where id = $1", [ownerId]);
   return toFacility(rows[0]);
+}
+
+export interface OrphanedAudio {
+  id: string;
+  storageId: string;
+  resourceType: string;
+  format: string;
 }
 
 export async function updateFacility(
   id: string,
   ownerId: string,
   f: ReturnType<typeof parseFacilityInput>,
-) {
+): Promise<{ facility: Facility; orphanedAudio: OrphanedAudio | null } | null> {
+  if (!isUuid(id)) return null;
+  const prevAudio = await query<{
+    id: string;
+    storage_id: string | null;
+    resource_type: string | null;
+    format: string | null;
+  }>(
+    `select a.id, a.storage_id, a.resource_type, a.format
+       from facilities f
+       join attachments a on a.id = f.directions_audio_id
+      where f.id = $1 and f.owner_id = $2
+        and f.directions_audio_id is distinct from $3::uuid`,
+    [id, ownerId, f.directionsAudioId],
+  );
+
   const rows = await query<FacilityRow>(
     `update facilities set name=$3, kind=$4, phone=$5, email=$6, address=$7, city=$8, state=$9,
        directions=$10, opening_hours=$11, license_number=$12, services=$13,
-       directions_audio_id=(select id from attachments where id = $14 and user_id = $2),
+       directions_audio_id=(select id from attachments
+                              where id = $14 and user_id = $2 and message_id is null
+                                and encrypted = false and mime like 'audio/%'),
        -- A changed licence number has to be reviewed again by an admin.
        verification_status = case when license_number is distinct from $12 then 'none' else verification_status end,
        verification_note = case when license_number is distinct from $12 then '' else verification_note end,
@@ -328,15 +353,71 @@ export async function updateFacility(
       f.directionsAudioId,
     ],
   );
-  return rows[0] ? toFacility(rows[0]) : null;
+  if (!rows[0]) return null;
+
+  let orphanedAudio: OrphanedAudio | null = null;
+  const old = prevAudio[0];
+  if (old) {
+    await query(
+      `delete from attachments a
+        where a.id = $1 and a.user_id = $2
+          and not exists (select 1 from facilities f where f.directions_audio_id = a.id)`,
+      [old.id, ownerId],
+    );
+    if (old.storage_id && old.resource_type) {
+      orphanedAudio = {
+        id: old.id,
+        storageId: old.storage_id,
+        resourceType: old.resource_type,
+        format: old.format ?? "",
+      };
+    }
+  }
+  return { facility: toFacility(rows[0]), orphanedAudio };
 }
 
-export async function deleteFacility(id: string, ownerId: string) {
+export async function deleteFacility(
+  id: string,
+  ownerId: string,
+): Promise<{ deleted: boolean; orphanedAudio: OrphanedAudio | null }> {
+  if (!isUuid(id)) return { deleted: false, orphanedAudio: null };
+  const prevAudio = await query<{
+    id: string;
+    storage_id: string | null;
+    resource_type: string | null;
+    format: string | null;
+  }>(
+    `select a.id, a.storage_id, a.resource_type, a.format
+       from facilities f
+       join attachments a on a.id = f.directions_audio_id
+      where f.id = $1 and f.owner_id = $2`,
+    [id, ownerId],
+  );
   const rows = await query<{ id: string }>(
     "delete from facilities where id=$1 and owner_id=$2 returning id",
     [id, ownerId],
   );
-  return rows.length > 0;
+  if (rows.length === 0) return { deleted: false, orphanedAudio: null };
+
+  let orphanedAudio: OrphanedAudio | null = null;
+  const old = prevAudio[0];
+  if (old) {
+    await query(
+      `delete from attachments a
+        where a.id = $1 and a.user_id = $2
+          and not exists (select 1 from facilities f where f.directions_audio_id = a.id)`,
+      [old.id, ownerId],
+    );
+    if (old.storage_id && old.resource_type) {
+      orphanedAudio = {
+        id: old.id,
+        storageId: old.storage_id,
+        resourceType: old.resource_type,
+        format: old.format ?? "",
+      };
+    }
+  }
+  return { deleted: true, orphanedAudio };
 }
 
 /* ---------- products ---------- */
@@ -624,7 +705,11 @@ export async function getFacilityAudio(facilityId: string) {
   }>(
     `select a.mime, a.storage_id, a.resource_type, a.format
        from facilities f join attachments a on a.id = f.directions_audio_id
-      where f.id = $1 and a.storage_id is not null`,
+      where f.id = $1
+        and a.storage_id is not null
+        and a.message_id is null
+        and a.encrypted = false
+        and a.mime like 'audio/%'`,
     [facilityId],
   );
   return rows[0] ?? null;

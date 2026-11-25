@@ -16,6 +16,14 @@ export async function requireUser() {
   return user;
 }
 
+export async function requireProvider() {
+  const user = await requireUser();
+  if (user.role !== "provider") {
+    throw new HttpError("Only facility accounts can manage listings.", 403);
+  }
+  return user;
+}
+
 export async function requireAdmin() {
   const user = await getSessionUser();
   if (!user) throw new HttpError("Sign in to access admin tools.", 401);

@@ -5,7 +5,7 @@ import {
   handle,
   json,
   readJson,
-  requireUser,
+  requireProvider,
 } from "@/lib/server/api";
 import { uploadPrivate } from "@/lib/server/storage";
 import { transcribe } from "@/lib/server/transcribe";
@@ -21,7 +21,7 @@ const MAX_BYTES = 3 * 1024 * 1024;
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    const user = await requireUser();
+    const user = await requireProvider();
     const limit = await rateLimit(`audio:${user.id}`, 20, 10 * 60_000);
     if (!limit.ok)
       throw new HttpError(

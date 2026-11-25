@@ -10,7 +10,7 @@ import {
   handle,
   json,
   readJson,
-  requireUser,
+  requireProvider,
 } from "@/lib/server/api";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -18,7 +18,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function PUT(req: Request, { params }: Ctx) {
   try {
     assertSameOrigin(req);
-    const user = await requireUser();
+    const user = await requireProvider();
     const { id } = await params;
     const product = await updateProduct(
       id,
@@ -36,7 +36,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 export async function PATCH(req: Request, { params }: Ctx) {
   try {
     assertSameOrigin(req);
-    const user = await requireUser();
+    const user = await requireProvider();
     const { id } = await params;
     const delta = Number((await readJson(req)).delta);
     if (!Number.isInteger(delta) || Math.abs(delta) > 100_000) {
@@ -53,7 +53,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 export async function DELETE(req: Request, { params }: Ctx) {
   try {
     assertSameOrigin(req);
-    const user = await requireUser();
+    const user = await requireProvider();
     const { id } = await params;
     if (!(await deleteProduct(id, user.id)))
       throw new HttpError("Product not found.", 404);

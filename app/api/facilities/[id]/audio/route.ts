@@ -11,7 +11,7 @@ export async function GET(
   try {
     const { id } = await params;
     const a = await getFacilityAudio(id);
-    if (!a)
+    if (!a || !a.mime.startsWith("audio/"))
       return NextResponse.json(
         { error: "No recorded directions." },
         { status: 404 },

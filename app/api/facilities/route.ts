@@ -12,7 +12,7 @@ import {
   handle,
   json,
   readJson,
-  requireUser,
+  requireProvider,
 } from "@/lib/server/api";
 import { rateLimit } from "@/lib/server/rate-limit";
 
@@ -21,7 +21,7 @@ export const maxDuration = 60;
 export async function GET() {
   await connection();
   try {
-    const user = await requireUser();
+    const user = await requireProvider();
     return json({ facilities: await listOwnedFacilities(user.id) });
   } catch (err) {
     return handle("GET /api/facilities", err);
@@ -31,7 +31,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    const user = await requireUser();
+    const user = await requireProvider();
     const limit = await rateLimit(`fac:create:${user.id}`, 5, 60 * 60_000);
     if (!limit.ok) {
       throw new HttpError(
