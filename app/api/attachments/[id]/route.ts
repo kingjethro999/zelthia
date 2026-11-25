@@ -4,6 +4,8 @@ import { getOwnedAttachment } from "@/lib/server/conversations";
 import { aadAttachmentFile, decryptBytes, isEncryptedBytes } from "@/lib/server/crypto";
 import { downloadPrivate } from "@/lib/server/storage";
 
+const INLINE_IMAGE_RE = /^image\/(jpeg|png|webp|heic|heif)$/i;
+
 /** Streams a private attachment to its owner only, decrypting user-encrypted blobs on the fly. */
 export async function GET(
   _req: Request,
@@ -40,11 +42,15 @@ export async function GET(
         ? decryptBytes(raw, ctx.dek, aadAttachmentFile(ctx.user.id, id))
         : raw;
 
+    const safeName = encodeURIComponent(a.name.replace(/[\r\n"]/g, "_"));
+    const disposition = INLINE_IMAGE_RE.test(a.mime) ? "inline" : "attachment";
+
     return new Response(new Uint8Array(payload), {
       headers: {
         "Content-Type": a.mime,
-        "Content-Disposition": `inline; filename="${encodeURIComponent(a.name)}"`,
-        "Cache-Control": "private, max-age=3600",
+        "Content-Disposition": `${disposition}; filename="${safeName}"`,
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
       },
     });

@@ -7,6 +7,7 @@ import {
   readJson,
   requireProvider,
 } from "@/lib/server/api";
+import { sniffAudio } from "@/lib/server/file-sniff";
 import { uploadPrivate } from "@/lib/server/storage";
 import { transcribe } from "@/lib/server/transcribe";
 import { query } from "@/lib/server/db";
@@ -34,17 +35,29 @@ export async function POST(req: Request) {
     const base64 = String(body.base64 ?? "");
     if (!AUDIO_MIME.test(mime))
       throw new HttpError("That recording format isn't supported.", 400);
+
+    // Reject oversized payloads before allocating a decoded Buffer.
+    const estimatedBytes = Math.floor((base64.length * 3) / 4);
+    if (!base64 || estimatedBytes > MAX_BYTES) {
+      throw new HttpError("Keep recordings under about 3 minutes.", 400);
+    }
+
     const audio = Buffer.from(base64, "base64");
     if (!audio.length || audio.length > MAX_BYTES) {
       throw new HttpError("Keep recordings under about 3 minutes.", 400);
     }
 
+    const verifiedMime = sniffAudio(audio, mime);
+    if (!verifiedMime) {
+      throw new HttpError("That file does not appear to be a valid audio recording.", 400);
+    }
+
     const [stored, transcript] = await Promise.all([
       uploadPrivate(
-        `data:${mime.split(";")[0]};base64,${base64}`,
+        `data:${verifiedMime};base64,${base64}`,
         `zelthia/audio/${user.id}`,
       ),
-      transcribe(audio, mime).catch((err) => {
+      transcribe(audio, verifiedMime).catch((err) => {
         // The audio is still useful on its own; the user can type the words.
         console.error("Transcription failed", err);
         return null;
@@ -57,7 +70,7 @@ export async function POST(req: Request) {
       [
         user.id,
         `directions-${randomUUID().slice(0, 8)}`,
-        mime.split(";")[0],
+        verifiedMime,
         audio.length,
         stored.storageId,
         stored.resourceType,

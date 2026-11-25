@@ -30,6 +30,7 @@ import {
   touchConversation,
 } from "@/lib/server/conversations";
 import { uploadPrivateRaw } from "@/lib/server/storage";
+import { sniffChatAttachment } from "@/lib/server/file-sniff";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 
 export const maxDuration = 120;
@@ -66,10 +67,16 @@ export async function POST(req: NextRequest) {
     const name = String(f?.name ?? "file").slice(0, 120);
     if (!ACCEPTED_MIME.includes(mime))
       return bad(`${name} isn't a supported file type.`);
-    const size = Math.floor((base64.length * 3) / 4);
-    if (!base64 || size > MAX_ATTACHMENT_BYTES)
+    const estSize = Math.floor((base64.length * 3) / 4);
+    if (!base64 || estSize > MAX_ATTACHMENT_BYTES)
       return bad(`${name} is larger than 3 MB.`);
-    files.push({ name, mime, size, base64 });
+    const rawBuf = Buffer.from(base64, "base64");
+    if (!rawBuf.length || rawBuf.length > MAX_ATTACHMENT_BYTES)
+      return bad(`${name} is larger than 3 MB.`);
+    const verifiedMime = sniffChatAttachment(rawBuf, mime);
+    if (!verifiedMime)
+      return bad(`${name} does not match a supported image, PDF, or text file.`);
+    files.push({ name, mime: verifiedMime, size: rawBuf.length, base64 });
   }
 
   let ctx: SessionContext | null = null;
