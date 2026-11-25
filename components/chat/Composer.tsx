@@ -60,6 +60,7 @@ async function prepareImage(file: File): Promise<Blob> {
 
 export interface ComposerHandle {
   addFiles: (files: FileList | File[]) => void;
+  setText: (value: string) => void;
   openPicker: () => void;
   focus: () => void;
 }
@@ -158,6 +159,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
 
     useImperativeHandle(ref, () => ({
       addFiles: (l) => void addFiles(l),
+      setText: (v) => setText(v),
       openPicker: () => fileRef.current?.click(),
       focus: () => inputRef.current?.focus(),
     }));

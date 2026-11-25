@@ -65,20 +65,15 @@ export function ChatApp() {
     else useChat.getState().reset();
   }, [sessionStatus, user]);
 
-  // "Ask the health chat" links arrive with ?q=; send it once the session is known.
+  // "Ask the health chat" links arrive with ?q=; pre-fill the composer rather than
+  // auto-submitting from a GET URL so external links cannot trigger actions or LLM spend.
   useEffect(() => {
     if (sessionStatus !== "ready") return;
     const q = new URLSearchParams(window.location.search).get("q");
     if (q) {
       window.history.replaceState(null, "", "/chat");
-      void useChat
-        .getState()
-        .send({
-          text: q.slice(0, 500),
-          files: [],
-          profile: useSession.getState().profile,
-          signedIn: Boolean(useSession.getState().user),
-        });
+      composer.current?.setText(q.slice(0, 500));
+      composer.current?.focus();
     }
   }, [sessionStatus]);
 
