@@ -6,7 +6,15 @@ import {
   setVerification,
 } from "@/lib/server/inventory";
 import { verifyFacility } from "@/lib/server/verify";
-import { handle, json, readJson, requireUser } from "@/lib/server/api";
+import {
+  HttpError,
+  assertSameOrigin,
+  handle,
+  json,
+  readJson,
+  requireUser,
+} from "@/lib/server/api";
+import { rateLimit } from "@/lib/server/rate-limit";
 
 export const maxDuration = 60;
 
@@ -22,7 +30,15 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    assertSameOrigin(req);
     const user = await requireUser();
+    const limit = await rateLimit(`fac:create:${user.id}`, 5, 60 * 60_000);
+    if (!limit.ok) {
+      throw new HttpError(
+        `Too many facility requests. Try again in ${limit.retryAfter} seconds.`,
+        429,
+      );
+    }
     let facility = await createFacility(
       user.id,
       parseFacilityInput(await readJson(req)),

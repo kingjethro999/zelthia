@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   findUserByEmail,
@@ -5,9 +6,18 @@ import {
   toSessionUser,
   verifyPassword,
 } from "@/lib/server/auth";
+import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { getProfile } from "@/lib/server/profile";
+import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 
 export async function POST(req: Request) {
+  try {
+    assertSameOrigin(req);
+    assertJson(req);
+  } catch (err) {
+    return handle("POST /api/auth/signin", err);
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -22,6 +32,20 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { error: "Enter your email and password." },
       { status: 400 },
+    );
+  }
+
+  const ip = clientIp(req);
+  const emailHash = createHash("sha256").update(email).digest("hex");
+  const [ipLimit, emailLimit] = await Promise.all([
+    rateLimit(`signin:ip:${ip}`, 15, 15 * 60_000),
+    rateLimit(`signin:email:${emailHash}`, 8, 15 * 60_000),
+  ]);
+  if (!ipLimit.ok || !emailLimit.ok) {
+    const retryAfter = Math.max(ipLimit.retryAfter, emailLimit.retryAfter);
+    return NextResponse.json(
+      { error: `Too many sign-in attempts. Try again in ${retryAfter} seconds.` },
+      { status: 429 },
     );
   }
 

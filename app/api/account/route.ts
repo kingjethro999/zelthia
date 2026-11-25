@@ -1,5 +1,6 @@
 import { NextResponse, connection } from "next/server";
 import { endSession, getSessionUser } from "@/lib/server/auth";
+import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { getProfile, sanitizeProfile, saveProfile } from "@/lib/server/profile";
 import { query } from "@/lib/server/db";
 import { deletePrivate } from "@/lib/server/storage";
@@ -7,6 +8,8 @@ import { deletePrivate } from "@/lib/server/storage";
 /** Save the health profile; `complete: true` marks account setup as finished. */
 export async function PUT(req: Request) {
   try {
+    assertSameOrigin(req);
+    assertJson(req);
     const user = await getSessionUser();
     if (!user) {
       return NextResponse.json(
@@ -36,6 +39,9 @@ export async function PUT(req: Request) {
     }
     return NextResponse.json({ user, profile });
   } catch (err) {
+    if (err instanceof Error && "status" in err) {
+      return handle("PUT /api/account", err);
+    }
     console.error("PUT /api/account failed", err);
     return NextResponse.json(
       {
@@ -64,8 +70,9 @@ export async function GET() {
 }
 
 /** Permanently deletes the account, its sessions and its health profile. */
-export async function DELETE() {
+export async function DELETE(req: Request) {
   try {
+    assertSameOrigin(req);
     const user = await getSessionUser();
     if (!user)
       return NextResponse.json({ error: "Not signed in." }, { status: 401 });
@@ -97,6 +104,9 @@ export async function DELETE() {
       );
     return NextResponse.json({ ok: true });
   } catch (err) {
+    if (err instanceof Error && "status" in err) {
+      return handle("DELETE /api/account", err);
+    }
     console.error("DELETE /api/account failed", err);
     return NextResponse.json(
       { error: "Account deletion failed. Try again." },

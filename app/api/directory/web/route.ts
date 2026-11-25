@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     const q = (url.searchParams.get("q") ?? "").trim().slice(0, 80);
     if (q.length < 2)
       return json({ error: "Type what you're looking for." }, 400);
-    const limit = rateLimit(`web:${clientIp(req)}`, 10, 10 * 60_000);
+    const limit = await rateLimit(`web:${clientIp(req)}`, 10, 10 * 60_000);
     if (!limit.ok)
       return json(
         {

@@ -6,6 +6,7 @@ import {
 } from "@/lib/server/inventory";
 import {
   HttpError,
+  assertSameOrigin,
   handle,
   json,
   readJson,
@@ -16,6 +17,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function PUT(req: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(req);
     const user = await requireUser();
     const { id } = await params;
     const product = await updateProduct(
@@ -33,6 +35,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 /** Quick stock change: { "delta": number }. */
 export async function PATCH(req: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(req);
     const user = await requireUser();
     const { id } = await params;
     const delta = Number((await readJson(req)).delta);
@@ -47,8 +50,9 @@ export async function PATCH(req: Request, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_req: Request, { params }: Ctx) {
+export async function DELETE(req: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(req);
     const user = await requireUser();
     const { id } = await params;
     if (!(await deleteProduct(id, user.id)))

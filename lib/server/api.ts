@@ -1,5 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
+import { SITE_URL } from "@/lib/utils";
 import { getSessionUser } from "./auth";
 import { ValidationError } from "./inventory";
 
@@ -24,10 +25,72 @@ export class HttpError extends Error {
   }
 }
 
+function isAllowedOrigin(candidate: string, reqUrl: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    return false;
+  }
+  const allowed = new Set<string>();
+  try {
+    allowed.add(new URL(reqUrl).origin);
+  } catch {
+    /* ignore malformed req.url */
+  }
+  try {
+    allowed.add(new URL(SITE_URL).origin);
+  } catch {
+    /* ignore malformed SITE_URL */
+  }
+  if (allowed.has(parsed.origin)) return true;
+  if (
+    process.env.NODE_ENV !== "production" &&
+    parsed.protocol === "http:" &&
+    (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Defense-in-depth CSRF check for state-changing endpoints. Rejects
+ * cross-origin browser requests even if cookies are present.
+ */
+export function assertSameOrigin(req: Request): void {
+  const origin = req.headers.get("origin");
+  if (origin) {
+    if (!isAllowedOrigin(origin, req.url)) {
+      throw new HttpError("Cross-origin request rejected.", 403);
+    }
+    return;
+  }
+  const secFetchSite = req.headers.get("sec-fetch-site");
+  if (secFetchSite && secFetchSite !== "same-origin" && secFetchSite !== "none") {
+    throw new HttpError("Cross-origin request rejected.", 403);
+  }
+  const referer = req.headers.get("referer");
+  if (referer && !isAllowedOrigin(referer, req.url)) {
+    throw new HttpError("Cross-origin request rejected.", 403);
+  }
+}
+
+/** Requires an explicit JSON Content-Type so form/text CSRF payloads are rejected. */
+export function assertJson(req: Request): void {
+  const ct = (req.headers.get("content-type") ?? "").toLowerCase();
+  if (!ct.includes("application/json")) {
+    throw new HttpError("Content-Type must be application/json.", 415);
+  }
+}
+
 export async function readJson(req: Request): Promise<Record<string, unknown>> {
+  assertJson(req);
   try {
     const body = await req.json();
-    if (body && typeof body === "object") return body;
+    if (body && typeof body === "object" && !Array.isArray(body)) {
+      return body as Record<string, unknown>;
+    }
   } catch {
     /* handled below */
   }

@@ -6,9 +6,26 @@ import {
   startSession,
   toSessionUser,
 } from "@/lib/server/auth";
+import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
+import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 import type { UserRole } from "@/lib/auth-types";
 
 export async function POST(req: Request) {
+  try {
+    assertSameOrigin(req);
+    assertJson(req);
+  } catch (err) {
+    return handle("POST /api/auth/signup", err);
+  }
+
+  const limit = await rateLimit(`signup:ip:${clientIp(req)}`, 5, 60 * 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: `Too many accounts created from this network. Try again in ${limit.retryAfter} seconds.` },
+      { status: 429 },
+    );
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();

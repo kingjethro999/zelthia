@@ -1,5 +1,6 @@
 import { NextResponse, connection } from "next/server";
 import { getSessionUser } from "@/lib/server/auth";
+import { assertSameOrigin, handle, readJson } from "@/lib/server/api";
 import {
   deleteConversation,
   getConversation,
@@ -38,11 +39,12 @@ export async function GET(_req: Request, { params }: Ctx) {
 
 export async function PATCH(req: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(req);
     const user = await getSessionUser();
     if (!user)
       return NextResponse.json({ error: "Sign in first." }, { status: 401 });
     const { id } = await params;
-    const body = await req.json().catch(() => ({}));
+    const body = await readJson(req);
     const title = typeof body.title === "string" ? body.title : "";
     if (!title.trim())
       return NextResponse.json({ error: "Enter a title." }, { status: 400 });
@@ -51,6 +53,9 @@ export async function PATCH(req: Request, { params }: Ctx) {
       ? NextResponse.json({ ok: true })
       : NextResponse.json({ error: "Chat not found." }, { status: 404 });
   } catch (err) {
+    if (err instanceof Error && "status" in err) {
+      return handle("PATCH /api/conversations/[id]", err);
+    }
     console.error("PATCH /api/conversations/[id] failed", err);
     return NextResponse.json(
       { error: "Couldn't rename this chat." },
@@ -59,8 +64,9 @@ export async function PATCH(req: Request, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_req: Request, { params }: Ctx) {
+export async function DELETE(req: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(req);
     const user = await getSessionUser();
     if (!user)
       return NextResponse.json({ error: "Sign in first." }, { status: 401 });
@@ -77,6 +83,9 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     );
     return NextResponse.json({ ok: true });
   } catch (err) {
+    if (err instanceof Error && "status" in err) {
+      return handle("DELETE /api/conversations/[id]", err);
+    }
     console.error("DELETE /api/conversations/[id] failed", err);
     return NextResponse.json(
       { error: "Couldn't delete this chat." },

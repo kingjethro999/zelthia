@@ -7,6 +7,7 @@ import {
 } from "@/lib/server/inventory";
 import {
   HttpError,
+  assertSameOrigin,
   handle,
   json,
   readJson,
@@ -35,6 +36,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 
 export async function POST(req: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(req);
     const facility = await owned(params);
     const product = await createProduct(
       facility.id,

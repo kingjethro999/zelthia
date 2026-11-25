@@ -17,6 +17,7 @@ import {
   type ChatMessageView,
 } from "@/lib/chat-types";
 import { getSessionUser } from "@/lib/server/auth";
+import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { getProfile, sanitizeProfile } from "@/lib/server/profile";
 import {
   createConversation,
@@ -37,6 +38,12 @@ function bad(error: string, status = 400) {
 }
 
 export async function POST(req: NextRequest) {
+  try {
+    assertSameOrigin(req);
+    assertJson(req);
+  } catch (err) {
+    return handle("POST /api/chat", err);
+  }
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -74,8 +81,8 @@ export async function POST(req: NextRequest) {
     sessionFailed = true;
   }
   const limit = user
-    ? rateLimit(`chat:u:${user.id}`, 40, 10 * 60_000)
-    : rateLimit(`chat:ip:${clientIp(req)}`, 15, 10 * 60_000);
+    ? await rateLimit(`chat:u:${user.id}`, 40, 10 * 60_000)
+    : await rateLimit(`chat:ip:${clientIp(req)}`, 15, 10 * 60_000);
   if (!limit.ok)
     return bad(
       `You're sending messages quickly. Try again in ${limit.retryAfter} seconds.`,

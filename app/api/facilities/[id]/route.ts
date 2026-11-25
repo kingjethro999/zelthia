@@ -9,17 +9,27 @@ import { verifyFacility } from "@/lib/server/verify";
 export const maxDuration = 60;
 import {
   HttpError,
+  assertSameOrigin,
   handle,
   json,
   readJson,
   requireUser,
 } from "@/lib/server/api";
+import { rateLimit } from "@/lib/server/rate-limit";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function PUT(req: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(req);
     const user = await requireUser();
+    const limit = await rateLimit(`fac:update:${user.id}`, 20, 15 * 60_000);
+    if (!limit.ok) {
+      throw new HttpError(
+        `Too many facility updates. Try again in ${limit.retryAfter} seconds.`,
+        429,
+      );
+    }
     const { id } = await params;
     let facility = await updateFacility(
       id,
@@ -39,8 +49,9 @@ export async function PUT(req: Request, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_req: Request, { params }: Ctx) {
+export async function DELETE(req: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(req);
     const user = await requireUser();
     const { id } = await params;
     if (!(await deleteFacility(id, user.id)))

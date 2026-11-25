@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   HttpError,
+  assertSameOrigin,
   handle,
   json,
   readJson,
@@ -19,8 +20,9 @@ const MAX_BYTES = 3 * 1024 * 1024;
 /** Stores a voice recording privately and returns its transcript. */
 export async function POST(req: Request) {
   try {
+    assertSameOrigin(req);
     const user = await requireUser();
-    const limit = rateLimit(`audio:${user.id}`, 20, 10 * 60_000);
+    const limit = await rateLimit(`audio:${user.id}`, 20, 10 * 60_000);
     if (!limit.ok)
       throw new HttpError(
         `Too many recordings. Try again in ${limit.retryAfter} seconds.`,

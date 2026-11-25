@@ -7,7 +7,7 @@ import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 export async function GET(req: Request) {
   await connection();
   try {
-    const limit = rateLimit(`dir:${clientIp(req)}`, 120, 10 * 60_000);
+    const limit = await rateLimit(`dir:${clientIp(req)}`, 120, 10 * 60_000);
     if (!limit.ok)
       return json(
         {
