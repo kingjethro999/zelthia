@@ -139,15 +139,23 @@ export async function POST(req: NextRequest) {
         if (saved && ctx && conversationId && !isNew) {
           history = await getHistoryTurns(conversationId, ctx.user.id, ctx.dek);
         } else if (Array.isArray(body.history)) {
-          history = (body.history as Turn[])
+          const filtered = (body.history as Turn[])
             .filter(
               (t) =>
                 t &&
                 (t.role === "user" || t.role === "assistant") &&
                 typeof t.content === "string",
             )
-            .slice(-20)
-            .map((t) => ({ role: t.role, content: t.content.slice(0, 12000) }));
+            .slice(-12)
+            .map((t) => ({ role: t.role, content: t.content.slice(0, 4000) }));
+          let budget = 20_000;
+          const bounded: Turn[] = [];
+          for (let i = filtered.length - 1; i >= 0 && budget > 0; i--) {
+            const c = filtered[i].content.slice(0, budget);
+            budget -= c.length;
+            bounded.unshift({ role: filtered[i].role, content: c });
+          }
+          history = bounded;
         }
 
         const read = await readFiles(files, steps);

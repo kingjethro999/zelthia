@@ -207,10 +207,23 @@ export interface TurnResult {
   meta: MessageMeta;
 }
 
+function cleanUntrusted(s: string, max: number): string {
+  return s
+    .replace(/\[TRIAGE:[^\]]*\]/gi, "")
+    .replace(/\[REFERRAL:\s*\{[\s\S]*?\}\]/gi, "")
+    .replace(/<\/?(untrusted_retrieved_data|attached_document)[^>]*>/gi, "")
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, " ")
+    .trim()
+    .slice(0, max);
+}
+
 function filesBlock(files: ReadFile[]) {
   return files
     .filter((f) => f.extracted)
-    .map((f) => `[Attached ${f.name}]\n${f.extracted.slice(0, 8000)}`)
+    .map((f) => {
+      const safeName = cleanUntrusted(f.name, 120).replace(/"/g, "'");
+      return `<attached_document name="${safeName}">\n${cleanUntrusted(f.extracted, 8000)}\n</attached_document>`;
+    })
     .join("\n\n");
 }
 
@@ -328,54 +341,54 @@ export async function runTurn({
     }
   }
 
-  // 5. Answer, grounded only in what was actually found.
-  const context = [
-    location ? `USER LOCATION: ${location}` : "USER LOCATION: unknown",
-    plan.needs.length
-      ? `ZELTHIA DIRECTORY RESULTS:\n${
-          matches.length
-            ? JSON.stringify(
-                matches.slice(0, 12).map((m) => ({
-                  facility: m.facility.name,
-                  kind: m.facility.kind,
-                  licence_verified:
-                    m.facility.verification?.status === "verified",
-                  has_recorded_directions: Boolean(
-                    m.facility.directionsAudioUrl,
-                  ),
-                  address: `${m.facility.address}, ${m.facility.city}`,
-                  phone: m.facility.phone,
-                  hours: m.facility.openingHours,
-                  directions: m.facility.directions,
-                  ...(m.product
-                    ? {
-                        product: m.product.name,
-                        quantity: m.product.quantity,
-                        price_ngn: m.product.priceNgn,
-                        prescription_only: m.product.prescriptionOnly,
-                      }
-                    : { service: m.service }),
-                })),
+  // 5. Answer, grounded only in what was actually found. Keep untrusted retrieved data
+  // out of the system prompt and wrapped in explicit data delimiters in the user turn.
+  const locationLine = location
+    ? `USER LOCATION: ${cleanUntrusted(location, 160)}`
+    : "USER LOCATION: unknown";
+
+  const retrievedData = plan.needs.length
+    ? `<untrusted_retrieved_data>\nZELTHIA DIRECTORY RESULTS:\n${
+        matches.length
+          ? JSON.stringify(
+              matches.slice(0, 12).map((m) => ({
+                facility: cleanUntrusted(m.facility.name, 120),
+                kind: m.facility.kind,
+                licence_verified: m.facility.verification?.status === "verified",
+                has_recorded_directions: Boolean(m.facility.directionsAudioUrl),
+                address: cleanUntrusted(
+                  `${m.facility.address}, ${m.facility.city}`,
+                  200,
+                ),
+                phone: cleanUntrusted(m.facility.phone, 40),
+                hours: cleanUntrusted(m.facility.openingHours, 160),
+                directions: cleanUntrusted(m.facility.directions, 400),
+                ...(m.product
+                  ? {
+                      product: cleanUntrusted(m.product.name, 160),
+                      quantity: m.product.quantity,
+                      price_ngn: m.product.priceNgn,
+                      prescription_only: m.product.prescriptionOnly,
+                    }
+                  : { service: cleanUntrusted(m.service ?? "", 100) }),
+              })),
+            )
+          : "none"
+      }\n\nWEB RESULTS:\n${
+        places.length
+          ? places
+              .map(
+                (p) =>
+                  `- ${cleanUntrusted(p.title, 160)} | ${cleanUntrusted(p.url, 300)} | ${cleanUntrusted(p.description, 240)}`,
               )
-            : "none"
-        }\n\nWEB RESULTS:\n${
-          places.length
-            ? places
-                .map(
-                  (p) =>
-                    `- ${p.title} | ${p.url} | ${p.description.slice(0, 240)}`,
-                )
-                .join("\n")
-            : "none"
-        }`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+              .join("\n")
+          : "none"
+      }\n</untrusted_retrieved_data>`
+    : "";
 
   const grounding = plan.needs.length
     ? `GROUNDING RULES (strict):
-- The only businesses you may name are those in ZELTHIA DIRECTORY RESULTS and WEB RESULTS above. Do not name any other pharmacy, hospital, clinic, store or brand of shop, not even as an example or "e.g.".
+- The only businesses you may name are those in ZELTHIA DIRECTORY RESULTS and WEB RESULTS inside <untrusted_retrieved_data>. Do not name any other pharmacy, hospital, clinic, store or brand of shop, not even as an example or "e.g.".
 - If you want to suggest looking locally, describe the type of place (e.g. "a community pharmacy" or "a teaching hospital's cardiology unit") without naming one.
 - Copy phone numbers, prices and addresses only when complete in the results.
 - Call a facility "verified" only when licence_verified is true. If it has recorded directions, mention they can listen to them on the card below.
@@ -383,13 +396,19 @@ export async function runTurn({
 - Photos from the web search are shown under your answer and link to their source pages; you may refer to them.
 - If ZELTHIA DIRECTORY RESULTS is "none", say clearly at the start that no facility on Zelthia has it in stock yet, then point to the web results.`
     : "";
-  const system = [buildSystemPrompt(profile), context, grounding]
+  const system = [buildSystemPrompt(profile), locationLine, grounding]
     .filter(Boolean)
     .join("\n\n");
+  const modelTurns: Turn[] = retrievedData
+    ? [
+        ...turns.slice(0, -1),
+        { role: "user", content: `${userText}\n\n${retrievedData}` },
+      ]
+    : turns;
   let raw = "";
   let model = "";
   try {
-    const out = await stream(system, turns, (delta) =>
+    const out = await stream(system, modelTurns, (delta) =>
       emit({ type: "delta", text: delta }),
     );
     raw = out.text;
