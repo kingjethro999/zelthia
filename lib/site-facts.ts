@@ -92,7 +92,7 @@ export function llmsText(full: boolean) {
       "5. The answer is written using only those results, with the person's allergies and medicines in mind.",
       "",
       "## For facilities",
-      "Create a facility account, add the facility's details and landmark directions (typed or recorded), then add products and services. Listings are searchable immediately. Licence numbers are checked on save and otherwise reviewed within 7 days.",
+      "Create a facility account, add the facility's details and landmark directions (typed or recorded), then add products and services. Listings are searchable immediately. Submitted licence numbers are reviewed and approved by a Zelthia administrator before receiving a verified badge.",
     );
   }
   return `${lines.join("\n")}\n`;

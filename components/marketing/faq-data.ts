@@ -42,7 +42,7 @@ export const FAQ_DATA: FaqItem[] = [
   {
     question: "Can my pharmacy, clinic or hospital use Zelthia?",
     answer:
-      "Yes, for free. Create a facility account to record stock, see low stock and expiring batches, list services such as scans and tests, and appear when patients search for what you have. Facilities with a confirmed licence number get a verified badge.",
+      "Yes, for free. Create a facility account to record stock, see low stock and expiring batches, list services such as scans and tests, and appear when patients search for what you have. Facilities whose licence has been reviewed and approved by an administrator get a verified badge.",
   },
   {
     question: "What happens to my health information?",

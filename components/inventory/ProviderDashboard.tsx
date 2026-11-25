@@ -209,7 +209,7 @@ function FacilityDashboard() {
         </div>
       </div>
 
-      {notice && (
+      {notice ? (
         <div
           role="status"
           className="animate-rise mt-5 flex items-start gap-3 rounded-2xl border border-line bg-surface p-4"
@@ -224,7 +224,18 @@ function FacilityDashboard() {
             Dismiss
           </button>
         </div>
-      )}
+      ) : facility.verification.status === "rejected" ? (
+        <div
+          role="status"
+          className="animate-rise mt-5 flex items-start gap-3 rounded-2xl border border-alert/25 bg-alert-soft p-4"
+        >
+          <VerificationBadge v={facility.verification} className="shrink-0" />
+          <p className="flex-1 text-sm text-ink">
+            {facility.verification.note ||
+              verificationMessage(facility.verification)}
+          </p>
+        </div>
+      ) : null}
 
       <ChoiceGroup<Tab>
         label="Section"

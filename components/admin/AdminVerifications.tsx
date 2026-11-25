@@ -24,6 +24,15 @@ import { useSession } from "@/lib/store/session";
 
 type Filter = "pending" | "verified" | "rejected" | "all";
 
+function safeHttpUrl(raw: string): string | null {
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AdminVerifications() {
   const user = useSession((s) => s.user);
   const status = useSession((s) => s.status);
@@ -214,21 +223,29 @@ export function AdminVerifications() {
                     </p>
                   ) : (
                     <ul className="mt-3 space-y-2.5">
-                      {evidence.map((ev) => (
+                      {evidence.map((ev) => {
+                        const safeHref = safeHttpUrl(ev.url);
+                        return (
                         <li
                           key={ev.url}
                           className="rounded-xl border border-line bg-surface p-3 text-sm"
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <a
-                              href={ev.url}
-                              target="_blank"
-                              rel="noopener noreferrer nofollow"
-                              className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
-                            >
-                              {ev.title || ev.domain}
-                              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                            </a>
+                            {safeHref ? (
+                              <a
+                                href={safeHref}
+                                target="_blank"
+                                rel="noopener noreferrer nofollow"
+                                className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+                              >
+                                {ev.title || ev.domain}
+                                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                              </a>
+                            ) : (
+                              <span className="font-semibold text-ink">
+                                {ev.title || ev.domain}
+                              </span>
+                            )}
                             <div className="flex flex-wrap gap-1.5 text-xs font-medium">
                               <span className="rounded-full bg-mist px-2 py-0.5 text-muted">
                                 {ev.domain}
@@ -251,7 +268,8 @@ export function AdminVerifications() {
                             </p>
                           )}
                         </li>
-                      ))}
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
