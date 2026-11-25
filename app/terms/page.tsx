@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalPage title="Terms of use" updated="16 November 2026">
+    <LegalPage title="Terms of use" updated="25 November 2026">
       <section>
         <h2>Zelthia is not medical care</h2>
         <p>
@@ -24,23 +24,37 @@ export default function TermsPage() {
       </section>
 
       <section>
-        <h2>Your account</h2>
+        <h2>Your account and encryption key</h2>
         <ul>
           <li>Give accurate information and keep your password private.</li>
           <li>You&apos;re responsible for activity on your account.</li>
           <li>
-            You can delete your account at any time from the account page.
+            Your saved health profile, chats and uploaded files are encrypted
+            with a key locked to your password. Because Zelthia cannot read or
+            decrypt your data without your password, losing your password means
+            previously encrypted records cannot be recovered.
+          </li>
+          <li>
+            We never sell, rent or exploit your personal health data. You can
+            export or delete your account at any time from the account page.
           </li>
         </ul>
       </section>
 
       <section>
-        <h2>Facilities</h2>
+        <h2>Facilities and licence verification</h2>
         <p>
-          Pharmacies, clinics and hospitals that list stock on Zelthia agree to
-          keep quantities, prices, opening hours and directions accurate, to
-          list only medicines they are licensed to supply, and to remove items
-          that are expired or recalled.
+          Pharmacies, clinics, hospitals, diagnostic centres and health stores
+          that list stock on Zelthia agree to keep quantities, prices, opening
+          hours and directions accurate, to list only products and services they
+          are legally permitted to provide, and to remove items that are expired
+          or recalled.
+        </p>
+        <p>
+          Submitting a licence or registration number queues your facility for
+          manual review by a Zelthia administrator, who checks official public
+          records before approving a verified badge. Zelthia may decline or
+          revoke a verified badge or remove misleading listings at any time.
         </p>
       </section>
 
@@ -57,8 +71,9 @@ export default function TermsPage() {
         <h2>Acceptable use</h2>
         <ul>
           <li>
-            Don&apos;t misuse the service, try to break it, or access other
-            people&apos;s data.
+            Don&apos;t misuse the service, attempt automated scraping or
+            credential stuffing, submit false facility licences, or try to
+            access other people&apos;s data.
           </li>
           <li>Don&apos;t use Zelthia to obtain medicines unlawfully.</li>
         </ul>
