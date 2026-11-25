@@ -16,7 +16,8 @@ import {
   type ChatEvent,
   type ChatMessageView,
 } from "@/lib/chat-types";
-import { getSessionUser } from "@/lib/server/auth";
+import { getSessionContext, type SessionContext } from "@/lib/server/auth";
+import { aadAttachmentFile, encryptBytes } from "@/lib/server/crypto";
 import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { getProfile, sanitizeProfile } from "@/lib/server/profile";
 import {
@@ -28,7 +29,7 @@ import {
   renameConversation,
   touchConversation,
 } from "@/lib/server/conversations";
-import { uploadPrivate } from "@/lib/server/storage";
+import { uploadPrivateRaw } from "@/lib/server/storage";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 
 export const maxDuration = 120;
@@ -71,15 +72,16 @@ export async function POST(req: NextRequest) {
     files.push({ name, mime, size, base64 });
   }
 
-  let user = null;
+  let ctx: SessionContext | null = null;
   let sessionFailed = false;
   try {
-    user = await getSessionUser();
+    ctx = await getSessionContext();
   } catch (err) {
     // Recover by answering as a guest; the user is told once the stream opens.
     console.warn("Chat: session lookup failed, continuing as guest", err);
     sessionFailed = true;
   }
+  const user = ctx?.user ?? null;
   const limit = user
     ? await rateLimit(`chat:u:${user.id}`, 40, 10 * 60_000)
     : await rateLimit(`chat:ip:${clientIp(req)}`, 15, 10 * 60_000);
@@ -89,11 +91,11 @@ export async function POST(req: NextRequest) {
       429,
     );
 
-  const saved = Boolean(user) && body.temporary !== true;
+  const saved = Boolean(ctx) && body.temporary !== true;
   let conversationId: string | null = null;
   let isNew = false;
-  if (saved && typeof body.conversationId === "string") {
-    const conv = await getConversation(body.conversationId, user!.id);
+  if (saved && ctx && typeof body.conversationId === "string") {
+    const conv = await getConversation(body.conversationId, ctx.user.id, ctx.dek);
     if (!conv) return bad("That conversation doesn't exist.", 404);
     conversationId = conv.id;
   }
@@ -112,23 +114,23 @@ export async function POST(req: NextRequest) {
             "failed",
           );
         }
-        if (saved && !conversationId) {
-          const conv = await createConversation(user!.id, "New chat");
+        if (saved && ctx && !conversationId) {
+          const conv = await createConversation(ctx.user.id, "New chat", ctx.dek);
           conversationId = conv.id;
           isNew = true;
           emit({ type: "conversation", id: conv.id, title: conv.title });
         }
 
-        // Profile: the saved one for signed-in users, the device copy for guests.
+        // Profile: the encrypted server copy for signed-in users, the device copy for guests.
         let profile = sanitizeProfile(body.biometrics);
-        if (user) {
-          const p = await getProfile(user.id).catch(() => null);
+        if (ctx) {
+          const p = await getProfile(ctx.user.id, ctx.dek).catch(() => null);
           if (p) profile = sanitizeProfile(p);
         }
 
         let history: Turn[] = [];
-        if (saved && conversationId && !isNew) {
-          history = await getHistoryTurns(conversationId);
+        if (saved && ctx && conversationId && !isNew) {
+          history = await getHistoryTurns(conversationId, ctx.user.id, ctx.dek);
         } else if (Array.isArray(body.history)) {
           history = (body.history as Turn[])
             .filter(
@@ -143,7 +145,7 @@ export async function POST(req: NextRequest) {
 
         const read = await readFiles(files, steps);
 
-        // Save the user's message and files before answering, so a dropped connection loses nothing.
+        // Save the encrypted user message and encrypted files before answering, so a dropped connection loses nothing.
         let userView: ChatMessageView = {
           id: randomUUID(),
           role: "user",
@@ -155,16 +157,29 @@ export async function POST(req: NextRequest) {
             size: f.size,
           })),
         };
-        if (saved && conversationId) {
-          const row = await insertMessage(conversationId, "user", text);
+        if (saved && ctx && conversationId) {
+          const row = await insertMessage(
+            conversationId,
+            ctx.user.id,
+            "user",
+            text,
+            {},
+            ctx.dek,
+          );
           const attachments: AttachmentView[] = [];
           await Promise.all(
             read.map(async (f, i) => {
+              const attId = randomUUID();
               let stored = null;
               try {
-                stored = await uploadPrivate(
-                  `data:${f.mime};base64,${f.base64}`,
-                  `zelthia/chat/${user!.id}`,
+                const encryptedBlob = encryptBytes(
+                  Buffer.from(f.base64, "base64"),
+                  ctx.dek,
+                  aadAttachmentFile(ctx.user.id, attId),
+                );
+                stored = await uploadPrivateRaw(
+                  encryptedBlob,
+                  `zelthia/chat/${ctx.user.id}`,
                 );
               } catch (err) {
                 // Recover: the file was already read for this answer; tell the user it isn't stored.
@@ -178,8 +193,9 @@ export async function POST(req: NextRequest) {
                   "failed",
                 );
               }
-              const id = await insertAttachment({
-                userId: user!.id,
+              await insertAttachment({
+                id: attId,
+                userId: ctx.user.id,
                 messageId: row.id,
                 name: f.name,
                 mime: f.mime,
@@ -188,13 +204,15 @@ export async function POST(req: NextRequest) {
                 resourceType: stored?.resourceType ?? null,
                 format: stored?.format ?? null,
                 extractedText: f.extracted,
+                encrypted: Boolean(stored),
+                dek: ctx.dek,
               });
               attachments[i] = {
-                id,
+                id: attId,
                 name: f.name,
                 mime: f.mime,
                 size: f.size,
-                url: stored ? `/api/attachments/${id}` : undefined,
+                url: stored ? `/api/attachments/${attId}` : undefined,
               };
             }),
           );
@@ -227,12 +245,14 @@ export async function POST(req: NextRequest) {
           createdAt: new Date().toISOString(),
           meta: result.meta,
         };
-        if (saved && conversationId) {
+        if (saved && ctx && conversationId) {
           const row = await insertMessage(
             conversationId,
+            ctx.user.id,
             "assistant",
             result.content,
             result.meta,
+            ctx.dek,
           );
           assistant = {
             ...assistant,
@@ -240,7 +260,12 @@ export async function POST(req: NextRequest) {
             createdAt: row.created_at.toISOString(),
           };
           if (isNew) {
-            await renameConversation(conversationId, user!.id, result.title);
+            await renameConversation(
+              conversationId,
+              ctx.user.id,
+              result.title,
+              ctx.dek,
+            );
             emit({
               type: "conversation",
               id: conversationId,

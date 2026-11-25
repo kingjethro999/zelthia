@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   FileText,
+  Lock,
   MessageCircleDashed,
   PanelLeftOpen,
   Phone,
@@ -141,9 +142,14 @@ export function ChatApp() {
         </div>
       )}
       <p className="mt-2 flex flex-wrap items-center justify-center gap-x-1.5 text-center text-xs text-muted">
-        {notSaved && (
+        {notSaved ? (
           <span className="font-medium text-ink">
             {user ? "Temporary chat, not saved." : "Guest chat, not saved."}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 font-medium text-brand-strong">
+            <Lock className="h-3 w-3" aria-hidden />
+            Encrypted with your password key.
           </span>
         )}
         <span>

@@ -2,10 +2,18 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   findUserByEmail,
+  migrateUserPlaintextData,
   startSession,
   toSessionUser,
   verifyPassword,
 } from "@/lib/server/auth";
+import {
+  DUMMY_PASSWORD_HASH,
+  generateDek,
+  unwrapDek,
+  wrapDek,
+} from "@/lib/server/crypto";
+import { query } from "@/lib/server/db";
 import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { getProfile } from "@/lib/server/profile";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
@@ -51,15 +59,34 @@ export async function POST(req: Request) {
 
   try {
     const row = await findUserByEmail(email);
-    const ok = row ? await verifyPassword(password, row.password_hash) : false;
+    // Always run scrypt even when the email does not exist to prevent timing enumeration.
+    const ok = await verifyPassword(
+      password,
+      row?.password_hash ?? DUMMY_PASSWORD_HASH,
+    );
     if (!row || !ok) {
       return NextResponse.json(
         { error: "Email or password is incorrect." },
         { status: 401 },
       );
     }
-    await startSession(row.id);
-    const profile = await getProfile(row.id);
+
+    let dek: Buffer;
+    if (row.wrapped_dek) {
+      dek = await unwrapDek(row.wrapped_dek, password);
+    } else {
+      dek = generateDek();
+      const wrappedDek = await wrapDek(dek, password);
+      await query("update users set wrapped_dek = $2 where id = $1", [
+        row.id,
+        wrappedDek,
+      ]);
+      row.wrapped_dek = wrappedDek;
+      await migrateUserPlaintextData(row.id, dek);
+    }
+
+    await startSession(row.id, dek);
+    const profile = await getProfile(row.id, dek);
     return NextResponse.json({ user: toSessionUser(row), profile });
   } catch (err) {
     console.error("POST /api/auth/signin failed", err);

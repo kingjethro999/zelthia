@@ -8,6 +8,8 @@ export interface SessionUser {
   name: string;
   role: UserRole;
   onboarded: boolean;
+  isAdmin?: boolean;
+  encrypted?: boolean;
 }
 
 export interface SessionPayload {

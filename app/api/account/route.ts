@@ -1,5 +1,5 @@
 import { NextResponse, connection } from "next/server";
-import { endSession, getSessionUser } from "@/lib/server/auth";
+import { endSession, getSessionContext } from "@/lib/server/auth";
 import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { getProfile, sanitizeProfile, saveProfile } from "@/lib/server/profile";
 import { query } from "@/lib/server/db";
@@ -10,13 +10,14 @@ export async function PUT(req: Request) {
   try {
     assertSameOrigin(req);
     assertJson(req);
-    const user = await getSessionUser();
-    if (!user) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json(
         { error: "Sign in to save your profile." },
         { status: 401 },
       );
     }
+    const { user, dek } = ctx;
     let body: Record<string, unknown>;
     try {
       body = await req.json();
@@ -24,7 +25,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
     }
     const profile = sanitizeProfile(body.profile);
-    await saveProfile(user.id, profile);
+    await saveProfile(user.id, profile, dek);
 
     const name = typeof body.name === "string" ? body.name.trim() : "";
     if (name.length >= 2 && name.length <= 80) {
@@ -56,10 +57,13 @@ export async function PUT(req: Request) {
 export async function GET() {
   await connection();
   try {
-    const user = await getSessionUser();
-    if (!user)
+    const ctx = await getSessionContext();
+    if (!ctx)
       return NextResponse.json({ error: "Not signed in." }, { status: 401 });
-    return NextResponse.json({ user, profile: await getProfile(user.id) });
+    return NextResponse.json({
+      user: ctx.user,
+      profile: await getProfile(ctx.user.id, ctx.dek),
+    });
   } catch (err) {
     console.error("GET /api/account failed", err);
     return NextResponse.json(
@@ -73,9 +77,10 @@ export async function GET() {
 export async function DELETE(req: Request) {
   try {
     assertSameOrigin(req);
-    const user = await getSessionUser();
-    if (!user)
+    const ctx = await getSessionContext();
+    if (!ctx)
       return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+    const { user } = ctx;
     const files = await query<{
       storage_id: string;
       resource_type: string;

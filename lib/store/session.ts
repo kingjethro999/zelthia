@@ -9,6 +9,7 @@ import {
   type SessionUser,
   type UserRole,
 } from "@/lib/auth-types";
+import { useChat } from "./chat";
 
 type Status = "idle" | "loading" | "ready" | "error";
 
@@ -23,7 +24,7 @@ interface SessionState {
   user: SessionUser | null;
   /** Owned facilities for provider accounts; null when unknown or personal. */
   facilityCount: number | null;
-  /** Server copy when signed in; device-local copy for guests. */
+  /** Server copy in memory when signed in; device-local copy for guests only. */
   profile: BiometricProfile;
   hydrate: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<ApiResult>;
@@ -32,8 +33,10 @@ interface SessionState {
     email: string;
     password: string;
     role: UserRole;
+    acceptedTerms: boolean;
   }) => Promise<ApiResult>;
   signOut: () => Promise<void>;
+  revokeOtherSessions: () => Promise<ApiResult & { revoked?: number }>;
   saveProfile: (
     profile: BiometricProfile,
     opts?: { complete?: boolean; name?: string },
@@ -53,9 +56,7 @@ async function post(url: string, body?: unknown, method = "POST") {
   } catch {
     return {
       res: null,
-      data: {
-        error: "You appear to be offline. Check your connection and try again.",
-      },
+      data: { error: "You appear to be offline. Check your connection and try again." },
     };
   }
 }
@@ -81,7 +82,7 @@ export const useSession = create<SessionState>()(
             profile: data.user
               ? { ...EMPTY_PROFILE, ...(data.profile ?? {}) }
               : get().user
-                ? EMPTY_PROFILE // signed out elsewhere: drop the cached server copy
+                ? EMPTY_PROFILE
                 : get().profile,
           });
         } catch {
@@ -90,15 +91,11 @@ export const useSession = create<SessionState>()(
       },
 
       signIn: async (email, password) => {
-        const { res, data } = await post("/api/auth/signin", {
-          email,
-          password,
-        });
-        if (!res?.ok)
-          return { ok: false, error: data.error, field: data.field };
+        const { res, data } = await post("/api/auth/signin", { email, password });
+        if (!res?.ok) return { ok: false, error: data.error, field: data.field };
         set({
           user: data.user,
-          profile: { ...EMPTY_PROFILE, ...(data.profile ?? get().profile) },
+          profile: { ...EMPTY_PROFILE, ...(data.profile ?? {}) },
           status: "ready",
         });
         void get().hydrate();
@@ -107,8 +104,7 @@ export const useSession = create<SessionState>()(
 
       signUp: async (input) => {
         const { res, data } = await post("/api/auth/signup", input);
-        if (!res?.ok)
-          return { ok: false, error: data.error, field: data.field };
+        if (!res?.ok) return { ok: false, error: data.error, field: data.field };
         set({
           user: data.user,
           status: "ready",
@@ -119,12 +115,19 @@ export const useSession = create<SessionState>()(
 
       signOut: async () => {
         await post("/api/auth/signout");
-        set({
-          user: null,
-          profile: EMPTY_PROFILE,
-          status: "ready",
-          facilityCount: null,
-        });
+        useChat.getState().reset();
+        set({ user: null, profile: EMPTY_PROFILE, status: "ready", facilityCount: null });
+        try {
+          localStorage.removeItem("zelthia-session");
+        } catch {
+          /* ignore storage errors */
+        }
+      },
+
+      revokeOtherSessions: async () => {
+        const { res, data } = await post("/api/auth/sessions/revoke-others");
+        if (!res?.ok) return { ok: false, error: data.error };
+        return { ok: true, revoked: Number(data.revoked ?? 0) };
       },
 
       saveProfile: async (profile, opts = {}) => {
@@ -145,18 +148,24 @@ export const useSession = create<SessionState>()(
       deleteAccount: async () => {
         const { res, data } = await post("/api/account", undefined, "DELETE");
         if (!res?.ok) return { ok: false, error: data.error };
-        set({ user: null, profile: EMPTY_PROFILE });
+        useChat.getState().reset();
+        set({ user: null, profile: EMPTY_PROFILE, facilityCount: null });
+        try {
+          localStorage.removeItem("zelthia-session");
+        } catch {
+          /* ignore storage errors */
+        }
         return { ok: true };
       },
     }),
     {
       name: "zelthia-session",
       storage: createJSONStorage(() => localStorage),
-      // The user object is cached only to avoid a signed-out flash; the server stays the source of truth.
+      // Never persist signed-in health profiles to plaintext localStorage; only guest local profiles live there.
       partialize: (s) => ({
         user: s.user,
-        profile: s.profile,
         facilityCount: s.facilityCount,
+        profile: s.user ? EMPTY_PROFILE : s.profile,
       }),
       skipHydration: true,
     },

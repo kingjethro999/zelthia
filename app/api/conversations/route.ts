@@ -1,18 +1,18 @@
 import { NextResponse, connection } from "next/server";
-import { getSessionUser } from "@/lib/server/auth";
+import { getSessionContext } from "@/lib/server/auth";
 import { listConversations } from "@/lib/server/conversations";
 
 export async function GET() {
   await connection();
   try {
-    const user = await getSessionUser();
-    if (!user)
+    const ctx = await getSessionContext();
+    if (!ctx)
       return NextResponse.json(
         { error: "Sign in to see your chats." },
         { status: 401 },
       );
     return NextResponse.json(
-      { conversations: await listConversations(user.id) },
+      { conversations: await listConversations(ctx.user.id, ctx.dek) },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (err) {

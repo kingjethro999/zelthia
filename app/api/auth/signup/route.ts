@@ -6,6 +6,7 @@ import {
   startSession,
   toSessionUser,
 } from "@/lib/server/auth";
+import { CURRENT_TERMS_VERSION, generateDek, wrapDek } from "@/lib/server/crypto";
 import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 import type { UserRole } from "@/lib/auth-types";
@@ -21,7 +22,9 @@ export async function POST(req: Request) {
   const limit = await rateLimit(`signup:ip:${clientIp(req)}`, 5, 60 * 60_000);
   if (!limit.ok) {
     return NextResponse.json(
-      { error: `Too many accounts created from this network. Try again in ${limit.retryAfter} seconds.` },
+      {
+        error: `Too many accounts created from this network. Try again in ${limit.retryAfter} seconds.`,
+      },
       { status: 429 },
     );
   }
@@ -39,6 +42,7 @@ export async function POST(req: Request) {
     .toLowerCase();
   const password = String(body.password ?? "");
   const role: UserRole = body.role === "provider" ? "provider" : "patient";
+  const acceptedTerms = body.acceptedTerms === true;
 
   if (name.length < 2 || name.length > 80) {
     return NextResponse.json(
@@ -61,6 +65,16 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+  if (!acceptedTerms) {
+    return NextResponse.json(
+      {
+        error:
+          "Please accept the Terms of use and Privacy policy to create an account.",
+        field: "acceptedTerms",
+      },
+      { status: 400 },
+    );
+  }
 
   try {
     if (await findUserByEmail(email)) {
@@ -72,8 +86,17 @@ export async function POST(req: Request) {
         { status: 409 },
       );
     }
-    const row = await createUser({ name, email, password, role });
-    await startSession(row.id);
+    const dek = generateDek();
+    const wrappedDek = await wrapDek(dek, password);
+    const row = await createUser({
+      name,
+      email,
+      password,
+      role,
+      wrappedDek,
+      termsVersion: CURRENT_TERMS_VERSION,
+    });
+    await startSession(row.id, dek);
     return NextResponse.json({ user: toSessionUser(row) }, { status: 201 });
   } catch (err) {
     console.error("POST /api/auth/signup failed", err);

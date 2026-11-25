@@ -1,10 +1,18 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import type {
   AttachmentView,
   ChatMessageView,
   ConversationSummary,
   MessageMeta,
 } from "@/lib/chat-types";
+import {
+  aadAttachmentText,
+  aadConvTitle,
+  aadMessage,
+  decryptText,
+  encryptText,
+} from "./crypto";
 import { query } from "./db";
 import { isUuid } from "./inventory";
 
@@ -13,64 +21,122 @@ interface MessageRow {
   role: "user" | "assistant";
   content: string;
   meta: MessageMeta;
+  payload_enc: string | null;
   created_at: Date;
   attachments:
-    { id: string; name: string; mime: string; size: number }[] | null;
+    | { id: string; name: string; mime: string; size: number }[]
+    | null;
+}
+
+function decryptConvTitle(
+  id: string,
+  userId: string,
+  title: string,
+  titleEnc: string | null,
+  dek: Buffer,
+): string {
+  if (!titleEnc) return title;
+  try {
+    return decryptText(titleEnc, dek, aadConvTitle(userId, id));
+  } catch {
+    return "Encrypted chat";
+  }
+}
+
+function decryptMsgPayload(
+  msgId: string,
+  convId: string,
+  userId: string,
+  content: string,
+  meta: MessageMeta,
+  payloadEnc: string | null,
+  dek: Buffer,
+): { content: string; meta: MessageMeta } {
+  if (!payloadEnc) return { content, meta: meta ?? {} };
+  try {
+    const parsed = JSON.parse(
+      decryptText(payloadEnc, dek, aadMessage(userId, convId, msgId)),
+    ) as { content?: string; meta?: MessageMeta };
+    return {
+      content: typeof parsed.content === "string" ? parsed.content : "",
+      meta: parsed.meta ?? {},
+    };
+  } catch {
+    return { content: "[Encrypted message could not be unlocked]", meta: {} };
+  }
 }
 
 export async function listConversations(
   userId: string,
+  dek: Buffer,
 ): Promise<ConversationSummary[]> {
-  const rows = await query<{ id: string; title: string; updated_at: Date }>(
-    `select id, title, updated_at from conversations
+  const rows = await query<{
+    id: string;
+    title: string;
+    title_enc: string | null;
+    updated_at: Date;
+  }>(
+    `select id, title, title_enc, updated_at from conversations
       where user_id = $1 order by updated_at desc limit 200`,
     [userId],
   );
   return rows.map((r) => ({
     id: r.id,
-    title: r.title,
+    title: decryptConvTitle(r.id, userId, r.title, r.title_enc, dek),
     updatedAt: r.updated_at.toISOString(),
   }));
 }
 
-export async function getConversation(id: string, userId: string) {
+export async function getConversation(id: string, userId: string, dek: Buffer) {
   if (!isUuid(id)) return null;
-  const rows = await query<{ id: string; title: string }>(
-    "select id, title from conversations where id = $1 and user_id = $2",
+  const rows = await query<{ id: string; title: string; title_enc: string | null }>(
+    "select id, title, title_enc from conversations where id = $1 and user_id = $2",
     [id, userId],
   );
-  return rows[0] ?? null;
+  if (!rows[0]) return null;
+  return {
+    id: rows[0].id,
+    title: decryptConvTitle(rows[0].id, userId, rows[0].title, rows[0].title_enc, dek),
+  };
 }
 
-export async function createConversation(userId: string, title: string) {
-  const rows = await query<{ id: string; title: string }>(
-    "insert into conversations (user_id, title) values ($1, $2) returning id, title",
-    [userId, title.slice(0, 120) || "New chat"],
+export async function createConversation(
+  userId: string,
+  title: string,
+  dek: Buffer,
+) {
+  const id = randomUUID();
+  const cleanTitle = title.slice(0, 120) || "New chat";
+  const titleEnc = encryptText(cleanTitle, dek, aadConvTitle(userId, id));
+  await query(
+    "insert into conversations (id, user_id, title, title_enc) values ($1, $2, 'Encrypted chat', $3)",
+    [id, userId, titleEnc],
   );
-  return rows[0];
+  return { id, title: cleanTitle };
 }
 
 export async function renameConversation(
   id: string,
   userId: string,
   title: string,
+  dek: Buffer,
 ) {
+  if (!isUuid(id)) return false;
+  const cleanTitle = title.trim().slice(0, 120) || "New chat";
+  const titleEnc = encryptText(cleanTitle, dek, aadConvTitle(userId, id));
   const rows = await query<{ id: string }>(
-    "update conversations set title = $3 where id = $1 and user_id = $2 returning id",
-    [id, userId, title.trim().slice(0, 120) || "New chat"],
+    "update conversations set title = 'Encrypted chat', title_enc = $3 where id = $1 and user_id = $2 returning id",
+    [id, userId, titleEnc],
   );
   return rows.length > 0;
 }
 
 export async function touchConversation(id: string) {
-  await query("update conversations set updated_at = now() where id = $1", [
-    id,
-  ]);
+  await query("update conversations set updated_at = now() where id = $1", [id]);
 }
 
 export async function deleteConversation(id: string, userId: string) {
   if (!isUuid(id)) return [];
-  // Return stored files so the caller can remove them from storage too.
   const files = await query<{
     storage_id: string;
     resource_type: string;
@@ -89,72 +155,133 @@ export async function deleteConversation(id: string, userId: string) {
   return files;
 }
 
-const toView = (r: MessageRow): ChatMessageView => ({
-  id: r.id,
-  role: r.role,
-  content: r.content,
-  createdAt: r.created_at.toISOString(),
-  meta: r.meta ?? {},
-  attachments: (r.attachments ?? []).map((a): AttachmentView => ({
-    id: a.id,
-    name: a.name,
-    mime: a.mime,
-    size: a.size,
-    url: `/api/attachments/${a.id}`,
-  })),
-});
-
 export async function getMessages(
   conversationId: string,
+  userId: string,
+  dek: Buffer,
 ): Promise<ChatMessageView[]> {
   const rows = await query<MessageRow>(
-    `select m.id, m.role, m.content, m.meta, m.created_at,
+    `select m.id, m.role, m.content, m.meta, m.payload_enc, m.created_at,
             (select json_agg(json_build_object('id', a.id, 'name', a.name, 'mime', a.mime, 'size', a.size)
                              order by a.created_at)
                from attachments a where a.message_id = m.id) as attachments
        from messages m where m.conversation_id = $1 order by m.created_at`,
     [conversationId],
   );
-  return rows.map(toView);
+  return rows.map((r) => {
+    const payload = decryptMsgPayload(
+      r.id,
+      conversationId,
+      userId,
+      r.content,
+      r.meta,
+      r.payload_enc,
+      dek,
+    );
+    return {
+      id: r.id,
+      role: r.role,
+      content: payload.content,
+      createdAt: r.created_at.toISOString(),
+      meta: payload.meta,
+      attachments: (r.attachments ?? []).map(
+        (a): AttachmentView => ({
+          id: a.id,
+          name: a.name,
+          mime: a.mime,
+          size: a.size,
+          url: `/api/attachments/${a.id}`,
+        }),
+      ),
+    };
+  });
 }
 
-/** Text the model sees for earlier turns, including what was read from attachments. */
-export async function getHistoryTurns(conversationId: string, limit = 20) {
+/** Text the model sees for earlier turns, including decrypted attachment transcripts. */
+export async function getHistoryTurns(
+  conversationId: string,
+  userId: string,
+  dek: Buffer,
+  limit = 20,
+) {
   const rows = await query<{
+    id: string;
     role: "user" | "assistant";
     content: string;
-    notes: string | null;
+    payload_enc: string | null;
+    atts:
+      | { id: string; name: string; extracted_text: string | null; extracted_enc: string | null }[]
+      | null;
   }>(
     `select * from (
-       select m.role, m.content, m.created_at,
-              (select string_agg('[Attached ' || a.name || ']\n' || coalesce(a.extracted_text, ''), '\n\n')
-                 from attachments a where a.message_id = m.id) as notes
+       select m.id, m.role, m.content, m.payload_enc, m.created_at,
+              (select json_agg(json_build_object(
+                  'id', a.id,
+                  'name', a.name,
+                  'extracted_text', a.extracted_text,
+                  'extracted_enc', a.extracted_enc
+                ) order by a.created_at)
+                 from attachments a where a.message_id = m.id) as atts
          from messages m where m.conversation_id = $1
         order by m.created_at desc limit $2) t
      order by t.created_at`,
     [conversationId, limit],
   );
-  return rows.map((r) => ({
-    role: r.role,
-    content: r.notes ? `${r.content}\n\n${r.notes.slice(0, 6000)}` : r.content,
-  }));
+
+  return rows.map((r) => {
+    const payload = decryptMsgPayload(
+      r.id,
+      conversationId,
+      userId,
+      r.content,
+      {},
+      r.payload_enc,
+      dek,
+    );
+    const notes = (r.atts ?? [])
+      .map((a) => {
+        let text = a.extracted_text ?? "";
+        if (a.extracted_enc) {
+          try {
+            text = decryptText(a.extracted_enc, dek, aadAttachmentText(userId, a.id));
+          } catch {
+            text = "";
+          }
+        }
+        return `[Attached ${a.name}]\n${text}`;
+      })
+      .join("\n\n");
+    return {
+      role: r.role,
+      content: notes ? `${payload.content}\n\n${notes.slice(0, 6000)}` : payload.content,
+    };
+  });
 }
 
 export async function insertMessage(
   conversationId: string,
+  userId: string,
   role: "user" | "assistant",
   content: string,
-  meta: MessageMeta = {},
+  meta: MessageMeta,
+  dek: Buffer,
 ) {
+  const id = randomUUID();
+  const payloadEnc = encryptText(
+    JSON.stringify({ content, meta }),
+    dek,
+    aadMessage(userId, conversationId, id),
+  );
   const rows = await query<{ id: string; created_at: Date }>(
-    `insert into messages (conversation_id, role, content, meta)
-     values ($1, $2, $3, $4) returning id, created_at`,
-    [conversationId, role, content, JSON.stringify(meta)],
+    `insert into messages (id, conversation_id, role, content, meta, payload_enc)
+     values ($1, $2, $3, '', '{}'::jsonb, $4) returning id, created_at`,
+    [id, conversationId, role, payloadEnc],
   );
   return rows[0];
 }
 
 export async function insertAttachment(a: {
+  id?: string;
   userId: string;
   messageId: string;
   name: string;
@@ -164,11 +291,20 @@ export async function insertAttachment(a: {
   resourceType: string | null;
   format: string | null;
   extractedText: string;
+  encrypted: boolean;
+  dek: Buffer;
 }) {
-  const rows = await query<{ id: string }>(
-    `insert into attachments (user_id, message_id, name, mime, size, storage_id, resource_type, format, extracted_text)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning id`,
+  const id = a.id ?? randomUUID();
+  const extractedEnc = encryptText(
+    a.extractedText,
+    a.dek,
+    aadAttachmentText(a.userId, id),
+  );
+  await query(
+    `insert into attachments (id, user_id, message_id, name, mime, size, storage_id, resource_type, format, extracted_text, extracted_enc, encrypted)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'',$10,$11)`,
     [
+      id,
       a.userId,
       a.messageId,
       a.name,
@@ -177,10 +313,11 @@ export async function insertAttachment(a: {
       a.storageId,
       a.resourceType,
       a.format,
-      a.extractedText,
+      extractedEnc,
+      a.encrypted,
     ],
   );
-  return rows[0].id;
+  return id;
 }
 
 export async function getOwnedAttachment(id: string, userId: string) {
@@ -191,9 +328,20 @@ export async function getOwnedAttachment(id: string, userId: string) {
     storage_id: string | null;
     resource_type: string | null;
     format: string | null;
+    encrypted: boolean;
   }>(
-    "select name, mime, storage_id, resource_type, format from attachments where id = $1 and user_id = $2",
+    "select name, mime, storage_id, resource_type, format, encrypted from attachments where id = $1 and user_id = $2",
     [id, userId],
   );
   return rows[0] ?? null;
+}
+
+export async function exportUserConversations(userId: string, dek: Buffer) {
+  const convs = await listConversations(userId, dek);
+  return Promise.all(
+    convs.map(async (c) => ({
+      ...c,
+      messages: await getMessages(c.id, userId, dek),
+    })),
+  );
 }

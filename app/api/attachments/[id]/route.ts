@@ -1,23 +1,24 @@
 import { NextResponse, connection } from "next/server";
-import { getSessionUser } from "@/lib/server/auth";
+import { getSessionContext } from "@/lib/server/auth";
 import { getOwnedAttachment } from "@/lib/server/conversations";
+import { aadAttachmentFile, decryptBytes, isEncryptedBytes } from "@/lib/server/crypto";
 import { downloadPrivate } from "@/lib/server/storage";
 
-/** Streams a private attachment to its owner only. */
+/** Streams a private attachment to its owner only, decrypting user-encrypted blobs on the fly. */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   await connection();
   try {
-    const user = await getSessionUser();
-    if (!user)
+    const ctx = await getSessionContext();
+    if (!ctx)
       return NextResponse.json(
         { error: "Sign in to view this file." },
         { status: 401 },
       );
     const { id } = await params;
-    const a = await getOwnedAttachment(id, user.id);
+    const a = await getOwnedAttachment(id, ctx.user.id);
     if (!a?.storage_id || !a.resource_type) {
       return NextResponse.json({ error: "File not found." }, { status: 404 });
     }
@@ -32,7 +33,14 @@ export async function GET(
         { status: 502 },
       );
     }
-    return new Response(res.body, {
+
+    const raw = Buffer.from(await res.arrayBuffer());
+    const payload =
+      a.encrypted || isEncryptedBytes(raw)
+        ? decryptBytes(raw, ctx.dek, aadAttachmentFile(ctx.user.id, id))
+        : raw;
+
+    return new Response(new Uint8Array(payload), {
       headers: {
         "Content-Type": a.mime,
         "Content-Disposition": `inline; filename="${encodeURIComponent(a.name)}"`,

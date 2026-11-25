@@ -1,5 +1,5 @@
 import { NextResponse, connection } from "next/server";
-import { getSessionUser } from "@/lib/server/auth";
+import { getSessionContext } from "@/lib/server/auth";
 import { getProfile } from "@/lib/server/profile";
 import type { SessionPayload } from "@/lib/auth-types";
 import { query } from "@/lib/server/db";
@@ -7,8 +7,9 @@ import { query } from "@/lib/server/db";
 export async function GET() {
   await connection();
   try {
-    const user = await getSessionUser();
-    const profile = user ? await getProfile(user.id) : null;
+    const ctx = await getSessionContext();
+    const user = ctx?.user ?? null;
+    const profile = ctx ? await getProfile(ctx.user.id, ctx.dek) : null;
     let facilityCount: number | null = null;
     if (user?.role === "provider") {
       const rows = await query<{ n: number }>(

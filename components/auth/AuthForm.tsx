@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   Building2,
+  Lock,
   LockKeyhole,
   Mail,
   UserRound,
@@ -15,6 +16,7 @@ import { TextField } from "@/components/ui/Field";
 import { ChoiceGroup } from "@/components/ui/Choice";
 import { useSession } from "@/lib/store/session";
 import type { UserRole } from "@/lib/auth-types";
+import { cn } from "@/lib/utils";
 
 /** Only same-site relative paths are allowed as post-auth destinations. */
 function safeNext(raw: string | null) {
@@ -39,6 +41,7 @@ export function AuthForm({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{
     message: string;
@@ -47,12 +50,20 @@ export function AuthForm({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup" && !acceptedTerms) {
+      setError({
+        message:
+          "Please accept the Terms of use and Privacy policy to create an account.",
+        field: "acceptedTerms",
+      });
+      return;
+    }
     setPending(true);
     setError(null);
     const result =
       mode === "signin"
         ? await signIn(email, password)
-        : await signUp({ name, email, password, role });
+        : await signUp({ name, email, password, role, acceptedTerms });
     setPending(false);
     if (!result.ok) {
       setError({
@@ -155,12 +166,75 @@ export function AuthForm({
         onChange={(e) => setPassword(e.target.value)}
         icon={LockKeyhole}
         hint={
-          mode === "signup" ? "Use a mix of letters and numbers." : undefined
+          mode === "signup"
+            ? "Also locks your encrypted health profile and saved chats — keep it safe."
+            : undefined
         }
         error={fieldError("password")}
         required
         minLength={mode === "signup" ? 8 : undefined}
       />
+
+      {mode === "signup" && (
+        <>
+          <div className="rounded-2xl border border-brand/25 bg-brand-soft/45 p-3 text-xs leading-relaxed text-ink">
+            <p className="flex items-center gap-1.5 font-semibold text-brand-strong">
+              <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Your health data is encrypted with your password key
+            </p>
+            <p className="mt-1 text-muted">
+              We never sell or mine your personal data. Your health profile,
+              saved chats and uploaded notes are encrypted before storage — never
+              saved as plain text in our database and unreadable to Zelthia
+              staff.
+            </p>
+          </div>
+
+          <div>
+            <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => {
+                  setAcceptedTerms(e.target.checked);
+                  if (error?.field === "acceptedTerms") setError(null);
+                }}
+                aria-invalid={Boolean(fieldError("acceptedTerms")) || undefined}
+                className={cn(
+                  "mt-0.5 h-4 w-4 shrink-0 rounded border-line accent-brand",
+                  fieldError("acceptedTerms") && "ring-2 ring-alert/40",
+                )}
+                required
+              />
+              <span>
+                I accept the{" "}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="font-semibold text-ink underline underline-offset-2 hover:text-brand"
+                >
+                  Terms of use
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  target="_blank"
+                  className="font-semibold text-ink underline underline-offset-2 hover:text-brand"
+                >
+                  Privacy policy
+                </Link>
+                , and consent to Zelthia processing my encrypted health profile
+                only to answer my requests.
+              </span>
+            </label>
+            {fieldError("acceptedTerms") && (
+              <p className="mt-1.5 text-xs font-medium text-alert">
+                {fieldError("acceptedTerms")}
+              </p>
+            )}
+          </div>
+        </>
+      )}
 
       {error && !error.field && (
         <p
