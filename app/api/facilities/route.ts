@@ -3,9 +3,9 @@ import {
   createFacility,
   listOwnedFacilities,
   parseFacilityInput,
-  setVerification,
+  setVerificationEvidence,
 } from "@/lib/server/inventory";
-import { verifyFacility } from "@/lib/server/verify";
+import { gatherVerificationEvidence } from "@/lib/server/verify";
 import {
   HttpError,
   assertSameOrigin,
@@ -44,9 +44,22 @@ export async function POST(req: Request) {
       parseFacilityInput(await readJson(req)),
     );
     if (facility.licenseNumber) {
-      facility =
-        (await setVerification(facility.id, await verifyFacility(facility))) ??
-        facility;
+      const checkLimit = await rateLimit(`fac:verify:${user.id}`, 5, 60 * 60_000);
+      if (checkLimit.ok) {
+        facility =
+          (await setVerificationEvidence(
+            facility.id,
+            await gatherVerificationEvidence(facility),
+          )) ?? facility;
+      } else {
+        facility =
+          (await setVerificationEvidence(facility.id, {
+            status: "pending",
+            note: "Submitted for admin review.",
+            url: "",
+            evidence: [],
+          })) ?? facility;
+      }
     }
     return json({ facility }, 201);
   } catch (err) {

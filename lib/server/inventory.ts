@@ -2,10 +2,12 @@ import "server-only";
 import {
   FACILITY_KINDS,
   PRODUCT_CATEGORIES,
+  type AdminVerificationItem,
   type DirectoryMatch,
   type Facility,
   type FacilityKind,
   type Product,
+  type VerificationEvidence,
   type VerificationStatus,
 } from "@/lib/inventory-types";
 import { query } from "./db";
@@ -31,6 +33,9 @@ interface FacilityRow {
   verification_status: string;
   verification_note: string;
   verification_url: string;
+  verification_evidence: VerificationEvidence[] | null;
+  verified_at: Date | null;
+  updated_at: Date;
 }
 
 interface ProductRow {
@@ -71,7 +76,9 @@ export const toFacility = (r: FacilityRow): Facility => ({
     ? `/api/facilities/${r.id}/audio`
     : null,
   verification: {
-    status: (["none", "pending", "verified"].includes(r.verification_status)
+    status: (["none", "pending", "verified", "rejected"].includes(
+      r.verification_status,
+    )
       ? r.verification_status
       : "none") as VerificationStatus,
     note: r.verification_note ?? "",
@@ -145,6 +152,18 @@ export function parseFacilityInput(body: Record<string, unknown>) {
         60,
       )
     : [];
+  const licenseNumber = str(body.licenseNumber, 80);
+  if (licenseNumber) {
+    if (
+      licenseNumber.replace(/[^a-z0-9]/gi, "").length < 5 ||
+      !/^[A-Za-z0-9/.\-\s()]+$/.test(licenseNumber)
+    ) {
+      throw new ValidationError(
+        "Enter a valid licence or registration number (at least 5 letters or digits).",
+        "licenseNumber",
+      );
+    }
+  }
   return {
     name,
     kind,
@@ -155,7 +174,7 @@ export function parseFacilityInput(body: Record<string, unknown>) {
     state: str(body.state, 80),
     directions: str(body.directions, 1200),
     openingHours: str(body.openingHours, 160),
-    licenseNumber: str(body.licenseNumber, 80),
+    licenseNumber,
     services,
     directionsAudioId:
       typeof body.directionsAudioId === "string" &&
@@ -283,8 +302,13 @@ export async function updateFacility(
     `update facilities set name=$3, kind=$4, phone=$5, email=$6, address=$7, city=$8, state=$9,
        directions=$10, opening_hours=$11, license_number=$12, services=$13,
        directions_audio_id=(select id from attachments where id = $14 and user_id = $2),
-       -- A changed licence number has to be checked again.
+       -- A changed licence number has to be reviewed again by an admin.
        verification_status = case when license_number is distinct from $12 then 'none' else verification_status end,
+       verification_note = case when license_number is distinct from $12 then '' else verification_note end,
+       verification_url = case when license_number is distinct from $12 then '' else verification_url end,
+       verification_evidence = case when license_number is distinct from $12 then '[]'::jsonb else verification_evidence end,
+       verified_at = case when license_number is distinct from $12 then null else verified_at end,
+       verified_by = case when license_number is distinct from $12 then null else verified_by end,
        updated_at=now()
      where id=$1 and owner_id=$2 returning *`,
     [
@@ -483,17 +507,110 @@ export function isUuid(v: string) {
   );
 }
 
-export async function setVerification(
+export async function setVerificationEvidence(
   id: string,
-  v: { status: VerificationStatus; note: string; url: string },
+  v: {
+    status: "none" | "pending";
+    note: string;
+    url: string;
+    evidence: VerificationEvidence[];
+  },
 ) {
   const rows = await query<FacilityRow>(
-    `update facilities set verification_status=$2, verification_note=$3, verification_url=$4,
-       verified_at = case when $2 = 'verified' then now() else null end
-     where id=$1 returning *`,
-    [id, v.status, v.note, v.url],
+    `update facilities
+        set verification_status=$2,
+            verification_note=$3,
+            verification_url=$4,
+            verification_evidence=$5::jsonb,
+            verified_at=null,
+            verified_by=null
+      where id=$1 returning *`,
+    [id, v.status, v.note, v.url, JSON.stringify(v.evidence)],
   );
   return rows[0] ? toFacility(rows[0]) : null;
+}
+
+export async function getFacilityForAdmin(id: string): Promise<Facility | null> {
+  if (!isUuid(id)) return null;
+  const rows = await query<FacilityRow>(
+    "select * from facilities where id = $1 limit 1",
+    [id],
+  );
+  return rows[0] ? toFacility(rows[0]) : null;
+}
+
+export async function listVerificationsForAdmin(
+  statusFilter: VerificationStatus | "all" = "pending",
+): Promise<AdminVerificationItem[]> {
+  const rows = await query<
+    FacilityRow & {
+      owner_email: string;
+      owner_name: string;
+      verification_evidence: VerificationEvidence[] | null;
+      verified_at: Date | null;
+      updated_at: Date;
+    }
+  >(
+    `select f.*, u.email as owner_email, u.name as owner_name
+       from facilities f
+       join users u on u.id = f.owner_id
+      where f.license_number <> ''
+        and ($1::text = 'all' or f.verification_status = $1)
+      order by
+        case f.verification_status when 'pending' then 0 when 'rejected' then 1 when 'verified' then 2 else 3 end,
+        f.updated_at desc
+      limit 100`,
+    [statusFilter],
+  );
+  return rows.map((r) => ({
+    facility: toFacility(r),
+    owner: {
+      id: r.owner_id,
+      name: r.owner_name,
+      email: r.owner_email,
+    },
+    evidence: Array.isArray(r.verification_evidence) ? r.verification_evidence : [],
+    verifiedAt: r.verified_at ? new Date(r.verified_at).toISOString() : null,
+    updatedAt: new Date(r.updated_at).toISOString(),
+  }));
+}
+
+export async function adminDecideVerification(
+  facilityId: string,
+  adminId: string,
+  input: { action: "approve" | "reject"; note: string; url: string },
+) {
+  if (!isUuid(facilityId)) return null;
+  const status: VerificationStatus =
+    input.action === "approve" ? "verified" : "rejected";
+  const note =
+    input.note ||
+    (input.action === "approve"
+      ? "Confirmed by Zelthia administrator."
+      : "Licence could not be confirmed.");
+  const rows = await query<FacilityRow>(
+    `update facilities
+        set verification_status = $2,
+            verification_note = $3,
+            verification_url = $4,
+            verified_at = case when $2 = 'verified' then now() else null end,
+            verified_by = $5,
+            updated_at = now()
+      where id = $1 returning *`,
+    [facilityId, status, note, input.url, adminId],
+  );
+  if (!rows[0]) return null;
+  await query(
+    `insert into admin_audit_log (admin_id, action, target_type, target_id, details)
+     values ($1, $2, 'facility', $3, $4::jsonb)`,
+    [
+      adminId,
+      `verification.${input.action}`,
+      facilityId,
+      JSON.stringify({ status, note, url: input.url }),
+    ],
+  );
+  return toFacility(rows[0]);
 }
 
 /** Public: the recorded directions for a facility (directions are public info). */

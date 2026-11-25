@@ -16,6 +16,13 @@ export async function requireUser() {
   return user;
 }
 
+export async function requireAdmin() {
+  const user = await getSessionUser();
+  if (!user) throw new HttpError("Sign in to access admin tools.", 401);
+  if (!user.isAdmin) throw new HttpError("Administrator access required.", 403);
+  return user;
+}
+
 export class HttpError extends Error {
   constructor(
     message: string,

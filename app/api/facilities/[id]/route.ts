@@ -1,12 +1,10 @@
 import {
   deleteFacility,
   parseFacilityInput,
-  setVerification,
+  setVerificationEvidence,
   updateFacility,
 } from "@/lib/server/inventory";
-import { verifyFacility } from "@/lib/server/verify";
-
-export const maxDuration = 60;
+import { gatherVerificationEvidence } from "@/lib/server/verify";
 import {
   HttpError,
   assertSameOrigin,
@@ -16,6 +14,8 @@ import {
   requireUser,
 } from "@/lib/server/api";
 import { rateLimit } from "@/lib/server/rate-limit";
+
+export const maxDuration = 60;
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -37,11 +37,24 @@ export async function PUT(req: Request, { params }: Ctx) {
       parseFacilityInput(await readJson(req)),
     );
     if (!facility) throw new HttpError("Facility not found.", 404);
-    // A new or changed licence number resets status to "none"; check it again.
+    // A new or changed licence number resets status to "none"; queue preliminary evidence for admin review.
     if (facility.licenseNumber && facility.verification.status === "none") {
-      facility =
-        (await setVerification(facility.id, await verifyFacility(facility))) ??
-        facility;
+      const checkLimit = await rateLimit(`fac:verify:${user.id}`, 5, 60 * 60_000);
+      if (checkLimit.ok) {
+        facility =
+          (await setVerificationEvidence(
+            facility.id,
+            await gatherVerificationEvidence(facility),
+          )) ?? facility;
+      } else {
+        facility =
+          (await setVerificationEvidence(facility.id, {
+            status: "pending",
+            note: "Submitted for admin review.",
+            url: "",
+            evidence: [],
+          })) ?? facility;
+      }
     }
     return json({ facility });
   } catch (err) {

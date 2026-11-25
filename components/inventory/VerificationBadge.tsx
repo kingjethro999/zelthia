@@ -1,4 +1,4 @@
-import { BadgeCheck, Clock, ShieldQuestion } from "lucide-react";
+import { BadgeCheck, Clock, ShieldQuestion, XCircle } from "lucide-react";
 import type { Verification } from "@/lib/inventory-types";
 import { cn } from "@/lib/utils";
 
@@ -17,8 +17,13 @@ export function VerificationBadge({
     },
     pending: {
       icon: Clock,
-      text: "Verification pending",
+      text: "Pending admin review",
       cls: "bg-caution-soft text-caution",
+    },
+    rejected: {
+      icon: XCircle,
+      text: "Verification declined",
+      cls: "bg-alert-soft text-alert",
     },
     none: {
       icon: ShieldQuestion,
@@ -43,8 +48,12 @@ export function VerificationBadge({
 /** What happened to the licence check, in plain words. */
 export function verificationMessage(v: Verification) {
   if (v.status === "verified")
-    return "Licence confirmed. Your facility now shows a green verified tick.";
+    return "Licence confirmed by a Zelthia administrator. Your facility now shows a green verified tick.";
   if (v.status === "pending")
-    return "Your listing is live. We couldn't confirm the licence online, so a person will review it within 7 days. Until then it shows without the verified tick.";
-  return "Your listing is live. Add a licence or registration number in Details to get the verified tick.";
+    return "Your listing is live. Your licence has been submitted to a Zelthia administrator for manual review before the verified tick is shown.";
+  if (v.status === "rejected")
+    return v.note
+      ? `Verification was declined: ${v.note} Update your licence details in Details to submit for review again.`
+      : "Verification was declined. Check and update your licence number in Details to submit for review again.";
+  return "Your listing is live. Add a licence or registration number in Details to request admin verification.";
 }

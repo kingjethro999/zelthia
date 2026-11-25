@@ -29,6 +29,8 @@ export const config = {
     "/account",
     "/provider",
     "/provider/:path*",
+    "/admin",
+    "/admin/:path*",
     "/inventory",
   ],
 };

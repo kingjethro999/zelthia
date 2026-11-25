@@ -66,13 +66,35 @@ export interface Facility {
   verification: Verification;
 }
 
-/** "verified" is set by an automated check that found proof, or by an admin. */
-export type VerificationStatus = "none" | "pending" | "verified";
+/** "verified" is set only by an administrator after manual review. */
+export type VerificationStatus = "none" | "pending" | "verified" | "rejected";
 
 export interface Verification {
   status: VerificationStatus;
   note: string;
   url: string;
+}
+
+export interface VerificationEvidence {
+  url: string;
+  domain: string;
+  title: string;
+  snippet: string;
+  licenceMatch: boolean;
+  nameMatch: boolean;
+  checkedAt: string;
+}
+
+export interface AdminVerificationItem {
+  facility: Facility;
+  owner: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  evidence: VerificationEvidence[];
+  verifiedAt: string | null;
+  updatedAt: string;
 }
 
 export interface Product {

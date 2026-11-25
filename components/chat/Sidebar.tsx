@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   Pencil,
   Pill,
+  ShieldCheck,
   SquarePen,
   Trash2,
   X,
@@ -159,6 +160,15 @@ export function Sidebar({
               Manage stock
             </Link>
           ))}
+        {user?.isAdmin && (
+          <Link
+            href="/admin"
+            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist"
+          >
+            <ShieldCheck className="h-[18px] w-[18px] text-muted" aria-hidden />
+            Admin review
+          </Link>
+        )}
       </nav>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-2 pb-3">

@@ -13,6 +13,7 @@ import {
   PanelLeftOpen,
   Pill,
   PlusCircle,
+  ShieldCheck,
   Store,
   X,
 } from "lucide-react";
@@ -88,6 +89,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             },
           ]
         : [{ href: "/provider", label: "Manage stock", icon: Boxes }]
+      : []),
+    ...(user?.isAdmin
+      ? [{ href: "/admin", label: "Admin review", icon: ShieldCheck }]
       : []),
   ];
 

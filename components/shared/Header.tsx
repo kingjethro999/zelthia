@@ -21,6 +21,7 @@ const APP = [
   "/chat",
   "/inventory",
   "/provider",
+  "/admin",
   "/account",
   "/signin",
   "/signup",

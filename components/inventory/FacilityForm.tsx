@@ -173,6 +173,7 @@ export function BasicsSection({ f, set, fieldError }: SectionProps) {
           icon={FileBadge}
           value={f.licenseNumber}
           onChange={(e) => set("licenseNumber", e.target.value)}
+          error={fieldError("licenseNumber")}
           hint="PCN, MDCN, HEFAMAA or state ministry number."
         />
         <p className="mt-2 flex items-start gap-2 rounded-xl bg-brand-soft/60 p-3 text-sm text-ink">
@@ -181,10 +182,10 @@ export function BasicsSection({ f, set, fieldError }: SectionProps) {
             aria-hidden
           />
           <span>
-            Only facilities with a licence or registration number get the green
-            verified tick in search and chat. We check it automatically when you
-            save. If we can&apos;t confirm it online, a person reviews it within
-            7 days.
+            Only facilities whose licence has been checked and approved by a
+            Zelthia administrator get the green verified tick in search and
+            chat. When you save, we check official .gov.ng portals to prepare
+            your submission for admin review.
           </span>
         </p>
       </div>

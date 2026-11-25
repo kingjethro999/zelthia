@@ -85,7 +85,7 @@ export default function ForFacilitiesPage() {
         {
           icon: BadgeCheck,
           title: "Verified badge",
-          body: "Add your licence or registration number. It is checked when you save, and reviewed by a person within 7 days if it can't be confirmed online.",
+          body: "Add your licence or registration number. Our system checks official portals for preliminary evidence, and a Zelthia administrator reviews and approves the verified tick.",
         },
         {
           icon: Search,
@@ -129,7 +129,7 @@ export default function ForFacilitiesPage() {
         {
           question: "How does the verified badge work?",
           answer:
-            "Enter your licence or registration number (for example PCN, MDCN or HEFAMAA). Zelthia checks it when you save. If it can't be confirmed online, a person reviews it within 7 days. Your listing is live in the meantime without the badge.",
+            "Enter your licence or registration number (for example PCN, MDCN or HEFAMAA). Zelthia gathers preliminary evidence from official .gov.ng registries and queues your facility for a human administrator to review and approve. Your listing is live in the meantime without the badge.",
         },
         {
           question: "Can I manage more than one branch?",
