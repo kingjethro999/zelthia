@@ -368,3 +368,232 @@ p {
     border-color: var(--ink) !important;
   }
 }
+
+/* ---- Landing motion ------------------------------------------------ */
+
+.reveal[data-state="hidden"] {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+}
+.reveal[data-state="shown"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 640ms var(--ease-out) var(--reveal-delay, 0ms),
+    transform 640ms var(--ease-out) var(--reveal-delay, 0ms);
+}
+
+/* Colour fields drifting behind a hero. Transform only, so it stays on the compositor. */
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.orb-a {
+  top: -8rem;
+  right: -6rem;
+  width: 34rem;
+  height: 34rem;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--brand) 22%, transparent), transparent);
+  animation: orb-a 22s ease-in-out infinite alternate;
+}
+.orb-b {
+  bottom: -10rem;
+  left: -8rem;
+  width: 30rem;
+  height: 30rem;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--sky) 16%, transparent), transparent);
+  animation: orb-b 28s ease-in-out infinite alternate;
+}
+@keyframes orb-a {
+  to {
+    transform: translate3d(-5rem, 4rem, 0) scale(1.12);
+  }
+}
+@keyframes orb-b {
+  to {
+    transform: translate3d(6rem, -3rem, 0) scale(1.08);
+  }
+}
+
+/* Typing indicator and caret in the chat demo. */
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--muted);
+  animation: dot 900ms ease-in-out infinite;
+}
+@keyframes dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: blink 900ms steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* A value that just changed, and a badge asking for attention. */
+.tick-pop {
+  animation: tick-pop 420ms var(--ease-out) both;
+}
+@keyframes tick-pop {
+  from {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+}
+.pulse-ring {
+  animation: pulse-ring 2.4s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--caution) 40%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .dot,
+  .caret,
+  .pulse-ring,
+  .tick-pop {
+    animation: none !important;
+  }
+  .reveal[data-state] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Wizard steps slide in from the direction of travel. */
+.step-in-next {
+  animation: step-next 360ms var(--ease-out) both;
+}
+.step-in-prev {
+  animation: step-prev 360ms var(--ease-out) both;
+}
+@keyframes step-next {
+  from {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0);
+  }
+}
+@keyframes step-prev {
+  from {
+    opacity: 0;
+    transform: translate3d(-28px, 0, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step-in-next,
+  .step-in-prev {
+    animation: fade 160ms ease both;
+  }
+}
+
+/* ---- Glass ----------------------------------------------------------
+   Frost + translucency + a lit rim + layered depth. Used on the two hero
+   cards only (they sit over the drifting orbs, so there is something to
+   frost); everything else stays solid so legibility never depends on the
+   backdrop. */
+.glass-card {
+  position: relative;
+  isolation: isolate;
+  background: color-mix(in oklab, var(--surface) 64%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(165%);
+  backdrop-filter: blur(18px) saturate(165%);
+  border: 1px solid color-mix(in oklab, white 18%, var(--line));
+  box-shadow:
+    0 28px 64px -32px rgb(13 59 53 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.3),
+    inset 0 -1px 0 rgb(0 0 0 / 0.07);
+  transition:
+    transform 520ms var(--ease-out),
+    box-shadow 520ms var(--ease-out);
+}
+/* A lit corner on the rim: bright top-left, fading to nothing. */
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0) 38%, rgb(255 255 255 / 0) 70%, rgb(255 255 255 / 0.16));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .glass-card:hover {
+    transform: translate3d(0, -4px, 0);
+    box-shadow:
+      0 36px 72px -30px rgb(13 59 53 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.4),
+      inset 0 -1px 0 rgb(0 0 0 / 0.07);
+  }
+}
+/* Opaque panel on a dark auth backdrop, where translucency would hurt contrast. */
+.glass-card[data-solid] {
+  background: var(--surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-card {
+    background: var(--surface);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-card {
+    background: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass-card::before {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-card {
+    transition: none;
+  }
+  .glass-card:hover {
+    transform: none;
+  }
+}
+
+/* The header gets the same lit rim along its lower edge. */
+.material-bar {
+  box-shadow:
+    inset 0 -1px 0 color-mix(in oklab, white 10%, transparent),
+    0 1px 0 color-mix(in oklab, var(--line) 60%, transparent);
+}

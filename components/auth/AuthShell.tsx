@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CircleCheck, LoaderCircle, ScanText } from "lucide-react";
+import { ArrowLeft, Boxes, CircleCheck, LoaderCircle, ScanText } from "lucide-react";
+import { FacilityDemo } from "@/components/marketing/Motion";
+import type { UserRole } from "@/lib/auth-types";
 
 /** Static illustration of Zelthia reading a referral card; no client JS. */
 function ReadingDemo() {
@@ -36,10 +40,12 @@ function ReadingDemo() {
 export function AuthShell({
   title,
   subtitle,
+  role = "patient",
   children,
 }: {
   title: string;
   subtitle: string;
+  role?: UserRole;
   children: React.ReactNode;
 }) {
   return (
@@ -49,20 +55,40 @@ export function AuthShell({
           <Image src="/icons/icon-96.png" alt="" width={30} height={30} unoptimized />
           <span className="font-display text-xl font-semibold">Zelthia</span>
         </Link>
-        <div className="flex flex-1 flex-col justify-center gap-10">
-          <div className="max-w-md">
-            <ScanText className="h-7 w-7 text-[#7fe0b6]" aria-hidden />
-            <h2 className="mt-4 title font-display text-3xl font-semibold xl:text-4xl">
-              Can&apos;t read what the doctor wrote? Zelthia can.
-            </h2>
-            <p className="mt-3 text-white/75">
-              Photograph a note, prescription or result. Zelthia explains it, checks it against
-              your allergies, and finds where to get the test or medicine.
-            </p>
-          </div>
-          <ReadingDemo />
+        <div key={role} className="animate-rise flex flex-1 flex-col justify-center gap-10">
+          {role === "provider" ? (
+            <>
+              <div className="max-w-md">
+                <Boxes className="h-7 w-7 text-[#7fe0b6]" aria-hidden />
+                <h2 className="mt-4 title font-display text-3xl font-semibold xl:text-4xl">
+                  Your stock, found by the people nearby.
+                </h2>
+                <p className="mt-3 text-white/75">
+                  Keep quantities, prices and expiry dates in one place. Every update shows when
+                  someone searches for it, with landmark directions to your door.
+                </p>
+              </div>
+              <div className="w-full max-w-md text-ink">
+                <FacilityDemo solid />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="max-w-md">
+                <ScanText className="h-7 w-7 text-[#7fe0b6]" aria-hidden />
+                <h2 className="mt-4 title font-display text-3xl font-semibold xl:text-4xl">
+                  Can&apos;t read what the doctor wrote? Zelthia can.
+                </h2>
+                <p className="mt-3 text-white/75">
+                  Photograph a note, prescription or result. Zelthia explains it, checks it against
+                  your allergies, and finds where to get the test or medicine.
+                </p>
+              </div>
+              <ReadingDemo />
+            </>
+          )}
         </div>
-        <p className="text-sm text-white/55">Guidance, not a diagnosis. In an emergency, call 112.</p>
+        <p className="text-sm text-white/55">{role === "provider" ? "Free to list. Your stock only shows what you add." : "Guidance, not a diagnosis. In an emergency, call 112."}</p>
       </aside>
 
       <section className="flex min-h-0 flex-col overflow-y-auto">

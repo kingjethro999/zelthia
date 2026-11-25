@@ -83,7 +83,7 @@ function AccountForm() {
 
       <div className="mt-8 space-y-6">
         <section className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
-          <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} icon={UserRound} className="max-w-md" />
+          <TextField label="Name" placeholder="e.g. Chidi Eze" value={name} onChange={(e) => setName(e.target.value)} icon={UserRound} className="max-w-md" />
         </section>
         {sections.map((s) => (
           <section key={s.title} className="rounded-3xl border border-line bg-surface p-5 sm:p-7">

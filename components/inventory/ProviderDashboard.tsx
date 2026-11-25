@@ -35,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/store/session";
 import { FacilityForm, type FacilityDraft } from "./FacilityForm";
+import { FacilityWizard } from "./FacilityWizard";
 import { useLastDefined } from "@/lib/motion";
 import { ProductDialog, type ProductDraft } from "./ProductDialog";
 import { VerificationBadge, verificationMessage } from "./VerificationBadge";
@@ -58,6 +59,39 @@ async function api<T>(url: string, init?: RequestInit): Promise<{ ok: true; data
 const daysUntil = (iso: string) => Math.ceil((Date.parse(iso) - Date.now()) / 864e5);
 
 export function ProviderDashboard() {
+  const user = useSession((s) => s.user);
+  const sessionStatus = useSession((s) => s.status);
+  if (sessionStatus === "ready" && user && user.role !== "provider") return <PatientGate />;
+  return <FacilityDashboard />;
+}
+
+function PatientGate() {
+  return (
+    <Shell>
+      <div className="mx-auto max-w-xl pt-8 text-center sm:pt-16">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft text-brand-strong">
+          <Building2 className="h-7 w-7" aria-hidden />
+        </span>
+        <h1 className="mt-5 title font-display text-3xl font-semibold text-ink">Stock tools are for facility accounts</h1>
+        <p className="mt-3 text-muted">
+          You are signed in with a personal account, which is for the health chat and finding medicine. To list a pharmacy,
+          clinic or hospital, create a facility account.
+        </p>
+        <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+          <ButtonLink href="/signup?role=provider" size="lg">
+            <Building2 className="h-5 w-5" aria-hidden />
+            Create a facility account
+          </ButtonLink>
+          <ButtonLink href="/chat" size="lg" variant="secondary">
+            Back to health chat
+          </ButtonLink>
+        </div>
+      </div>
+    </Shell>
+  );
+}
+
+function FacilityDashboard() {
   const router = useRouter();
   const params = useSearchParams();
   const [facilities, setFacilities] = useState<Facility[] | null>(null);
@@ -112,12 +146,17 @@ export function ProviderDashboard() {
   return (
     <Shell>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
-            {FACILITY_KIND_LABEL[facility.kind]}, {facility.city}
-            <VerificationBadge v={facility.verification} />
-          </p>
-          <h1 className="truncate title font-display text-3xl font-semibold text-ink sm:text-4xl">{facility.name}</h1>
+        <div className="flex min-w-0 items-center gap-4">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand-strong">
+            <Building2 className="h-7 w-7" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
+              {FACILITY_KIND_LABEL[facility.kind]}, {facility.city}
+              <VerificationBadge v={facility.verification} />
+            </p>
+            <h1 className="truncate title font-display text-2xl font-semibold text-ink sm:text-3xl">{facility.name}</h1>
+          </div>
         </div>
         <div className="flex flex-wrap items-end gap-2">
           {facilities.length > 1 && (
@@ -194,7 +233,7 @@ export function ProviderDashboard() {
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:py-12">{children}</div>;
+  return <div className="mx-auto w-full max-w-5xl flex-1 px-4 pb-12 pt-2 sm:px-6">{children}</div>;
 }
 
 function NoFacility() {
@@ -579,13 +618,16 @@ function DetailsTab({
 
 export function NewFacility() {
   const router = useRouter();
+  const user = useSession((s) => s.user);
+  const sessionStatus = useSession((s) => s.status);
   const welcome = useSearchParams().get("welcome") === "1";
+  if (sessionStatus === "ready" && user && user.role !== "provider") return <PatientGate />;
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
       {welcome ? (
         <p className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-sm font-medium text-brand-strong">
           <CircleCheck className="h-4 w-4" aria-hidden />
-          Your profile is set up. Step 2 of 2
+          Your profile is set up
         </p>
       ) : (
         <Link href="/provider" className="text-sm font-medium text-muted hover:text-ink">
@@ -597,10 +639,11 @@ export function NewFacility() {
       </h1>
       <p className="mb-8 mt-2 text-muted">
         {welcome
-          ? "Add where you are and how to find you, then start listing what you stock. You can change any of this later."
-          : "You can change any of this later."}
+          ? "Three short steps, then you can start listing what you stock."
+          : "Three short steps."}{" "}
+        Everything can be edited after you register.
       </p>
-      <FacilityForm
+      <FacilityWizard
         submitLabel="Register facility"
         onSubmit={async (draft) => {
           const res = await api<{ facility: Facility }>("/api/facilities", { method: "POST", body: JSON.stringify(draft) });

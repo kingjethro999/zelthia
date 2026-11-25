@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronDown, type LucideIcon } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
 import { SITE_URL, cn } from "@/lib/utils";
+import { Orbs, Reveal } from "@/components/marketing/Motion";
 
 export interface InfoSection {
   icon: LucideIcon;
@@ -28,6 +29,8 @@ interface InfoPageProps {
   steps?: { title: string; items: { name: string; text: string }[] };
   faqs: InfoFaq[];
   related: { href: string; label: string }[];
+  /** Optional illustration shown beside the heading on wide screens. */
+  visual?: React.ReactNode;
 }
 
 /** Shared layout for keyword landing pages, with FAQ, HowTo and breadcrumb data. */
@@ -79,22 +82,33 @@ export function InfoPage(p: InfoPageProps) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <article>
-        <header className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:pb-16 lg:pt-20">
-          <h1 className="max-w-3xl display font-display text-4xl font-semibold text-ink sm:text-5xl">
-            {p.title}
-          </h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">{p.lead}</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href={p.primary.href} size="lg">
-              {p.primary.label}
-            </ButtonLink>
-            {p.secondary && (
-              <ButtonLink href={p.secondary.href} size="lg" variant="secondary">
-                {p.secondary.label}
-              </ButtonLink>
+        <div className="relative isolate overflow-hidden">
+          {p.visual && <Orbs />}
+          <header
+            className={cn(
+              "mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:pb-16 lg:pt-20",
+              p.visual && "grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16",
             )}
-          </div>
-        </header>
+          >
+            <div className="animate-rise">
+              <h1 className="max-w-3xl display font-display text-4xl font-semibold text-ink sm:text-5xl">
+                {p.title}
+              </h1>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">{p.lead}</p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <ButtonLink href={p.primary.href} size="lg">
+                  {p.primary.label}
+                </ButtonLink>
+                {p.secondary && (
+                  <ButtonLink href={p.secondary.href} size="lg" variant="secondary">
+                    {p.secondary.label}
+                  </ButtonLink>
+                )}
+              </div>
+            </div>
+            {p.visual}
+          </header>
+        </div>
 
         <section className="border-y border-line bg-surface">
           <div className="mx-auto max-w-6xl space-y-4 px-4 py-12 sm:px-6 lg:py-16">
@@ -115,12 +129,12 @@ export function InfoPage(p: InfoPageProps) {
               p.sections.length % 4 === 0 ? "lg:grid-cols-4" : "lg:grid-cols-3",
             )}
           >
-            {p.sections.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="bg-surface p-6">
+            {p.sections.map(({ icon: Icon, title, body }, i) => (
+              <Reveal as="li" key={title} delay={(i % 4) * 70} className="bg-surface p-6">
                 <Icon className="h-5 w-5 text-brand" aria-hidden />
                 <h3 className="mt-4 text-base font-semibold text-ink">{title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted">{body}</p>
-              </li>
+              </Reveal>
             ))}
           </ul>
         </section>

@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { ChatApp } from "@/components/chat/ChatApp";
 
 export const metadata: Metadata = {
-  title: "Health chat: read doctor's notes and find care",
+  title: "Health chat and note reader",
   description:
     "Ask Zelthia about symptoms or medicines, or upload a doctor's note, prescription or result. It explains it in plain language, checks your allergies, and finds where to get the test or medicine.",
   keywords: [

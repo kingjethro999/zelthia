@@ -8,93 +8,76 @@ import {
   ChevronDown,
   CircleUserRound,
   LogOut,
-  Menu,
-  MessageCircleHeart,
-  Pill,
   Settings2,
-  X,
+  UserRound,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { useSession } from "@/lib/store/session";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  { href: "/for-facilities", label: "For facilities", icon: Building2 },
-  { href: "/inventory", label: "Find medicine", icon: Pill },
-  { href: "/chat", label: "Health chat", icon: MessageCircleHeart },
-];
+/** Routes that render their own chrome (the app sidebar or a full-screen flow). */
+const APP = ["/chat", "/inventory", "/provider", "/account", "/signin", "/signup", "/setup"];
 
-/** Routes that render their own full-height chrome. */
-const BARE = ["/chat", "/signin", "/signup", "/setup"];
+const AUDIENCES = [
+  { href: "/", label: "For people", icon: UserRound },
+  { href: "/for-facilities", label: "For facilities", icon: Building2 },
+] as const;
+
+/**
+ * Switch between the two audiences, like a ride-hailing site's rider/driver
+ * toggle. The thumb slides between the two halves instead of jumping.
+ */
+export function AudienceSwitch({ className }: { className?: string }) {
+  const pathname = usePathname();
+  const facilities = pathname === "/for-facilities";
+  return (
+    <nav
+      aria-label="Audience"
+      className={cn("relative grid grid-cols-2 rounded-full bg-mist p-1 text-sm font-medium", className)}
+    >
+      <span
+        aria-hidden
+        className="absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-surface shadow-[0_1px_2px_rgb(6_25_26/0.12),0_4px_12px_-4px_rgb(6_25_26/0.16)] transition-transform duration-[340ms] ease-[var(--ease-out)] motion-reduce:transition-none"
+        style={{ transform: facilities ? "translateX(100%)" : "translateX(0)" }}
+      />
+      {AUDIENCES.map(({ href, label, icon: Icon }) => {
+        const active = (href === "/for-facilities") === facilities;
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "press press-soft relative z-10 flex items-center justify-center gap-2 rounded-full px-4 py-2 transition-colors",
+              active ? "text-ink" : "text-muted hover:text-ink",
+            )}
+          >
+            <Icon className="h-4 w-4" aria-hidden />
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
 
 export function Header() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const [lastPath, setLastPath] = useState(pathname);
-  if (pathname !== lastPath) {
-    setLastPath(pathname);
-    setOpen(false);
-  }
-
-  if (BARE.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
+  if (APP.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
 
   return (
     <header className="material-bar sticky top-0 z-40 border-b border-line/60">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
+      <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto] items-center gap-4 px-4 sm:px-6 md:grid-cols-[1fr_auto_1fr]">
         <Logo />
-        <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
-          {NAV.map((item) => {
-            const active = item.href === pathname;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "text-ink" : "text-muted hover:text-ink",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="ml-auto hidden items-center gap-2 md:flex">
+        <AudienceSwitch className="hidden w-80 md:grid" />
+        <div className="flex items-center justify-end gap-2">
           <AccountControls />
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="press ml-auto flex h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-mist md:hidden"
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          aria-label={open ? "Close menu" : "Open menu"}
-        >
-          {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
-        </button>
       </div>
-
-      {open && (
-        <div id="mobile-nav" className="animate-rise origin-top border-t border-line px-4 pb-6 pt-3 md:hidden">
-          <nav aria-label="Main" className="flex flex-col">
-            {NAV.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="flex items-center gap-3 rounded-xl px-2 py-3 text-base font-medium text-ink hover:bg-mist"
-              >
-                <Icon className="h-5 w-5 text-muted" aria-hidden />
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <div className="mt-4 border-t border-line pt-4">
-            <AccountControls stacked />
-          </div>
-        </div>
-      )}
+      <div className="border-t border-line/60 px-4 py-2 md:hidden">
+        <AudienceSwitch className="mx-auto w-full max-w-sm" />
+      </div>
     </header>
   );
 }

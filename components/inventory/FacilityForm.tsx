@@ -74,6 +74,88 @@ export const EMPTY_FACILITY: FacilityDraft = {
   directionsAudioUrl: null,
 };
 
+
+type SetFn = <K extends keyof FacilityDraft>(k: K, v: FacilityDraft[K]) => void;
+export interface SectionProps {
+  f: FacilityDraft;
+  set: SetFn;
+  setF: React.Dispatch<React.SetStateAction<FacilityDraft>>;
+  fieldError: (k: string) => string | undefined;
+}
+
+export function BasicsSection({ f, set, fieldError }: SectionProps) {
+  return (
+    <div className="space-y-5">
+        <ChoiceGroup<FacilityKind>
+          label="What kind of place is it?"
+          value={f.kind}
+          onChange={(v) => set("kind", v)}
+          columns={3}
+          options={(Object.keys(FACILITY_KIND_LABEL) as FacilityKind[]).map((k) => ({
+            value: k,
+            label: FACILITY_KIND_LABEL[k],
+            icon: KIND_ICONS[k],
+          }))}
+        />
+        {fieldError("kind") && <p className="text-xs font-medium text-alert">{fieldError("kind")}</p>}
+        <TextField label="Name patients will see" icon={Building2} value={f.name} onChange={(e) => set("name", e.target.value)} error={fieldError("name")} placeholder="e.g. Greenfield Pharmacy" />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <TextField label="Phone number" type="tel" icon={Phone} value={f.phone} onChange={(e) => set("phone", e.target.value)} error={fieldError("phone")} placeholder="0803 000 0000" autoComplete="tel" />
+          <TextField label="Email (optional)" type="email" icon={Mail} value={f.email} onChange={(e) => set("email", e.target.value)} placeholder="desk@example.com" />
+        </div>
+        <div>
+          <TextField label="Licence or registration number (optional)" placeholder="e.g. PCN/FP/2020/04512" icon={FileBadge} value={f.licenseNumber} onChange={(e) => set("licenseNumber", e.target.value)} hint="PCN, MDCN, HEFAMAA or state ministry number." />
+          <p className="mt-2 flex items-start gap-2 rounded-xl bg-brand-soft/60 p-3 text-sm text-ink">
+            <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+            <span>
+              Only facilities with a licence or registration number get the green verified tick in search and chat. We
+              check it automatically when you save. If we can&apos;t confirm it online, a person reviews it within 7 days.
+            </span>
+          </p>
+        </div>
+          </div>
+  );
+}
+
+export function LocationSection({ f, set, setF, fieldError }: SectionProps) {
+  return (
+    <div className="space-y-5">
+        <TextField label="Street address" icon={MapPin} value={f.address} onChange={(e) => set("address", e.target.value)} error={fieldError("address")} placeholder="12 Aminu Kano Crescent, Wuse 2" />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <TextField label="City or town" value={f.city} onChange={(e) => set("city", e.target.value)} error={fieldError("city")} placeholder="Abuja" />
+          <Select label="State" value={f.state} onChange={(v) => set("state", v)} placeholder="Choose a state" options={STATES.map((s) => ({ value: s, label: s }))} />
+        </div>
+        <div className="space-y-3">
+          <TextArea label="Directions using landmarks" value={f.directions} onChange={(e) => set("directions", e.target.value)} placeholder="Opposite First Bank, first gate after the Total filling station. Blue building with a green cross." hint="Type them, record them, or both. Patients can read and listen to them with every result." rows={3} />
+          <VoiceRecorder
+            audioUrl={f.directionsAudioUrl}
+            onSaved={({ id, url, transcript }) =>
+              setF((d) => ({
+                ...d,
+                directionsAudioId: id,
+                directionsAudioUrl: url,
+                directions: transcript ? (d.directions.trim() ? `${d.directions.trim()}\n${transcript}` : transcript) : d.directions,
+              }))
+            }
+            onRemove={() => setF((d) => ({ ...d, directionsAudioId: null, directionsAudioUrl: null }))}
+          />
+        </div>
+        <TextField label="Opening hours" icon={Clock} value={f.openingHours} onChange={(e) => set("openingHours", e.target.value)} placeholder="Mon to Sat, 8am to 9pm" />
+          </div>
+  );
+}
+
+export function ServicesSection({ f, set }: SectionProps) {
+  return (
+    <div className="space-y-3">
+        <p className="text-sm text-muted">
+          Scans, tests and procedures you offer. People searching for them, including from the health chat, will find you.
+        </p>
+        <TagInput label="Services" values={f.services} onChange={(v) => set("services", v)} suggestions={SERVICE_SUGGESTIONS} placeholder="e.g. Ultrasound scan" tone="sky" icon={Stethoscope} />
+          </div>
+  );
+}
+
 export function FacilityForm({
   initial = EMPTY_FACILITY,
   submitLabel,
@@ -104,66 +186,17 @@ export function FacilityForm({
     >
       <section className="space-y-5">
         <h2 className="font-display text-lg font-semibold text-ink">The basics</h2>
-        <ChoiceGroup<FacilityKind>
-          label="What kind of place is it?"
-          value={f.kind}
-          onChange={(v) => set("kind", v)}
-          columns={3}
-          options={(Object.keys(FACILITY_KIND_LABEL) as FacilityKind[]).map((k) => ({
-            value: k,
-            label: FACILITY_KIND_LABEL[k],
-            icon: KIND_ICONS[k],
-          }))}
-        />
-        {fieldError("kind") && <p className="text-xs font-medium text-alert">{fieldError("kind")}</p>}
-        <TextField label="Name patients will see" icon={Building2} value={f.name} onChange={(e) => set("name", e.target.value)} error={fieldError("name")} placeholder="e.g. Greenfield Pharmacy" />
-        <div className="grid gap-5 sm:grid-cols-2">
-          <TextField label="Phone number" type="tel" icon={Phone} value={f.phone} onChange={(e) => set("phone", e.target.value)} error={fieldError("phone")} placeholder="0803 000 0000" autoComplete="tel" />
-          <TextField label="Email (optional)" type="email" icon={Mail} value={f.email} onChange={(e) => set("email", e.target.value)} placeholder="desk@example.com" />
-        </div>
-        <div>
-          <TextField label="Licence or registration number (optional)" icon={FileBadge} value={f.licenseNumber} onChange={(e) => set("licenseNumber", e.target.value)} hint="PCN, MDCN, HEFAMAA or state ministry number." />
-          <p className="mt-2 flex items-start gap-2 rounded-xl bg-brand-soft/60 p-3 text-sm text-ink">
-            <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
-            <span>
-              Only facilities with a licence or registration number get the green verified tick in search and chat. We
-              check it automatically when you save. If we can&apos;t confirm it online, a person reviews it within 7 days.
-            </span>
-          </p>
-        </div>
+        <BasicsSection f={f} set={set} setF={setF} fieldError={fieldError} />
       </section>
 
       <section className="space-y-5">
         <h2 className="font-display text-lg font-semibold text-ink">Where to find you</h2>
-        <TextField label="Street address" icon={MapPin} value={f.address} onChange={(e) => set("address", e.target.value)} error={fieldError("address")} placeholder="12 Aminu Kano Crescent, Wuse 2" />
-        <div className="grid gap-5 sm:grid-cols-2">
-          <TextField label="City or town" value={f.city} onChange={(e) => set("city", e.target.value)} error={fieldError("city")} placeholder="Abuja" />
-          <Select label="State" value={f.state} onChange={(v) => set("state", v)} placeholder="Choose a state" options={STATES.map((s) => ({ value: s, label: s }))} />
-        </div>
-        <div className="space-y-3">
-          <TextArea label="Directions using landmarks" value={f.directions} onChange={(e) => set("directions", e.target.value)} placeholder="Opposite First Bank, first gate after the Total filling station. Blue building with a green cross." hint="Type them, record them, or both. Patients can read and listen to them with every result." rows={3} />
-          <VoiceRecorder
-            audioUrl={f.directionsAudioUrl}
-            onSaved={({ id, url, transcript }) =>
-              setF((d) => ({
-                ...d,
-                directionsAudioId: id,
-                directionsAudioUrl: url,
-                directions: transcript ? (d.directions.trim() ? `${d.directions.trim()}\n${transcript}` : transcript) : d.directions,
-              }))
-            }
-            onRemove={() => setF((d) => ({ ...d, directionsAudioId: null, directionsAudioUrl: null }))}
-          />
-        </div>
-        <TextField label="Opening hours" icon={Clock} value={f.openingHours} onChange={(e) => set("openingHours", e.target.value)} placeholder="Mon to Sat, 8am to 9pm" />
+        <LocationSection f={f} set={set} setF={setF} fieldError={fieldError} />
       </section>
 
       <section className="space-y-3">
         <h2 className="font-display text-lg font-semibold text-ink">Services and tests (optional)</h2>
-        <p className="text-sm text-muted">
-          Scans, tests and procedures you offer. People searching for them, including from the health chat, will find you.
-        </p>
-        <TagInput label="Services" values={f.services} onChange={(v) => set("services", v)} suggestions={SERVICE_SUGGESTIONS} placeholder="e.g. Ultrasound scan" tone="sky" icon={Stethoscope} />
+        <ServicesSection f={f} set={set} setF={setF} fieldError={fieldError} />
       </section>
 
       {error && !error.field && (

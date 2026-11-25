@@ -222,6 +222,7 @@ function SetupForm() {
                   <div className="space-y-6">
                     <TextField
                       label="Your name"
+                      placeholder="e.g. Chidi Eze"
                       autoComplete="name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}

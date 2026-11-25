@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { AuthShell } from "@/components/auth/AuthShell";
-import { AuthForm } from "@/components/auth/AuthForm";
+import { AuthScreen } from "@/components/auth/AuthScreen";
 
 export const metadata: Metadata = {
   title: "Create your account",
@@ -12,13 +11,8 @@ export const metadata: Metadata = {
 
 export default function SignUpPage() {
   return (
-    <AuthShell
-      title="Create your account"
-      subtitle="Free for patients. Takes about a minute."
-    >
-      <Suspense>
-        <AuthForm mode="signup" />
-      </Suspense>
-    </AuthShell>
+    <Suspense>
+      <AuthScreen mode="signup" />
+    </Suspense>
   );
 }

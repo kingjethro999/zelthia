@@ -354,7 +354,7 @@ function ConversationRow({
   );
 }
 
-function AccountFooter() {
+export function AccountFooter() {
   const user = useSession((s) => s.user);
   const signOut = useSession((s) => s.signOut);
   const resetChat = useChat((s) => s.reset);

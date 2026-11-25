@@ -21,7 +21,15 @@ function safeNext(raw: string | null) {
   return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : null;
 }
 
-export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
+export function AuthForm({
+  mode,
+  role,
+  onRoleChange,
+}: {
+  mode: "signin" | "signup";
+  role: UserRole;
+  onRoleChange: (r: UserRole) => void;
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
@@ -31,9 +39,6 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>(
-    params.get("role") === "provider" || next?.startsWith("/provider") ? "provider" : "patient",
-  );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ message: string; field?: string } | null>(
     null,
@@ -71,7 +76,7 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
             label="I'm joining as"
             dense
             value={role}
-            onChange={setRole}
+            onChange={onRoleChange}
             options={[
               {
                 value: "patient",
@@ -82,13 +87,15 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
               {
                 value: "provider",
                 label: "A facility",
-                description: "List stock and services",
+                description: "List stock, services and directions",
                 icon: Building2,
               },
             ]}
           />
           <TextField
-            label="Full name"
+            label={role === "provider" ? "Your name" : "Full name"}
+            placeholder={role === "provider" ? "e.g. Amaka Okafor" : "e.g. Chidi Eze"}
+            hint={role === "provider" ? "The person managing the facility account." : undefined}
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -100,7 +107,8 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
       )}
 
       <TextField
-        label="Email"
+        label={mode === "signup" && role === "provider" ? "Work email" : "Email"}
+        placeholder={mode === "signup" && role === "provider" ? "desk@greenfieldpharmacy.com" : "you@example.com"}
         type="email"
         autoComplete="email"
         inputMode="email"
@@ -112,12 +120,13 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
       />
       <TextField
         label="Password"
+        placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
         type="password"
         autoComplete={mode === "signin" ? "current-password" : "new-password"}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         icon={LockKeyhole}
-        hint={mode === "signup" ? "At least 8 characters." : undefined}
+        hint={mode === "signup" ? "Use a mix of letters and numbers." : undefined}
         error={fieldError("password")}
         required
         minLength={mode === "signup" ? 8 : undefined}

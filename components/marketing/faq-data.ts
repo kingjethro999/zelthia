@@ -7,12 +7,7 @@ export const FAQ_DATA: FaqItem[] = [
   {
     question: "What is Zelthia?",
     answer:
-      "Zelthia is inventory for pharmacies, clinics and hospitals. Facilities keep their stock, prices and landmark directions up to date, and patients search to see what is available nearby before they travel. A health companion on the patient side answers questions with your allergies, conditions and medicines in mind.",
-  },
-  {
-    question: "Can my pharmacy, clinic or hospital use Zelthia?",
-    answer:
-      "Yes, and it is free. Create a facility account to record stock, see low stock and expiring batches, list services such as scans and tests, and appear when patients search for what you have. Facilities with a confirmed licence number get a verified badge.",
+      "Zelthia is a health companion and medicine finder. You can describe symptoms or ask about a medicine, and Zelthia answers with your allergies, long-term conditions and current medicines in mind. It can then show which pharmacy, clinic or hospital near you has that medicine in stock, with directions based on landmarks.",
   },
   {
     question: "Can Zelthia read my doctor's handwriting?",
@@ -22,7 +17,7 @@ export const FAQ_DATA: FaqItem[] = [
   {
     question: "Is Zelthia free?",
     answer:
-      "Yes. Searching, the health companion and facility listings are free to use. Paid add-ons for specific features, such as verified facility listings, are planned, and we will announce them before they launch.",
+      "Yes. Asking questions, searching for medicine and keeping a health profile are free for patients.",
   },
   {
     question: "Does Zelthia replace a doctor?",
@@ -43,6 +38,11 @@ export const FAQ_DATA: FaqItem[] = [
     question: "Why landmark directions instead of a map pin?",
     answer:
       "Street numbers are often missing and map pins can land on the wrong side of a road or inside a campus. Facilities describe the way in using places people already know, such as a bank, a filling station or a school gate.",
+  },
+  {
+    question: "Can my pharmacy, clinic or hospital use Zelthia?",
+    answer:
+      "Yes, for free. Create a facility account to record stock, see low stock and expiring batches, list services such as scans and tests, and appear when patients search for what you have. Facilities with a confirmed licence number get a verified badge.",
   },
   {
     question: "What happens to my health information?",

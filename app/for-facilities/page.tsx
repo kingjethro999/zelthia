@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { BadgeCheck, Boxes, CalendarClock, Mic, PackagePlus, Search, Stethoscope, TriangleAlert } from "lucide-react";
 import { InfoPage } from "@/components/marketing/InfoPage";
+import { FacilityDemo } from "@/components/marketing/Motion";
 
-const title = "Inventory software for pharmacies, clinics and hospitals";
+const title = "Inventory for pharmacies and clinics";
 const description =
   "Free inventory management for Nigerian pharmacies, clinics, hospitals, scan centres and health stores. Track stock, expiry dates and low stock, list services, and get found by patients searching for what you have.";
 
@@ -27,6 +28,7 @@ export default function ForFacilitiesPage() {
   return (
     <InfoPage
       path="/for-facilities"
+      visual={<FacilityDemo />}
       title={title}
       lead="Keep your stock accurate in one place. Every update shows up when someone nearby searches Zelthia for a medicine, product or test you have."
       primary={{ href: "/signup?role=provider", label: "List your facility" }}

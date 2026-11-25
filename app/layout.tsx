@@ -31,9 +31,9 @@ export const viewport: Viewport = {
 };
 
 const description =
-  "Zelthia is inventory for pharmacies, clinics and hospitals in Nigeria. Facilities keep live stock, price and landmark directions; patients check what is available before they travel, with a health companion for guidance. Free to use.";
+  "Zelthia is a free health and care companion for Nigeria. Ask an AI health chat that knows your allergies, get a doctor's note or prescription explained from a photo, and find which pharmacy, clinic or hospital has your medicine or test.";
 
-const title = "Zelthia: Inventory for pharmacies, clinics and hospitals, with a health companion";
+const title = "Zelthia: Health Companion & Inventory";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -46,16 +46,17 @@ export const metadata: Metadata = {
   category: "health",
   keywords: [
     "Zelthia",
-    "pharmacy inventory software Nigeria",
-    "clinic and hospital inventory management",
-    "stock management for pharmacies",
+    "AI health assistant Nigeria",
+    "symptom checker Nigeria",
+    "read doctor's handwriting",
+    "explain my prescription",
     "find medicine near me",
     "pharmacy near me with stock",
     "where to do a scan in Nigeria",
-    "verified pharmacy listing",
-    "health companion app Nigeria",
-    "explain my prescription",
     "drug interaction checker",
+    "pharmacy inventory software Nigeria",
+    "clinic and hospital inventory management",
+    "health products and skin care stock",
   ],
   alternates: {
     canonical: "/",

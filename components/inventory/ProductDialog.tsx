@@ -151,7 +151,7 @@ function ProductDialogInner({
             placeholder="Year"
             options={Array.from({ length: 8 }, (_, i) => thisYear - 1 + i).map((y) => ({ value: String(y), label: String(y) }))}
           />
-          <TextField label="Batch (optional)" icon={Barcode} value={p.batch} onChange={(e) => set("batch", e.target.value)} />
+          <TextField label="Batch (optional)" placeholder="e.g. BN2406A" icon={Barcode} value={p.batch} onChange={(e) => set("batch", e.target.value)} />
         </div>
         {p.expiresOn && (
           <button type="button" onClick={() => set("expiresOn", null)} className="text-sm font-medium text-muted underline-offset-4 hover:text-ink hover:underline">
