@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "zelthia-prod",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start", "-p", "3100"],
+      "port": 3100
+    },
+    {
+      "name": "zelthia-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "-p", "3101"],
+      "port": 3101
+    }
+  ]
+}
