@@ -43,8 +43,8 @@ export function Footer() {
         <div className="max-w-xs">
           <Logo size={28} />
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Health guidance that knows your history, and the nearest pharmacy that
-            has your medicine.
+            Health guidance that knows your history, and the nearest pharmacy
+            that has your medicine.
           </p>
         </div>
         {COLUMNS.map((col) => (
@@ -53,7 +53,10 @@ export function Footer() {
             <ul className="mt-3 space-y-2">
               {col.links.map((l) => (
                 <li key={l.label}>
-                  <Link href={l.href} className="inline-block py-1.5 text-sm text-muted transition-colors hover:text-ink">
+                  <Link
+                    href={l.href}
+                    className="inline-block py-1.5 text-sm text-muted transition-colors hover:text-ink"
+                  >
                     {l.label}
                   </Link>
                 </li>
@@ -68,7 +71,10 @@ export function Footer() {
           <p className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-alert" aria-hidden />
             Zelthia doesn&apos;t replace a doctor. In an emergency, call{" "}
-            <a href="tel:112" className="font-semibold text-ink underline-offset-4 hover:underline">
+            <a
+              href="tel:112"
+              className="font-semibold text-ink underline-offset-4 hover:underline"
+            >
               112
             </a>
           </p>

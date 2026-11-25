@@ -23,7 +23,9 @@ export function SessionProvider() {
           Promise.all(regs.map((r) => r.unregister()))
             .then(() => caches.keys())
             .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
-            .catch((err) => console.warn("Couldn't clear old service worker", err));
+            .catch((err) =>
+              console.warn("Couldn't clear old service worker", err),
+            );
         });
       }
     }

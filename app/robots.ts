@@ -3,7 +3,13 @@ import { SITE_URL } from "@/lib/utils";
 
 const PRIVATE = ["/account", "/setup", "/provider", "/api/"];
 /** The read-only directory search is public and safe for agents to call. */
-const OPEN = ["/", "/api/directory", "/llms.txt", "/llms-full.txt", "/openapi.json"];
+const OPEN = [
+  "/",
+  "/api/directory",
+  "/llms.txt",
+  "/llms-full.txt",
+  "/openapi.json",
+];
 
 /** Search and AI crawlers named explicitly so their access is unambiguous. */
 const AI_AGENTS = [

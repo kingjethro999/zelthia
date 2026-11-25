@@ -9,7 +9,8 @@ export function buildSystemPrompt(biometrics?: BiometricProfile): string {
   if (hasBio && biometrics) {
     const details: string[] = [];
     if (biometrics.age) details.push(`- Age: ${biometrics.age} years old`);
-    if (biometrics.location) details.push(`- Usually in: ${biometrics.location}`);
+    if (biometrics.location)
+      details.push(`- Usually in: ${biometrics.location}`);
     if (biometrics.biologicalSex)
       details.push(`- Biological Sex: ${biometrics.biologicalSex}`);
     if (biometrics.bloodGroup)
@@ -20,7 +21,9 @@ export function buildSystemPrompt(biometrics?: BiometricProfile): string {
       details.push(`- Weight: ${biometrics.weightKg} kg`);
     if (biometrics.heightCm && biometrics.weightKg) {
       const bmi = biometrics.weightKg / (biometrics.heightCm / 100) ** 2;
-      details.push(`- BMI: ${bmi.toFixed(1)} (use for weight-based dosing sense checks)`);
+      details.push(
+        `- BMI: ${bmi.toFixed(1)} (use for weight-based dosing sense checks)`,
+      );
     }
     if (biometrics.allergies && biometrics.allergies.length > 0) {
       details.push(

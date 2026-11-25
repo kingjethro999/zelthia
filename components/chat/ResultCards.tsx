@@ -1,4 +1,13 @@
-import { BadgeCheck, Clock, ExternalLink, Globe, MapPinned, PackageCheck, Phone, Stethoscope } from "lucide-react";
+import {
+  BadgeCheck,
+  Clock,
+  ExternalLink,
+  Globe,
+  MapPinned,
+  PackageCheck,
+  Phone,
+  Stethoscope,
+} from "lucide-react";
 import { AudioPlayer } from "@/components/ui/AudioPlayer";
 import {
   FACILITY_KIND_LABEL,
@@ -26,10 +35,18 @@ export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
             >
               <div className="flex items-start justify-between gap-3 p-4 pb-3">
                 <div className="min-w-0">
-                  <p className="font-semibold leading-snug text-ink">{m.product?.name ?? m.service}</p>
+                  <p className="font-semibold leading-snug text-ink">
+                    {m.product?.name ?? m.service}
+                  </p>
                   {m.product && (
                     <p className="mt-0.5 text-sm text-muted">
-                      {[m.product.strength, m.product.packSize, formatNaira(m.product.priceNgn)].filter(Boolean).join(", ")}
+                      {[
+                        m.product.strength,
+                        m.product.packSize,
+                        formatNaira(m.product.priceNgn),
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
                   )}
                 </div>
@@ -37,11 +54,17 @@ export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
                   <span
                     className={cn(
                       "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
-                      status === "out" ? "bg-alert-soft text-alert" : status === "low" ? "bg-caution-soft text-caution" : "bg-brand-soft text-brand-strong",
+                      status === "out"
+                        ? "bg-alert-soft text-alert"
+                        : status === "low"
+                          ? "bg-caution-soft text-caution"
+                          : "bg-brand-soft text-brand-strong",
                     )}
                   >
                     <PackageCheck className="h-3.5 w-3.5" aria-hidden />
-                    {status === "out" ? "Out of stock" : `${m.product.quantity} in stock`}
+                    {status === "out"
+                      ? "Out of stock"
+                      : `${m.product.quantity} in stock`}
                   </span>
                 ) : (
                   <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky">
@@ -55,22 +78,36 @@ export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
                 <p className="flex items-center gap-1.5 font-medium text-ink">
                   <span className="truncate">{m.facility.name}</span>
                   {verified ? (
-                    <BadgeCheck className="h-4 w-4 shrink-0 text-brand" aria-label="Verified facility" />
+                    <BadgeCheck
+                      className="h-4 w-4 shrink-0 text-brand"
+                      aria-label="Verified facility"
+                    />
                   ) : null}
                   <span className="shrink-0 rounded-full bg-mist px-2 py-0.5 text-xs font-normal text-muted">
                     {FACILITY_KIND_LABEL[m.facility.kind]}
                   </span>
                 </p>
-                {verified && <p className="-mt-1.5 text-xs font-medium text-brand">Licence verified</p>}
+                {verified && (
+                  <p className="-mt-1.5 text-xs font-medium text-brand">
+                    Licence verified
+                  </p>
+                )}
                 <p className="flex items-start gap-1.5 text-muted">
                   <MapPinned className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                   <span>
                     {m.facility.address}, {m.facility.city}
-                    {m.facility.directions && <span className="mt-0.5 block text-ink">{m.facility.directions}</span>}
+                    {m.facility.directions && (
+                      <span className="mt-0.5 block text-ink">
+                        {m.facility.directions}
+                      </span>
+                    )}
                   </span>
                 </p>
                 {m.facility.directionsAudioUrl && (
-                  <AudioPlayer src={m.facility.directionsAudioUrl} label="Listen to directions" />
+                  <AudioPlayer
+                    src={m.facility.directionsAudioUrl}
+                    label="Listen to directions"
+                  />
                 )}
                 {m.facility.openingHours && (
                   <p className="flex items-center gap-1.5 text-muted">
@@ -111,7 +148,9 @@ export function WebSources({ places }: { places: WebPlace[] }) {
         <Globe className="h-4 w-4 text-muted" aria-hidden />
         From the web
       </h4>
-      <p className="mb-2 text-xs text-muted">Found by search, not checked by Zelthia. Call before you go.</p>
+      <p className="mb-2 text-xs text-muted">
+        Found by search, not checked by Zelthia. Call before you go.
+      </p>
       <ul className="flex flex-wrap gap-1.5">
         {places.map((p) => (
           <li key={p.url}>
@@ -126,7 +165,10 @@ export function WebSources({ places }: { places: WebPlace[] }) {
                 {p.title.replace(/\s*[|\-–].*$/, "").slice(0, 40)}
                 <span className="text-muted"> {host(p.url)}</span>
               </span>
-              <ExternalLink className="h-3 w-3 shrink-0 text-muted" aria-hidden />
+              <ExternalLink
+                className="h-3 w-3 shrink-0 text-muted"
+                aria-hidden
+              />
             </a>
           </li>
         ))}

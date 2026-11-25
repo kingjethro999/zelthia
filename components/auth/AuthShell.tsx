@@ -2,14 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Boxes, CircleCheck, LoaderCircle, ScanText } from "lucide-react";
+import {
+  ArrowLeft,
+  Boxes,
+  CircleCheck,
+  LoaderCircle,
+  ScanText,
+} from "lucide-react";
 import { FacilityDemo } from "@/components/marketing/Motion";
 import type { UserRole } from "@/lib/auth-types";
 
 /** Static illustration of Zelthia reading a referral card; no client JS. */
 function ReadingDemo() {
   return (
-    <figure aria-label="Zelthia reading a doctor's referral card" className="relative w-full max-w-md">
+    <figure
+      aria-label="Zelthia reading a doctor's referral card"
+      className="relative w-full max-w-md"
+    >
       <div className="-rotate-2 rounded-2xl bg-[#fbf7ea] p-5 text-[#1a2a6c] shadow-2xl">
         <p className="font-[cursive] text-lg italic leading-relaxed">
           c/o low back pain x 3/12
@@ -29,7 +38,10 @@ function ReadingDemo() {
           Checked Zelthia listings in Abuja
         </p>
         <p className="mt-2 flex items-center gap-2 text-white">
-          <LoaderCircle className="h-4 w-4 animate-spin text-[#7fe0b6]" aria-hidden />
+          <LoaderCircle
+            className="h-4 w-4 animate-spin text-[#7fe0b6]"
+            aria-hidden
+          />
           Finding scan centres nearby
         </p>
       </div>
@@ -51,21 +63,34 @@ export function AuthShell({
   return (
     <div className="grid h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <aside className="relative hidden overflow-hidden bg-[#0d3b35] p-10 text-white lg:flex lg:flex-col xl:p-14">
-        <Link href="/" className="flex items-center gap-2" aria-label="Zelthia home">
-          <Image src="/icons/icon-96.png" alt="" width={30} height={30} unoptimized />
+        <Link
+          href="/"
+          className="flex items-center gap-2"
+          aria-label="Zelthia home"
+        >
+          <Image
+            src="/icons/icon-96.png"
+            alt=""
+            width={30}
+            height={30}
+            unoptimized
+          />
           <span className="font-display text-xl font-semibold">Zelthia</span>
         </Link>
-        <div key={role} className="animate-rise flex flex-1 flex-col justify-center gap-10">
+        <div
+          key={role}
+          className="animate-rise flex flex-1 flex-col justify-center gap-10"
+        >
           {role === "provider" ? (
             <>
               <div className="max-w-md">
-                <Boxes className="h-7 w-7 text-[#7fe0b6]" aria-hidden />
                 <h2 className="mt-4 title font-display text-3xl font-semibold xl:text-4xl">
                   Your stock, found by the people nearby.
                 </h2>
                 <p className="mt-3 text-white/75">
-                  Keep quantities, prices and expiry dates in one place. Every update shows when
-                  someone searches for it, with landmark directions to your door.
+                  Keep quantities, prices and expiry dates in one place. Every
+                  update shows when someone searches for it, with landmark
+                  directions to your store.
                 </p>
               </div>
               <div className="w-full max-w-md text-ink">
@@ -80,15 +105,20 @@ export function AuthShell({
                   Can&apos;t read what the doctor wrote? Zelthia can.
                 </h2>
                 <p className="mt-3 text-white/75">
-                  Photograph a note, prescription or result. Zelthia explains it, checks it against
-                  your allergies, and finds where to get the test or medicine.
+                  Photograph a note, prescription or result. Zelthia explains
+                  it, checks it against your allergies, and finds where to get
+                  the test or medicine.
                 </p>
               </div>
               <ReadingDemo />
             </>
           )}
         </div>
-        <p className="text-sm text-white/55">{role === "provider" ? "Free to list. Your stock only shows what you add." : "Guidance, not a diagnosis. In an emergency, call 112."}</p>
+        <p className="text-sm text-white/55">
+          {role === "provider"
+            ? "Free to list. Your stock only shows what you add."
+            : "Guidance, not a diagnosis. In an emergency, call 112."}
+        </p>
       </aside>
 
       <section className="flex min-h-0 flex-col overflow-y-auto">
@@ -100,15 +130,31 @@ export function AuthShell({
             <ArrowLeft className="h-4 w-4" aria-hidden />
             Home
           </Link>
-          <Link href="/" className="flex items-center gap-2 lg:hidden" aria-label="Zelthia home">
-            <Image src="/icons/icon-96.png" alt="" width={26} height={26} unoptimized />
-            <span className="font-display text-lg font-semibold text-ink">Zelthia</span>
+          <Link
+            href="/"
+            className="flex items-center gap-2 lg:hidden"
+            aria-label="Zelthia home"
+          >
+            <Image
+              src="/icons/icon-96.png"
+              alt=""
+              width={26}
+              height={26}
+              unoptimized
+            />
+            <span className="font-display text-lg font-semibold text-ink">
+              Zelthia
+            </span>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-center px-4 py-3 sm:px-8 sm:py-6">
           <div className="w-full max-w-sm">
-            <h1 className="font-display text-2xl font-semibold text-ink sm:text-3xl">{title}</h1>
-            <p className="mb-4 mt-1 text-sm text-muted sm:mb-6 sm:text-base">{subtitle}</p>
+            <h1 className="font-display text-2xl font-semibold text-ink sm:text-3xl">
+              {title}
+            </h1>
+            <p className="mb-4 mt-1 text-sm text-muted sm:mb-6 sm:text-base">
+              {subtitle}
+            </p>
             {children}
           </div>
         </div>

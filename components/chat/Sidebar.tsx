@@ -39,7 +39,16 @@ function group(list: ConversationSummary[]) {
   ];
   for (const c of list) {
     const t = new Date(c.updatedAt).getTime();
-    const idx = t >= startOfDay.getTime() ? 0 : t >= startOfDay.getTime() - day ? 1 : t >= startOfDay.getTime() - 7 * day ? 2 : t >= startOfDay.getTime() - 30 * day ? 3 : 4;
+    const idx =
+      t >= startOfDay.getTime()
+        ? 0
+        : t >= startOfDay.getTime() - day
+          ? 1
+          : t >= startOfDay.getTime() - 7 * day
+            ? 2
+            : t >= startOfDay.getTime() - 30 * day
+              ? 3
+              : 4;
     buckets[idx][1].push(c);
   }
   return buckets.filter(([, items]) => items.length);
@@ -58,7 +67,15 @@ export function Sidebar({
 }) {
   const user = useSession((s) => s.user);
   const facilityCount = useSession((s) => s.facilityCount);
-  const { conversations, listStatus, activeId, newChat, rename, remove, openConversation } = useChat();
+  const {
+    conversations,
+    listStatus,
+    activeId,
+    newChat,
+    rename,
+    remove,
+    openConversation,
+  } = useChat();
   const groups = useMemo(() => group(conversations), [conversations]);
   const [editing, setEditing] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<ConversationSummary | null>(null);
@@ -71,9 +88,21 @@ export function Sidebar({
   const panel = (
     <div className="flex h-full w-72 flex-col bg-surface">
       <div className="flex h-14 items-center justify-between px-3">
-        <Link href="/" className="flex items-center gap-2 rounded-lg px-1.5 py-1" aria-label="Zelthia home">
-          <Image src="/icons/icon-96.png" alt="" width={26} height={26} unoptimized />
-          <span className="font-display text-lg font-semibold text-ink">Zelthia</span>
+        <Link
+          href="/"
+          className="flex items-center gap-2 rounded-lg px-1.5 py-1"
+          aria-label="Zelthia home"
+        >
+          <Image
+            src="/icons/icon-96.png"
+            alt=""
+            width={26}
+            height={26}
+            unoptimized
+          />
+          <span className="font-display text-lg font-semibold text-ink">
+            Zelthia
+          </span>
         </Link>
         <button
           type="button"
@@ -81,7 +110,11 @@ export function Sidebar({
           className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-mist hover:text-ink"
           aria-label={mobileOpen ? "Close sidebar" : "Collapse sidebar"}
         >
-          {mobileOpen ? <X className="h-5 w-5" aria-hidden /> : <PanelLeftClose className="h-5 w-5" aria-hidden />}
+          {mobileOpen ? (
+            <X className="h-5 w-5" aria-hidden />
+          ) : (
+            <PanelLeftClose className="h-5 w-5" aria-hidden />
+          )}
         </button>
       </div>
 
@@ -97,7 +130,10 @@ export function Sidebar({
           <SquarePen className="h-[18px] w-[18px] text-brand" aria-hidden />
           New chat
         </button>
-        <Link href="/inventory" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist">
+        <Link
+          href="/inventory"
+          className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist"
+        >
           <Pill className="h-[18px] w-[18px] text-muted" aria-hidden />
           Find medicine
         </Link>
@@ -109,10 +145,16 @@ export function Sidebar({
             >
               <Boxes className="h-[18px] w-[18px]" aria-hidden />
               Set up your facility
-              <span className="ml-auto h-2 w-2 rounded-full bg-brand" aria-hidden />
+              <span
+                className="ml-auto h-2 w-2 rounded-full bg-brand"
+                aria-hidden
+              />
             </Link>
           ) : (
-            <Link href="/provider" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist">
+            <Link
+              href="/provider"
+              className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist"
+            >
               <Boxes className="h-[18px] w-[18px] text-muted" aria-hidden />
               Manage stock
             </Link>
@@ -123,33 +165,51 @@ export function Sidebar({
         {!user ? (
           <div className="mx-1 rounded-2xl border border-line bg-paper p-4">
             <History className="h-5 w-5 text-muted" aria-hidden />
-            <p className="mt-2 text-sm font-semibold text-ink">Keep your chats</p>
+            <p className="mt-2 text-sm font-semibold text-ink">
+              Keep your chats
+            </p>
             <p className="mt-1 text-sm text-muted">
-              You&apos;re chatting as a guest, so nothing is saved. Sign in to keep your history and files.
+              You&apos;re chatting as a guest, so nothing is saved. Sign in to
+              keep your history and files.
             </p>
             <div className="mt-3 flex flex-col gap-2">
               <ButtonLink href="/signup?next=/chat" size="sm">
                 Create account
               </ButtonLink>
-              <ButtonLink href="/signin?next=/chat" size="sm" variant="secondary">
+              <ButtonLink
+                href="/signin?next=/chat"
+                size="sm"
+                variant="secondary"
+              >
                 Sign in
               </ButtonLink>
             </div>
           </div>
-        ) : (listStatus === "loading" || listStatus === "idle") && !conversations.length ? (
+        ) : (listStatus === "loading" || listStatus === "idle") &&
+          !conversations.length ? (
           <div className="space-y-2 px-3" aria-label="Loading chats">
             {[70, 50, 85, 60].map((w) => (
-              <div key={w} className="h-4 animate-pulse rounded bg-mist" style={{ width: `${w}%` }} />
+              <div
+                key={w}
+                className="h-4 animate-pulse rounded bg-mist"
+                style={{ width: `${w}%` }}
+              />
             ))}
           </div>
         ) : listStatus === "error" ? (
-          <p className="px-3 text-sm text-alert">Couldn&apos;t load your chats. Refresh to try again.</p>
+          <p className="px-3 text-sm text-alert">
+            Couldn&apos;t load your chats. Refresh to try again.
+          </p>
         ) : !conversations.length ? (
-          <p className="px-3 text-sm text-muted">Your chats will show up here.</p>
+          <p className="px-3 text-sm text-muted">
+            Your chats will show up here.
+          </p>
         ) : (
           groups.map(([label, items]) => (
             <section key={label} className="mb-3">
-              <h2 className="px-3 pb-1 text-xs font-medium text-muted">{label}</h2>
+              <h2 className="px-3 pb-1 text-xs font-medium text-muted">
+                {label}
+              </h2>
               <ul>
                 {items.map((c) => (
                   <ConversationRow
@@ -217,7 +277,11 @@ export function Sidebar({
         {panel}
       </aside>
       {drawer.mounted && (
-        <div data-closing={drawer.closing || undefined} inert={drawer.closing || undefined} className="fixed inset-0 z-50 lg:hidden">
+        <div
+          data-closing={drawer.closing || undefined}
+          inert={drawer.closing || undefined}
+          className="fixed inset-0 z-50 lg:hidden"
+        >
           <button
             type="button"
             className="scrim animate-fade absolute inset-0"
@@ -317,13 +381,18 @@ function ConversationRow({
         aria-label={`Options for ${c.title}`}
         className={cn(
           "absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-muted hover:bg-line hover:text-ink",
-          menu || active ? "opacity-100" : "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100",
+          menu || active
+            ? "opacity-100"
+            : "opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:focus:opacity-100",
         )}
       >
         <Ellipsis className="h-4 w-4" aria-hidden />
       </button>
       {menu && (
-        <div role="menu" className="animate-pop material-popover absolute right-0 top-9 z-20 w-40 origin-top-right rounded-xl border border-line p-1">
+        <div
+          role="menu"
+          className="animate-pop material-popover absolute right-0 top-9 z-20 w-40 origin-top-right rounded-xl border border-line p-1"
+        >
           <button
             role="menuitem"
             type="button"
@@ -372,14 +441,25 @@ export function AccountFooter() {
   }, [open]);
 
   if (!user) return null;
-  const initials = user.name.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
+  const initials = user.name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
 
   return (
     <div ref={ref} className="relative border-t border-line p-2">
       {open && (
-        <div role="menu" className="animate-pop material-popover absolute bottom-full left-2 right-2 mb-1 origin-bottom rounded-2xl border border-line p-1.5">
+        <div
+          role="menu"
+          className="animate-pop material-popover absolute bottom-full left-2 right-2 mb-1 origin-bottom rounded-2xl border border-line p-1.5"
+        >
           <p className="truncate px-3 py-2 text-xs text-muted">{user.email}</p>
-          <Link role="menuitem" href="/account" className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist">
+          <Link
+            role="menuitem"
+            href="/account"
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist"
+          >
             <CircleUserRound className="h-4 w-4 text-muted" aria-hidden />
             Account and health profile
           </Link>
@@ -410,10 +490,20 @@ export function AccountFooter() {
           {initials}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-ink">{user.name}</span>
-          <span className="block text-xs text-muted">{user.role === "provider" ? "Facility account" : "Personal account"}</span>
+          <span className="block truncate text-sm font-medium text-ink">
+            {user.name}
+          </span>
+          <span className="block text-xs text-muted">
+            {user.role === "provider" ? "Facility account" : "Personal account"}
+          </span>
         </span>
-        <ChevronUp className={cn("h-4 w-4 text-muted transition-transform", !open && "rotate-180")} aria-hidden />
+        <ChevronUp
+          className={cn(
+            "h-4 w-4 text-muted transition-transform",
+            !open && "rotate-180",
+          )}
+          aria-hidden
+        />
       </button>
     </div>
   );

@@ -96,7 +96,9 @@ export interface Product {
 
 export type StockStatus = "in" | "low" | "out";
 
-export function stockStatus(p: Pick<Product, "quantity" | "lowStockAt">): StockStatus {
+export function stockStatus(
+  p: Pick<Product, "quantity" | "lowStockAt">,
+): StockStatus {
   if (p.quantity <= 0) return "out";
   if (p.quantity <= p.lowStockAt) return "low";
   return "in";

@@ -11,7 +11,13 @@ function seconds(ms: number) {
 }
 
 /** Collapsible record of what the assistant did, updating live while it works. */
-export function StepsPanel({ steps, live }: { steps: AgentStep[]; live: boolean }) {
+export function StepsPanel({
+  steps,
+  live,
+}: {
+  steps: AgentStep[];
+  live: boolean;
+}) {
   const [open, setOpen] = useState(live);
   const [now, setNow] = useState(() => Date.now());
 
@@ -25,7 +31,9 @@ export function StepsPanel({ steps, live }: { steps: AgentStep[]; live: boolean 
 
   const running = [...steps].reverse().find((s) => s.status === "running");
   const first = steps[0].startedAt;
-  const last = Math.max(...steps.map((s) => s.endedAt ?? (live ? now : s.startedAt)));
+  const last = Math.max(
+    ...steps.map((s) => s.endedAt ?? (live ? now : s.startedAt)),
+  );
   const headline = live
     ? (running?.label ?? steps[steps.length - 1].label)
     : `Worked through ${steps.length} step${steps.length === 1 ? "" : "s"}`;
@@ -39,12 +47,20 @@ export function StepsPanel({ steps, live }: { steps: AgentStep[]; live: boolean 
         className="group inline-flex max-w-full items-center gap-2 rounded-lg py-1 text-left text-sm text-muted hover:text-ink"
       >
         {live ? (
-          <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-brand" aria-hidden />
+          <LoaderCircle
+            className="h-4 w-4 shrink-0 animate-spin text-brand"
+            aria-hidden
+          />
         ) : null}
         <span className={cn("truncate", live && "text-ink")}>{headline}</span>
-        <span className="shrink-0 tabular-nums text-muted">{seconds(last - first)}</span>
+        <span className="shrink-0 tabular-nums text-muted">
+          {seconds(last - first)}
+        </span>
         <ChevronDown
-          className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")}
+          className={cn(
+            "h-4 w-4 shrink-0 transition-transform",
+            open && "rotate-180",
+          )}
           aria-hidden
         />
       </button>
@@ -52,19 +68,38 @@ export function StepsPanel({ steps, live }: { steps: AgentStep[]; live: boolean 
       {open && (
         <ol className="animate-rise mt-1.5 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {steps.map((s) => (
-            <li key={s.id} className="flex items-start gap-2.5 px-3.5 py-2.5 text-sm">
+            <li
+              key={s.id}
+              className="flex items-start gap-2.5 px-3.5 py-2.5 text-sm"
+            >
               {s.status === "running" ? (
-                <LoaderCircle className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand" aria-label="In progress" />
+                <LoaderCircle
+                  className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand"
+                  aria-label="In progress"
+                />
               ) : s.status === "done" ? (
-                <CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-label="Done" />
+                <CircleCheck
+                  className="mt-0.5 h-4 w-4 shrink-0 text-brand"
+                  aria-label="Done"
+                />
               ) : (
-                <CircleX className="mt-0.5 h-4 w-4 shrink-0 text-caution" aria-label="Didn't work" />
+                <CircleX
+                  className="mt-0.5 h-4 w-4 shrink-0 text-caution"
+                  aria-label="Didn't work"
+                />
               )}
               <span className="min-w-0 flex-1">
-                <span className={cn("block", s.status === "running" ? "text-ink" : "text-muted")}>
+                <span
+                  className={cn(
+                    "block",
+                    s.status === "running" ? "text-ink" : "text-muted",
+                  )}
+                >
                   {s.label}
                 </span>
-                {s.detail && <span className="mt-0.5 block text-ink">{s.detail}</span>}
+                {s.detail && (
+                  <span className="mt-0.5 block text-ink">{s.detail}</span>
+                )}
               </span>
               <span className="shrink-0 tabular-nums text-xs text-muted">
                 {seconds((s.endedAt ?? now) - s.startedAt)}

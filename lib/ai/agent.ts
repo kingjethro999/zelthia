@@ -29,7 +29,12 @@ export class StepTracker {
   constructor(private emit: Emit) {}
 
   start(label: string) {
-    const step: AgentStep = { id: `s${++this.n}`, label, status: "running", startedAt: Date.now() };
+    const step: AgentStep = {
+      id: `s${++this.n}`,
+      label,
+      status: "running",
+      startedAt: Date.now(),
+    };
     this.steps.push(step);
     this.emit({ type: "step", step: { ...step } });
     return step;
@@ -54,9 +59,14 @@ Do not add advice.`;
 
 async function pdfText(base64: string) {
   const { extractText, getDocumentProxy } = await import("unpdf");
-  const pdf = await getDocumentProxy(new Uint8Array(Buffer.from(base64, "base64")));
+  const pdf = await getDocumentProxy(
+    new Uint8Array(Buffer.from(base64, "base64")),
+  );
   const { totalPages, text } = await extractText(pdf, { mergePages: true });
-  return { pages: totalPages, text: String(text).replace(/\s+\n/g, "\n").trim() };
+  return {
+    pages: totalPages,
+    text: String(text).replace(/\s+\n/g, "\n").trim(),
+  };
 }
 
 function firstLine(section: string, text: string) {
@@ -64,33 +74,57 @@ function firstLine(section: string, text: string) {
   return m?.[1]?.replace(/[*_#]/g, "").trim();
 }
 
-export async function readFiles(files: IncomingFile[], steps: StepTracker): Promise<ReadFile[]> {
+export async function readFiles(
+  files: IncomingFile[],
+  steps: StepTracker,
+): Promise<ReadFile[]> {
   return Promise.all(
     files.map(async (f) => {
       const step = steps.start(`Reading ${f.name}`);
       try {
         if (f.mime === "text/plain") {
-          const text = Buffer.from(f.base64, "base64").toString("utf8").slice(0, 20000);
+          const text = Buffer.from(f.base64, "base64")
+            .toString("utf8")
+            .slice(0, 20000);
           steps.finish(step, `Read ${text.split("\n").length} lines of text`);
           return { ...f, extracted: text };
         }
         if (f.mime === "application/pdf") {
-          const { pages, text } = await pdfText(f.base64).catch(() => ({ pages: 0, text: "" }));
+          const { pages, text } = await pdfText(f.base64).catch(() => ({
+            pages: 0,
+            text: "",
+          }));
           if (text.length > 80) {
-            steps.finish(step, `Read ${pages} page${pages === 1 ? "" : "s"} of text`);
+            steps.finish(
+              step,
+              `Read ${pages} page${pages === 1 ? "" : "s"} of text`,
+            );
             return { ...f, extracted: text.slice(0, 20000) };
           }
           // Scanned PDF with no text layer: let a vision model read it.
         }
-        const { text } = await readWithVision(READ_PROMPT, { mime: f.mime, base64: f.base64 });
+        const { text } = await readWithVision(READ_PROMPT, {
+          mime: f.mime,
+          base64: f.base64,
+        });
         const kind = firstLine("DOCUMENT TYPE", text);
-        const point = text.match(/KEY POINTS:\s*\n?\s*[-*]?\s*([^\n]+)/i)?.[1]?.replace(/[*_]/g, "").trim();
-        const detail = [kind, point].filter(Boolean).map((t) => t!.replace(/[.\s]+$/, "")).join(". ");
+        const point = text
+          .match(/KEY POINTS:\s*\n?\s*[-*]?\s*([^\n]+)/i)?.[1]
+          ?.replace(/[*_]/g, "")
+          .trim();
+        const detail = [kind, point]
+          .filter(Boolean)
+          .map((t) => t!.replace(/[.\s]+$/, ""))
+          .join(". ");
         steps.finish(step, detail || "Read the file");
         return { ...f, extracted: text };
       } catch (err) {
         console.error("Attachment read failed", f.name, err);
-        steps.finish(step, "Couldn't read this file. Try a clearer photo or another format.", "failed");
+        steps.finish(
+          step,
+          "Couldn't read this file. Try a clearer photo or another format.",
+          "failed",
+        );
         return { ...f, extracted: "" };
       }
     }),
@@ -143,9 +177,15 @@ function parsePlan(text: string, fallbackTitle: string): Plan {
         }))
     : [];
   return {
-    title: typeof raw.title === "string" && raw.title.trim() ? raw.title.trim().slice(0, 80) : fallbackTitle,
+    title:
+      typeof raw.title === "string" && raw.title.trim()
+        ? raw.title.trim().slice(0, 80)
+        : fallbackTitle,
     emergency: raw.emergency === true,
-    location: typeof raw.location === "string" && raw.location.trim() ? raw.location.trim().slice(0, 60) : null,
+    location:
+      typeof raw.location === "string" && raw.location.trim()
+        ? raw.location.trim().slice(0, 60)
+        : null,
     needs,
   };
 }
@@ -176,17 +216,34 @@ function filesBlock(files: ReadFile[]) {
 
 export function userTurnText(text: string, files: ReadFile[]) {
   const notes = filesBlock(files);
-  const body = text.trim() || (files.length ? "Please explain this file and what I should do next." : "");
+  const body =
+    text.trim() ||
+    (files.length ? "Please explain this file and what I should do next." : "");
   return notes ? `${body}\n\n${notes}` : body;
 }
 
-export async function runTurn({ history, text, files, profile, steps, emit }: TurnInput): Promise<TurnResult> {
+export async function runTurn({
+  history,
+  text,
+  files,
+  profile,
+  steps,
+  emit,
+}: TurnInput): Promise<TurnResult> {
   const userText = userTurnText(text, files);
   const turns: Turn[] = [...history, { role: "user", content: userText }];
-  const fallbackTitle = (text.trim() || files[0]?.name || "New chat").split(/\s+/).slice(0, 6).join(" ");
+  const fallbackTitle = (text.trim() || files[0]?.name || "New chat")
+    .split(/\s+/)
+    .slice(0, 6)
+    .join(" ");
 
   // 2. Plan. Greetings and small talk need no planning call or visible step.
-  let plan: Plan = { title: fallbackTitle, emergency: false, location: null, needs: [] };
+  let plan: Plan = {
+    title: fallbackTitle,
+    emergency: false,
+    location: null,
+    needs: [],
+  };
   const smallTalk =
     !files.length &&
     text.trim().length < 40 &&
@@ -194,22 +251,30 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
       text.trim(),
     );
   const planStep = smallTalk ? null : steps.start("Working out what you need");
-  if (planStep) try {
-    const recent = turns.slice(-6).map((t) => `${t.role.toUpperCase()}: ${t.content.slice(0, 3000)}`).join("\n\n");
-    const { text: out } = await complete(PLAN_PROMPT, [{ role: "user", content: recent }], { json: true });
-    plan = parsePlan(out, fallbackTitle);
-    steps.finish(
-      planStep,
-      plan.emergency
-        ? "This sounds urgent"
-        : plan.needs.length
-          ? `Looking for ${plan.needs.map((n) => n.what).join(" and ")}`
-          : "No place to look up, answering directly",
-    );
-  } catch (err) {
-    console.warn("Planner failed", (err as Error).message);
-    steps.finish(planStep, "Answering directly");
-  }
+  if (planStep)
+    try {
+      const recent = turns
+        .slice(-6)
+        .map((t) => `${t.role.toUpperCase()}: ${t.content.slice(0, 3000)}`)
+        .join("\n\n");
+      const { text: out } = await complete(
+        PLAN_PROMPT,
+        [{ role: "user", content: recent }],
+        { json: true },
+      );
+      plan = parsePlan(out, fallbackTitle);
+      steps.finish(
+        planStep,
+        plan.emergency
+          ? "This sounds urgent"
+          : plan.needs.length
+            ? `Looking for ${plan.needs.map((n) => n.what).join(" and ")}`
+            : "No place to look up, answering directly",
+      );
+    } catch (err) {
+      console.warn("Planner failed", (err as Error).message);
+      steps.finish(planStep, "Answering directly");
+    }
 
   const location = plan.location ?? (profile.location?.trim() || null);
   const matches: DirectoryMatch[] = [];
@@ -246,14 +311,18 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
         searchImages(need.what, location, 8),
       ]);
       places.push(...web);
-      images.push(...pics.filter((p) => !images.some((x) => x.imageUrl === p.imageUrl)));
+      images.push(
+        ...pics.filter((p) => !images.some((x) => x.imageUrl === p.imageUrl)),
+      );
       const found = [
         web.length ? `${web.length} pages` : "",
         pics.length ? `${pics.length} photos` : "",
       ].filter(Boolean);
       steps.finish(
         webStep,
-        found.length ? `Found ${found.join(" and ")} to check (not verified by Zelthia)` : "No useful pages found",
+        found.length
+          ? `Found ${found.join(" and ")} to check (not verified by Zelthia)`
+          : "No useful pages found",
         found.length ? "done" : "failed",
       );
     }
@@ -269,8 +338,11 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
                 matches.slice(0, 12).map((m) => ({
                   facility: m.facility.name,
                   kind: m.facility.kind,
-                  licence_verified: m.facility.verification?.status === "verified",
-                  has_recorded_directions: Boolean(m.facility.directionsAudioUrl),
+                  licence_verified:
+                    m.facility.verification?.status === "verified",
+                  has_recorded_directions: Boolean(
+                    m.facility.directionsAudioUrl,
+                  ),
                   address: `${m.facility.address}, ${m.facility.city}`,
                   phone: m.facility.phone,
                   hours: m.facility.openingHours,
@@ -288,7 +360,12 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
             : "none"
         }\n\nWEB RESULTS:\n${
           places.length
-            ? places.map((p) => `- ${p.title} | ${p.url} | ${p.description.slice(0, 240)}`).join("\n")
+            ? places
+                .map(
+                  (p) =>
+                    `- ${p.title} | ${p.url} | ${p.description.slice(0, 240)}`,
+                )
+                .join("\n")
             : "none"
         }`
       : "",
@@ -306,11 +383,15 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
 - Photos from the web search are shown under your answer and link to their source pages; you may refer to them.
 - If ZELTHIA DIRECTORY RESULTS is "none", say clearly at the start that no facility on Zelthia has it in stock yet, then point to the web results.`
     : "";
-  const system = [buildSystemPrompt(profile), context, grounding].filter(Boolean).join("\n\n");
+  const system = [buildSystemPrompt(profile), context, grounding]
+    .filter(Boolean)
+    .join("\n\n");
   let raw = "";
   let model = "";
   try {
-    const out = await stream(system, turns, (delta) => emit({ type: "delta", text: delta }));
+    const out = await stream(system, turns, (delta) =>
+      emit({ type: "delta", text: delta }),
+    );
     raw = out.text;
     model = out.model;
   } catch (err) {
@@ -328,7 +409,8 @@ export async function runTurn({ history, text, files, profile, steps, emit }: Tu
     meta: {
       // A lone planning step that found nothing to look up isn't worth showing afterwards.
       steps:
-        steps.steps.length === 1 && steps.steps[0].label === "Working out what you need"
+        steps.steps.length === 1 &&
+        steps.steps[0].label === "Working out what you need"
           ? []
           : steps.steps,
       triage: plan.emergency ? "urgent" : parsed.triageLevel,

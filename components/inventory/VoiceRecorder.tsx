@@ -8,7 +8,12 @@ const MAX_SECONDS = 180;
 
 function pickMime() {
   if (typeof MediaRecorder === "undefined") return "";
-  for (const m of ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"]) {
+  for (const m of [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+    "audio/ogg",
+  ]) {
     if (MediaRecorder.isTypeSupported(m)) return m;
   }
   return "";
@@ -56,7 +61,9 @@ export function VoiceRecorder({
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      setError("Microphone access was blocked. Allow it in your browser settings, or type the directions.");
+      setError(
+        "Microphone access was blocked. Allow it in your browser settings, or type the directions.",
+      );
       return;
     }
 
@@ -74,7 +81,10 @@ export function VoiceRecorder({
     };
     tick();
 
-    const rec = new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 32000 });
+    const rec = new MediaRecorder(stream, {
+      mimeType: mime,
+      audioBitsPerSecond: 32000,
+    });
     chunks.current = [];
     rec.ondataavailable = (e) => e.data.size && chunks.current.push(e.data);
     rec.onstop = async () => {
@@ -85,7 +95,9 @@ export function VoiceRecorder({
       const blob = new Blob(chunks.current, { type: mime.split(";")[0] });
       if (blob.size < 1000) {
         setState("idle");
-        setError("That recording was empty. Try again a little closer to the microphone.");
+        setError(
+          "That recording was empty. Try again a little closer to the microphone.",
+        );
         return;
       }
       setState("saving");
@@ -96,11 +108,18 @@ export function VoiceRecorder({
           body: JSON.stringify({ mime, base64: await toBase64(blob) }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error ?? "The recording wasn't saved.");
+        if (!res.ok)
+          throw new Error(data.error ?? "The recording wasn't saved.");
         onSaved(data);
-        if (!data.transcript) setError("Saved the recording, but couldn't turn it into text. Type the words below.");
+        if (!data.transcript)
+          setError(
+            "Saved the recording, but couldn't turn it into text. Type the words below.",
+          );
       } catch (err) {
-        setError((err as Error).message || "The recording wasn't saved. Check your connection and try again.");
+        setError(
+          (err as Error).message ||
+            "The recording wasn't saved. Check your connection and try again.",
+        );
       } finally {
         setState("idle");
       }
@@ -118,7 +137,8 @@ export function VoiceRecorder({
     stopTimer.current = () => clearInterval(t);
   };
 
-  const stop = () => recorder.current?.state === "recording" && recorder.current.stop();
+  const stop = () =>
+    recorder.current?.state === "recording" && recorder.current.stop();
 
   return (
     <div className="space-y-2">
@@ -137,7 +157,9 @@ export function VoiceRecorder({
               <span
                 key={i}
                 className="w-1 rounded-full bg-alert/70 transition-[height] duration-100"
-                style={{ height: `${Math.max(12, Math.min(100, level * 100 * (0.5 + Math.abs(Math.sin(i * 1.7 + seconds)))))}%` }}
+                style={{
+                  height: `${Math.max(12, Math.min(100, level * 100 * (0.5 + Math.abs(Math.sin(i * 1.7 + seconds)))))}%`,
+                }}
               />
             ))}
           </div>
@@ -149,17 +171,37 @@ export function VoiceRecorder({
           </span>
         </div>
       ) : state === "saving" ? (
-        <p role="status" className="flex items-center gap-2 rounded-2xl border border-line bg-paper p-3 text-sm text-muted">
-          <LoaderCircle className="h-4 w-4 animate-spin text-brand" aria-hidden />
+        <p
+          role="status"
+          className="flex items-center gap-2 rounded-2xl border border-line bg-paper p-3 text-sm text-muted"
+        >
+          <LoaderCircle
+            className="h-4 w-4 animate-spin text-brand"
+            aria-hidden
+          />
           Saving and transcribing your recording
         </p>
       ) : audioUrl ? (
         <div className="flex items-center gap-2">
-          <AudioPlayer src={audioUrl} label="Recorded directions" className="flex-1" />
-          <button type="button" onClick={start} className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-mist hover:text-ink" aria-label="Record again">
+          <AudioPlayer
+            src={audioUrl}
+            label="Recorded directions"
+            className="flex-1"
+          />
+          <button
+            type="button"
+            onClick={start}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-mist hover:text-ink"
+            aria-label="Record again"
+          >
             <RotateCcw className="h-4 w-4" aria-hidden />
           </button>
-          <button type="button" onClick={onRemove} className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-alert-soft hover:text-alert" aria-label="Remove recording">
+          <button
+            type="button"
+            onClick={onRemove}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-alert-soft hover:text-alert"
+            aria-label="Remove recording"
+          >
             <Trash2 className="h-4 w-4" aria-hidden />
           </button>
         </div>

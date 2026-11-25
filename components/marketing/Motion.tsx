@@ -19,7 +19,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const reducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * Fades and lifts content in as it scrolls into view. Content below the fold
@@ -73,7 +74,10 @@ export function Reveal({
 /** Two slow, blurred colour fields that drift behind a hero. Transform only. */
 export function Orbs() {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+    >
       <div className="orb orb-a" />
       <div className="orb orb-b" />
     </div>
@@ -93,9 +97,18 @@ const SCENARIOS = [
     head: "Avoid amoxicillin: it's a penicillin.",
     body: "Ibuprofen can also trigger asthma. For the pain, paracetamol is the safer choice. See a pharmacist if it lasts beyond three days.",
     steps: [
-      { icon: CircleCheck, text: "Checked pharmacies on Zelthia near you for paracetamol" },
-      { icon: Globe, text: "Searched the web for nearby stockists, with photos and links" },
-      { icon: MapPinned, text: "Shows landmark directions and a call button when a pharmacy has listed it" },
+      {
+        icon: CircleCheck,
+        text: "Checked pharmacies on Zelthia near you for paracetamol",
+      },
+      {
+        icon: Globe,
+        text: "Searched the web for nearby stockists, with photos and links",
+      },
+      {
+        icon: MapPinned,
+        text: "Shows landmark directions and a call button when a pharmacy has listed it",
+      },
     ],
   },
   {
@@ -106,9 +119,15 @@ const SCENARIOS = [
     head: "That is an echocardiogram, a scan of the heart.",
     body: "Three facilities near Wuse list it. The closest is open until 6pm and is behind the First Bank on Aminu Kano Crescent.",
     steps: [
-      { icon: CircleCheck, text: "Read the referral card and explained each line" },
+      {
+        icon: CircleCheck,
+        text: "Read the referral card and explained each line",
+      },
       { icon: CircleCheck, text: "Checked Zelthia listings in Abuja" },
-      { icon: MapPinned, text: "Landmark directions ready, with a call button" },
+      {
+        icon: MapPinned,
+        text: "Landmark directions ready, with a call button",
+      },
     ],
   },
 ];
@@ -126,7 +145,8 @@ export function HeroDemo() {
     if (reducedMotion()) return;
     let dead = false;
     const timers: number[] = [];
-    const at = (ms: number, fn: () => void) => timers.push(window.setTimeout(() => !dead && fn(), ms));
+    const at = (ms: number, fn: () => void) =>
+      timers.push(window.setTimeout(() => !dead && fn(), ms));
 
     const play = (n: number) => {
       const s = SCENARIOS[n];
@@ -137,7 +157,8 @@ export function HeroDemo() {
       at(500, () => setStage(1));
       // Type the question in.
       const step = 28;
-      for (let c = 1; c <= s.ask.length; c++) at(900 + c * step, () => setTyped(c));
+      for (let c = 1; c <= s.ask.length; c++)
+        at(900 + c * step, () => setTyped(c));
       const t0 = 900 + s.ask.length * step;
       at(t0 + 250, () => setStage(2)); // thinking
       at(t0 + 1500, () => setStage(3)); // answer
@@ -160,12 +181,22 @@ export function HeroDemo() {
       aria-label="Example conversation with Zelthia"
       className="glass-card rounded-[28px] p-4 sm:p-6"
     >
-      <figcaption className="mb-3 text-xs font-medium text-muted">Example</figcaption>
+      <figcaption className="mb-3 text-xs font-medium text-muted">
+        Example
+      </figcaption>
       <div
         key={idx}
-        className={cn("transition-opacity duration-500", leaving && "opacity-0")}
+        className={cn(
+          "transition-opacity duration-500",
+          leaving && "opacity-0",
+        )}
       >
-        <div className={cn("flex items-center gap-2 border-b border-line pb-3 text-sm text-muted", stage >= 0 && "animate-rise")}>
+        <div
+          className={cn(
+            "flex items-center gap-2 border-b border-line pb-3 text-sm text-muted",
+            stage >= 0 && "animate-rise",
+          )}
+        >
           <UserRound className="h-4 w-4" aria-hidden />
           {sc.profile}
         </div>
@@ -179,7 +210,10 @@ export function HeroDemo() {
           )}
 
           {stage === 2 && (
-            <p className="animate-rise flex w-fit items-center gap-1.5 rounded-2xl rounded-bl-md border border-line bg-paper px-4 py-3" aria-label="Zelthia is thinking">
+            <p
+              className="animate-rise flex w-fit items-center gap-1.5 rounded-2xl rounded-bl-md border border-line bg-paper px-4 py-3"
+              aria-label="Zelthia is thinking"
+            >
               <span className="dot" />
               <span className="dot" style={{ animationDelay: "120ms" }} />
               <span className="dot" style={{ animationDelay: "240ms" }} />
@@ -188,7 +222,12 @@ export function HeroDemo() {
 
           {stage >= 3 && (
             <div className="animate-rise max-w-[92%] rounded-2xl rounded-bl-md border border-line bg-paper px-4 py-3 text-[15px] text-ink">
-              <p className={cn("flex items-start gap-2 font-semibold", sc.tone === "alert" ? "text-alert" : "text-brand")}>
+              <p
+                className={cn(
+                  "flex items-start gap-2 font-semibold",
+                  sc.tone === "alert" ? "text-alert" : "text-brand",
+                )}
+              >
                 <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                 {sc.head}
               </p>
@@ -204,11 +243,20 @@ export function HeroDemo() {
                 const done = stage >= 5 + i || stage === 6;
                 if (!shown) return null;
                 return (
-                  <li key={st.text} className="animate-rise flex items-start gap-2 text-ink">
+                  <li
+                    key={st.text}
+                    className="animate-rise flex items-start gap-2 text-ink"
+                  >
                     {done ? (
-                      <SIcon className="tick-pop mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
+                      <SIcon
+                        className="tick-pop mt-0.5 h-4 w-4 shrink-0 text-brand"
+                        aria-hidden
+                      />
                     ) : (
-                      <LoaderCircle className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand" aria-hidden />
+                      <LoaderCircle
+                        className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand"
+                        aria-hidden
+                      />
                     )}
                     {st.text}
                   </li>
@@ -236,13 +284,31 @@ interface Row {
 }
 
 const START: Row[] = [
-  { name: "Paracetamol 500mg", pack: "Pack of 20", qty: 120, low: 30, price: "₦800" },
-  { name: "Amoxicillin 500mg", pack: "Pack of 21", qty: 36, low: 25, price: "₦1,500", expires: "in 48 days" },
-  { name: "Artemether/Lumefantrine", pack: "Pack of 24", qty: 64, low: 20, price: "₦2,200" },
-  { name: "ORS sachets", pack: "Box of 20", qty: 28, low: 15, price: "₦400" },
+  {
+    name: "Paracetamol 500mg",
+    pack: "Pack of 20",
+    qty: 120,
+    low: 30,
+    price: "₦800",
+  },
+  {
+    name: "Amoxicillin 500mg",
+    pack: "Pack of 21",
+    qty: 36,
+    low: 25,
+    price: "₦1,500",
+    expires: "in 48 days",
+  },
+  {
+    name: "Artemether/Lumefantrine",
+    pack: "Pack of 24",
+    qty: 64,
+    low: 20,
+    price: "₦2,200",
+  },
 ];
 
-const SEARCHES = ["Amoxicillin 500mg", "Paracetamol", "ORS sachets", "Malaria test"];
+const SEARCHES = ["Amoxicillin 500mg", "Paracetamol", "Malaria test"];
 
 export function FacilityDemo({ solid = false }: { solid?: boolean }) {
   const [rows, setRows] = useState(START);
@@ -256,10 +322,18 @@ export function FacilityDemo({ solid = false }: { solid?: boolean }) {
       n++;
       const i = n % START.length;
       setRows((rs) =>
-        rs.map((r, k) => (k === i ? { ...r, qty: r.qty > 6 ? r.qty - 1 - (n % 3) : START[i].qty } : r)),
+        rs.map((r, k) =>
+          k === i
+            ? { ...r, qty: r.qty > 6 ? r.qty - 1 - (n % 3) : START[i].qty }
+            : r,
+        ),
       );
       setHot(i);
-      if (n % 3 === 0) setToast({ id: n, text: `Someone in Wuse 2 searched "${SEARCHES[(n / 3) % SEARCHES.length | 0]}"` });
+      if (n % 3 === 0)
+        setToast({
+          id: n,
+          text: `Someone near you searched "${SEARCHES[((n / 3) % SEARCHES.length) | 0]}"`,
+        });
       window.setTimeout(() => setHot((h) => (h === i ? null : h)), 700);
     }, 1400);
     return () => clearInterval(id);
@@ -279,10 +353,14 @@ export function FacilityDemo({ solid = false }: { solid?: boolean }) {
       className="glass-card rounded-[28px] p-4 sm:p-6"
       data-solid={solid || undefined}
     >
-      <figcaption className="mb-3 text-xs font-medium text-muted">Example</figcaption>
+      <figcaption className="mb-3 text-xs font-medium text-muted">
+        Example
+      </figcaption>
       <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
         <div className="min-w-0">
-          <p className="truncate font-display text-lg font-semibold text-ink">Greenfield Pharmacy</p>
+          <p className="truncate font-display text-lg font-semibold text-ink">
+            Greenfield Pharmacy
+          </p>
           <p className="text-sm text-muted">Pharmacy, Wuse 2</p>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-strong">
@@ -297,7 +375,9 @@ export function FacilityDemo({ solid = false }: { solid?: boolean }) {
           return (
             <li key={r.name} className="flex items-center gap-3 py-3">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[15px] font-medium text-ink">{r.name}</p>
+                <p className="truncate text-[15px] font-medium text-ink">
+                  {r.name}
+                </p>
                 <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted">
                   {r.pack} &middot; {r.price}
                   {r.expires && (
@@ -315,7 +395,10 @@ export function FacilityDemo({ solid = false }: { solid?: boolean }) {
                 </span>
               )}
               <div className="flex items-center gap-1.5">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-mist text-muted" aria-hidden>
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-mist text-muted"
+                  aria-hidden
+                >
                   <Minus className="h-3.5 w-3.5" />
                 </span>
                 <span
@@ -327,7 +410,10 @@ export function FacilityDemo({ solid = false }: { solid?: boolean }) {
                 >
                   {r.qty}
                 </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-mist text-muted" aria-hidden>
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-mist text-muted"
+                  aria-hidden
+                >
                   <Plus className="h-3.5 w-3.5" />
                 </span>
               </div>
@@ -338,7 +424,9 @@ export function FacilityDemo({ solid = false }: { solid?: boolean }) {
 
       <div className="mt-2 flex items-center justify-between rounded-2xl bg-paper px-4 py-3 text-sm">
         <span className="text-muted">
-          {low ? `${low} item${low === 1 ? "" : "s"} running low` : "Everything is stocked"}
+          {low
+            ? `${low} item${low === 1 ? "" : "s"} running low`
+            : "Everything is stocked"}
         </span>
         <span className="text-muted">{rows.length} products listed</span>
       </div>

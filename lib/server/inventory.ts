@@ -67,7 +67,9 @@ export const toFacility = (r: FacilityRow): Facility => ({
   services: r.services ?? [],
   createdAt: new Date(r.created_at).toISOString(),
   directionsAudioId: r.directions_audio_id ?? null,
-  directionsAudioUrl: r.directions_audio_id ? `/api/facilities/${r.id}/audio` : null,
+  directionsAudioUrl: r.directions_audio_id
+    ? `/api/facilities/${r.id}/audio`
+    : null,
   verification: {
     status: (["none", "pending", "verified"].includes(r.verification_status)
       ? r.verification_status
@@ -78,7 +80,11 @@ export const toFacility = (r: FacilityRow): Facility => ({
 });
 
 const isoDate = (d: Date | null) =>
-  d ? new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10) : null;
+  d
+    ? new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 10)
+    : null;
 
 export const toProduct = (r: ProductRow): Product => ({
   id: r.id,
@@ -115,20 +121,29 @@ const str = (v: unknown, max: number) =>
 
 export function parseFacilityInput(body: Record<string, unknown>) {
   const name = str(body.name, 120);
-  if (name.length < 2) throw new ValidationError("Enter the facility's name.", "name");
+  if (name.length < 2)
+    throw new ValidationError("Enter the facility's name.", "name");
   const kind = FACILITY_KINDS.includes(body.kind as FacilityKind)
     ? (body.kind as FacilityKind)
     : null;
-  if (!kind) throw new ValidationError("Choose what kind of facility this is.", "kind");
+  if (!kind)
+    throw new ValidationError("Choose what kind of facility this is.", "kind");
   const city = str(body.city, 80);
   if (!city) throw new ValidationError("Enter the city or town.", "city");
   const address = str(body.address, 240);
-  if (!address) throw new ValidationError("Enter the street address.", "address");
+  if (!address)
+    throw new ValidationError("Enter the street address.", "address");
   const phone = str(body.phone, 40);
   if (!/^[+\d][\d\s()-]{6,}$/.test(phone))
-    throw new ValidationError("Enter a phone number patients can call.", "phone");
+    throw new ValidationError(
+      "Enter a phone number patients can call.",
+      "phone",
+    );
   const services = Array.isArray(body.services)
-    ? [...new Set(body.services.map((s) => str(s, 80)).filter(Boolean))].slice(0, 60)
+    ? [...new Set(body.services.map((s) => str(s, 80)).filter(Boolean))].slice(
+        0,
+        60,
+      )
     : [];
   return {
     name,
@@ -143,7 +158,8 @@ export function parseFacilityInput(body: Record<string, unknown>) {
     licenseNumber: str(body.licenseNumber, 80),
     services,
     directionsAudioId:
-      typeof body.directionsAudioId === "string" && isUuid(body.directionsAudioId)
+      typeof body.directionsAudioId === "string" &&
+      isUuid(body.directionsAudioId)
         ? body.directionsAudioId
         : null,
   };
@@ -151,26 +167,44 @@ export function parseFacilityInput(body: Record<string, unknown>) {
 
 export function parseProductInput(body: Record<string, unknown>) {
   const name = str(body.name, 160);
-  if (name.length < 2) throw new ValidationError("Enter the product name.", "name");
+  if (name.length < 2)
+    throw new ValidationError("Enter the product name.", "name");
   const category = str(body.category, 80);
   if (!(PRODUCT_CATEGORIES as readonly string[]).includes(category))
     throw new ValidationError("Choose a category.", "category");
   const quantity = Number(body.quantity);
   if (!Number.isInteger(quantity) || quantity < 0 || quantity > 1_000_000)
-    throw new ValidationError("Quantity must be a whole number, 0 or more.", "quantity");
-  const lowStockAt = body.lowStockAt === undefined ? 5 : Number(body.lowStockAt);
+    throw new ValidationError(
+      "Quantity must be a whole number, 0 or more.",
+      "quantity",
+    );
+  const lowStockAt =
+    body.lowStockAt === undefined ? 5 : Number(body.lowStockAt);
   if (!Number.isInteger(lowStockAt) || lowStockAt < 0)
-    throw new ValidationError("Low-stock level must be a whole number.", "lowStockAt");
+    throw new ValidationError(
+      "Low-stock level must be a whole number.",
+      "lowStockAt",
+    );
   let priceNgn: number | null = null;
-  if (body.priceNgn !== null && body.priceNgn !== undefined && body.priceNgn !== "") {
+  if (
+    body.priceNgn !== null &&
+    body.priceNgn !== undefined &&
+    body.priceNgn !== ""
+  ) {
     priceNgn = Number(body.priceNgn);
     if (!Number.isFinite(priceNgn) || priceNgn < 0 || priceNgn > 100_000_000)
       throw new ValidationError("Enter a valid price in naira.", "priceNgn");
   }
   let expiresOn: string | null = null;
   if (typeof body.expiresOn === "string" && body.expiresOn) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(body.expiresOn) || Number.isNaN(Date.parse(body.expiresOn)))
-      throw new ValidationError("Enter the expiry date as YYYY-MM-DD.", "expiresOn");
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(body.expiresOn) ||
+      Number.isNaN(Date.parse(body.expiresOn))
+    )
+      throw new ValidationError(
+        "Enter the expiry date as YYYY-MM-DD.",
+        "expiresOn",
+      );
     expiresOn = body.expiresOn;
   }
   return {
@@ -210,15 +244,31 @@ export async function getOwnedFacility(id: string, ownerId: string) {
   return rows[0] ? toFacility(rows[0]) : null;
 }
 
-export async function createFacility(ownerId: string, f: ReturnType<typeof parseFacilityInput>) {
+export async function createFacility(
+  ownerId: string,
+  f: ReturnType<typeof parseFacilityInput>,
+) {
   const rows = await query<FacilityRow>(
     `insert into facilities (owner_id, name, kind, phone, email, address, city, state,
        directions, opening_hours, license_number, services, directions_audio_id)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
        (select id from attachments where id = $13 and user_id = $1))
      returning *`,
-    [ownerId, f.name, f.kind, f.phone, f.email, f.address, f.city, f.state,
-      f.directions, f.openingHours, f.licenseNumber, f.services, f.directionsAudioId],
+    [
+      ownerId,
+      f.name,
+      f.kind,
+      f.phone,
+      f.email,
+      f.address,
+      f.city,
+      f.state,
+      f.directions,
+      f.openingHours,
+      f.licenseNumber,
+      f.services,
+      f.directionsAudioId,
+    ],
   );
   await query("update users set role = 'provider' where id = $1", [ownerId]);
   return toFacility(rows[0]);
@@ -237,8 +287,22 @@ export async function updateFacility(
        verification_status = case when license_number is distinct from $12 then 'none' else verification_status end,
        updated_at=now()
      where id=$1 and owner_id=$2 returning *`,
-    [id, ownerId, f.name, f.kind, f.phone, f.email, f.address, f.city, f.state,
-      f.directions, f.openingHours, f.licenseNumber, f.services, f.directionsAudioId],
+    [
+      id,
+      ownerId,
+      f.name,
+      f.kind,
+      f.phone,
+      f.email,
+      f.address,
+      f.city,
+      f.state,
+      f.directions,
+      f.openingHours,
+      f.licenseNumber,
+      f.services,
+      f.directionsAudioId,
+    ],
   );
   return rows[0] ? toFacility(rows[0]) : null;
 }
@@ -261,13 +325,30 @@ export async function listProducts(facilityId: string) {
   return rows.map(toProduct);
 }
 
-export async function createProduct(facilityId: string, p: ReturnType<typeof parseProductInput>) {
+export async function createProduct(
+  facilityId: string,
+  p: ReturnType<typeof parseProductInput>,
+) {
   const rows = await query<ProductRow>(
     `insert into products (facility_id, name, generic_name, category, form, strength, pack_size,
        price_ngn, quantity, low_stock_at, batch, expires_on, prescription_only, notes)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning *`,
-    [facilityId, p.name, p.genericName, p.category, p.form, p.strength, p.packSize,
-      p.priceNgn, p.quantity, p.lowStockAt, p.batch, p.expiresOn, p.prescriptionOnly, p.notes],
+    [
+      facilityId,
+      p.name,
+      p.genericName,
+      p.category,
+      p.form,
+      p.strength,
+      p.packSize,
+      p.priceNgn,
+      p.quantity,
+      p.lowStockAt,
+      p.batch,
+      p.expiresOn,
+      p.prescriptionOnly,
+      p.notes,
+    ],
   );
   return toProduct(rows[0]);
 }
@@ -285,13 +366,32 @@ export async function updateProduct(
        prescription_only=$14, notes=$15, updated_at=now()
      where id=$1 and facility_id in (select id from facilities where owner_id=$2)
      returning *`,
-    [id, ownerId, p.name, p.genericName, p.category, p.form, p.strength, p.packSize,
-      p.priceNgn, p.quantity, p.lowStockAt, p.batch, p.expiresOn, p.prescriptionOnly, p.notes],
+    [
+      id,
+      ownerId,
+      p.name,
+      p.genericName,
+      p.category,
+      p.form,
+      p.strength,
+      p.packSize,
+      p.priceNgn,
+      p.quantity,
+      p.lowStockAt,
+      p.batch,
+      p.expiresOn,
+      p.prescriptionOnly,
+      p.notes,
+    ],
   );
   return rows[0] ? toProduct(rows[0]) : null;
 }
 
-export async function adjustProductQuantity(id: string, ownerId: string, delta: number) {
+export async function adjustProductQuantity(
+  id: string,
+  ownerId: string,
+  delta: number,
+) {
   if (!isUuid(id)) return null;
   const rows = await query<ProductRow>(
     `update products set quantity = greatest(0, quantity + $3), updated_at = now()
@@ -327,7 +427,10 @@ export async function searchDirectory(opts: {
   inStockOnly?: boolean;
   limit?: number;
 }): Promise<DirectoryMatch[]> {
-  const terms = opts.terms.map((t) => t.trim()).filter((t) => t.length >= 2).slice(0, 5);
+  const terms = opts.terms
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 2)
+    .slice(0, 5);
   const limit = Math.min(opts.limit ?? 30, 60);
   const city = opts.city?.trim() || null;
   const results: DirectoryMatch[] = [];
@@ -375,7 +478,9 @@ export async function directoryCities() {
 }
 
 export function isUuid(v: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    v,
+  );
 }
 
 export async function setVerification(
@@ -394,7 +499,12 @@ export async function setVerification(
 /** Public: the recorded directions for a facility (directions are public info). */
 export async function getFacilityAudio(facilityId: string) {
   if (!isUuid(facilityId)) return null;
-  const rows = await query<{ mime: string; storage_id: string; resource_type: string; format: string }>(
+  const rows = await query<{
+    mime: string;
+    storage_id: string;
+    resource_type: string;
+    format: string;
+  }>(
     `select a.mime, a.storage_id, a.resource_type, a.format
        from facilities f join attachments a on a.id = f.directions_audio_id
       where f.id = $1 and a.storage_id is not null`,

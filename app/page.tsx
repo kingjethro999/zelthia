@@ -92,34 +92,43 @@ export default function HomePage() {
 function Hero() {
   return (
     <div className="relative isolate overflow-hidden">
-    <Orbs />
-    <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16 lg:pb-24 lg:pt-20">
-      <div>
-        <h1 className="animate-rise display font-display text-[2.6rem] font-semibold text-ink sm:text-6xl">
-          Know what&apos;s safe to take, and where to get it.
-        </h1>
-        <p className="animate-rise mt-6 max-w-xl text-lg leading-relaxed text-muted" style={{ animationDelay: "90ms" }}>
-          Zelthia answers health questions with your allergies, conditions and
-          medicines in mind, then shows which pharmacy, clinic or hospital near
-          you has it in stock.
-        </p>
-        <div className="animate-rise mt-8 flex flex-col gap-3 sm:flex-row" style={{ animationDelay: "180ms" }}>
-          <ButtonLink href="/chat" size="lg">
-            <MessageCircleHeart className="h-5 w-5" aria-hidden />
-            Start a health chat
-          </ButtonLink>
-          <ButtonLink href="/inventory" size="lg" variant="secondary">
-            <Pill className="h-5 w-5" aria-hidden />
-            Find medicine
-          </ButtonLink>
+      <Orbs />
+      <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16 lg:pb-24 lg:pt-20">
+        <div>
+          <h1 className="animate-rise display font-display text-[2.6rem] font-semibold text-ink sm:text-6xl">
+            Know what&apos;s safe to take, and where to get it.
+          </h1>
+          <p
+            className="animate-rise mt-6 max-w-xl text-lg leading-relaxed text-muted"
+            style={{ animationDelay: "90ms" }}
+          >
+            Zelthia answers health questions with your allergies, conditions and
+            medicines in mind, then shows which pharmacy, clinic or hospital
+            near you has it in stock.
+          </p>
+          <div
+            className="animate-rise mt-8 flex flex-col gap-3 sm:flex-row"
+            style={{ animationDelay: "180ms" }}
+          >
+            <ButtonLink href="/chat" size="lg">
+              <MessageCircleHeart className="h-5 w-5" aria-hidden />
+              Start a health chat
+            </ButtonLink>
+            <ButtonLink href="/inventory" size="lg" variant="secondary">
+              <Pill className="h-5 w-5" aria-hidden />
+              Find medicine
+            </ButtonLink>
+          </div>
+          <p
+            className="animate-rise mt-6 text-sm text-muted"
+            style={{ animationDelay: "260ms" }}
+          >
+            Free for patients. No account needed to try it.
+          </p>
         </div>
-        <p className="animate-rise mt-6 text-sm text-muted" style={{ animationDelay: "260ms" }}>
-          Free for patients. No account needed to try it.
-        </p>
-      </div>
 
-      <HeroDemo />
-    </section>
+        <HeroDemo />
+      </section>
     </div>
   );
 }
@@ -160,7 +169,9 @@ function HowItWorks() {
                   Step {i + 1}
                 </span>
               </div>
-              <h3 className="mt-5 font-display text-xl font-semibold text-ink">{title}</h3>
+              <h3 className="mt-5 font-display text-xl font-semibold text-ink">
+                {title}
+              </h3>
               <p className="mt-2 leading-relaxed text-muted">{body}</p>
             </Reveal>
           ))}
@@ -171,10 +182,26 @@ function HowItWorks() {
 }
 
 const FACILITY_FEATURES = [
-  { icon: Layers, title: "Stock across branches", body: "Track quantity, price and batch for every medicine, per facility." },
-  { icon: CalendarClock, title: "Expiry warnings", body: "See batches expiring in the next 90 days before they go to waste." },
-  { icon: BellRing, title: "Low-stock alerts", body: "Know when an item drops below the level you set." },
-  { icon: MapPinned, title: "Directions patients follow", body: "Describe the way in once; it appears on every search result." },
+  {
+    icon: Layers,
+    title: "Stock across branches",
+    body: "Track quantity, price and batch for every medicine, per facility.",
+  },
+  {
+    icon: CalendarClock,
+    title: "Expiry warnings",
+    body: "See batches expiring in the next 90 days before they go to waste.",
+  },
+  {
+    icon: BellRing,
+    title: "Low-stock alerts",
+    body: "Know when an item drops below the level you set.",
+  },
+  {
+    icon: MapPinned,
+    title: "Directions patients follow",
+    body: "Describe the way in once; it appears on every search result.",
+  },
 ];
 
 function ForFacilities() {
@@ -253,10 +280,19 @@ function Closing() {
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <ButtonLink href="/signup" size="lg" className="bg-white text-[#0d3b35] hover:bg-[#dcefe6] dark:text-[#0d3b35]">
+          <ButtonLink
+            href="/signup"
+            size="lg"
+            className="bg-white text-[#0d3b35] hover:bg-[#dcefe6] dark:text-[#0d3b35]"
+          >
             Create a free account
           </ButtonLink>
-          <ButtonLink href="/chat" size="lg" variant="ghost" className="text-white hover:bg-white/10">
+          <ButtonLink
+            href="/chat"
+            size="lg"
+            variant="ghost"
+            className="text-white hover:bg-white/10"
+          >
             Try the chat first
           </ButtonLink>
         </div>

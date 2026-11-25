@@ -111,9 +111,15 @@ export function Dialog({
           {...drag}
           className="relative flex touch-none items-start justify-between gap-4 border-b border-line px-5 pb-4 pt-5 sm:touch-auto sm:py-4 sm:px-6"
         >
-          <span aria-hidden className="absolute left-1/2 top-2 h-1 w-9 -translate-x-1/2 rounded-full bg-line sm:hidden" />
+          <span
+            aria-hidden
+            className="absolute left-1/2 top-2 h-1 w-9 -translate-x-1/2 rounded-full bg-line sm:hidden"
+          />
           <div>
-            <h2 id={`${id}-t`} className="font-display text-lg font-semibold text-ink">
+            <h2
+              id={`${id}-t`}
+              className="font-display text-lg font-semibold text-ink"
+            >
               {title}
             </h2>
             {description && (
@@ -132,7 +138,10 @@ export function Dialog({
           </button>
         </div>
         {children && (
-          <div data-scroll className="flex-1 overscroll-contain overflow-y-auto px-5 py-5 sm:px-6">
+          <div
+            data-scroll
+            className="flex-1 overscroll-contain overflow-y-auto px-5 py-5 sm:px-6"
+          >
             {children}
           </div>
         )}

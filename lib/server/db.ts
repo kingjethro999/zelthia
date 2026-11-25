@@ -20,7 +20,9 @@ function createPool() {
   });
   // The host drops idle connections; without this listener that error would
   // crash the process. The pool discards the dead client and opens a new one.
-  pool.on("error", (err) => console.warn("Postgres idle client error", err.message));
+  pool.on("error", (err) =>
+    console.warn("Postgres idle client error", err.message),
+  );
   return pool;
 }
 

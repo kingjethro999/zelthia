@@ -80,27 +80,37 @@ export function InfoPage(p: InfoPageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <article>
         <div className="relative isolate overflow-hidden">
           {p.visual && <Orbs />}
           <header
             className={cn(
               "mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:pb-16 lg:pt-20",
-              p.visual && "grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16",
+              p.visual &&
+                "grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16",
             )}
           >
             <div className="animate-rise">
               <h1 className="max-w-3xl display font-display text-4xl font-semibold text-ink sm:text-5xl">
                 {p.title}
               </h1>
-              <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">{p.lead}</p>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
+                {p.lead}
+              </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <ButtonLink href={p.primary.href} size="lg">
                   {p.primary.label}
                 </ButtonLink>
                 {p.secondary && (
-                  <ButtonLink href={p.secondary.href} size="lg" variant="secondary">
+                  <ButtonLink
+                    href={p.secondary.href}
+                    size="lg"
+                    variant="secondary"
+                  >
                     {p.secondary.label}
                   </ButtonLink>
                 )}
@@ -113,7 +123,10 @@ export function InfoPage(p: InfoPageProps) {
         <section className="border-y border-line bg-surface">
           <div className="mx-auto max-w-6xl space-y-4 px-4 py-12 sm:px-6 lg:py-16">
             {p.summary.map((para) => (
-              <p key={para.slice(0, 32)} className="max-w-xl text-lg leading-relaxed text-ink">
+              <p
+                key={para.slice(0, 32)}
+                className="max-w-xl text-lg leading-relaxed text-ink"
+              >
                 {para}
               </p>
             ))}
@@ -121,7 +134,9 @@ export function InfoPage(p: InfoPageProps) {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
-          <h2 className="max-w-2xl title font-display text-3xl font-semibold text-ink sm:text-4xl">{p.sectionsTitle}</h2>
+          <h2 className="max-w-2xl title font-display text-3xl font-semibold text-ink sm:text-4xl">
+            {p.sectionsTitle}
+          </h2>
           <ul
             className={cn(
               "mt-10 grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-2",
@@ -130,10 +145,19 @@ export function InfoPage(p: InfoPageProps) {
             )}
           >
             {p.sections.map(({ icon: Icon, title, body }, i) => (
-              <Reveal as="li" key={title} delay={(i % 4) * 70} className="bg-surface p-6">
+              <Reveal
+                as="li"
+                key={title}
+                delay={(i % 4) * 70}
+                className="bg-surface p-6"
+              >
                 <Icon className="h-5 w-5 text-brand" aria-hidden />
-                <h3 className="mt-4 text-base font-semibold text-ink">{title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted">{body}</p>
+                <h3 className="mt-4 text-base font-semibold text-ink">
+                  {title}
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                  {body}
+                </p>
               </Reveal>
             ))}
           </ul>
@@ -142,12 +166,18 @@ export function InfoPage(p: InfoPageProps) {
         {p.steps && (
           <section className="border-t border-line bg-surface">
             <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
-              <h2 className="max-w-2xl title font-display text-3xl font-semibold text-ink sm:text-4xl">{p.steps.title}</h2>
+              <h2 className="max-w-2xl title font-display text-3xl font-semibold text-ink sm:text-4xl">
+                {p.steps.title}
+              </h2>
               <ol className="mt-10 grid gap-8 md:grid-cols-3">
                 {p.steps.items.map((s, i) => (
                   <li key={s.name}>
-                    <span className="font-display text-sm font-semibold text-brand">Step {i + 1}</span>
-                    <h3 className="mt-2 font-display text-xl font-semibold text-ink">{s.name}</h3>
+                    <span className="font-display text-sm font-semibold text-brand">
+                      Step {i + 1}
+                    </span>
+                    <h3 className="mt-2 font-display text-xl font-semibold text-ink">
+                      {s.name}
+                    </h3>
                     <p className="mt-2 leading-relaxed text-muted">{s.text}</p>
                   </li>
                 ))}
@@ -158,26 +188,40 @@ export function InfoPage(p: InfoPageProps) {
 
         <section className="border-t border-line">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:py-20">
-            <h2 className="title font-display text-3xl font-semibold text-ink sm:text-4xl">Common questions</h2>
+            <h2 className="title font-display text-3xl font-semibold text-ink sm:text-4xl">
+              Common questions
+            </h2>
             <div className="divide-y divide-line border-y border-line">
               {p.faqs.map((f) => (
                 <details key={f.question} className="group">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left font-semibold text-ink [&::-webkit-details-marker]:hidden">
                     {f.question}
-                    <ChevronDown className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
+                    <ChevronDown
+                      className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180"
+                      aria-hidden
+                    />
                   </summary>
-                  <p className="max-w-2xl pb-5 pr-8 leading-relaxed text-muted">{f.answer}</p>
+                  <p className="max-w-2xl pb-5 pr-8 leading-relaxed text-muted">
+                    {f.answer}
+                  </p>
                 </details>
               ))}
             </div>
           </div>
         </section>
 
-        <nav aria-label="Related pages" className="border-t border-line bg-surface">
+        <nav
+          aria-label="Related pages"
+          className="border-t border-line bg-surface"
+        >
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-8 text-sm sm:px-6">
             <span className="text-muted">More about Zelthia</span>
             {p.related.map((r) => (
-              <Link key={r.href} href={r.href} className="font-medium text-brand underline-offset-4 hover:underline">
+              <Link
+                key={r.href}
+                href={r.href}
+                className="font-medium text-brand underline-offset-4 hover:underline"
+              >
                 {r.label}
               </Link>
             ))}

@@ -4,7 +4,10 @@ import { getSessionUser } from "./auth";
 import { ValidationError } from "./inventory";
 
 export const json = (data: unknown, status = 200) =>
-  NextResponse.json(data, { status, headers: { "Cache-Control": "private, no-store" } });
+  NextResponse.json(data, {
+    status,
+    headers: { "Cache-Control": "private, no-store" },
+  });
 
 export async function requireUser() {
   const user = await getSessionUser();
@@ -34,7 +37,11 @@ export async function readJson(req: Request): Promise<Record<string, unknown>> {
 /** Maps thrown errors to clear JSON responses; unexpected ones are logged. */
 export function handle(where: string, err: unknown) {
   if (err instanceof HttpError) return json({ error: err.message }, err.status);
-  if (err instanceof ValidationError) return json({ error: err.message, field: err.field }, 400);
+  if (err instanceof ValidationError)
+    return json({ error: err.message, field: err.field }, 400);
   console.error(`${where} failed`, err);
-  return json({ error: "Something went wrong on our side. Try again in a moment." }, 503);
+  return json(
+    { error: "Something went wrong on our side. Try again in a moment." },
+    503,
+  );
 }

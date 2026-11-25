@@ -15,12 +15,19 @@ interface Hit {
 async function search(q: string): Promise<Hit[]> {
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) return [];
-  const res = await fetchService("Firecrawl", "https://api.firecrawl.dev/v2/search", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ query: q, limit: 6, country: "NG" }),
-    signal: AbortSignal.timeout(15000),
-  });
+  const res = await fetchService(
+    "Firecrawl",
+    "https://api.firecrawl.dev/v2/search",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: q, limit: 6, country: "NG" }),
+      signal: AbortSignal.timeout(15000),
+    },
+  );
   if (!res.ok) throw new Error(`Firecrawl responded ${res.status}`);
   const data = await res.json().catch(() => ({}));
   return ((data?.data?.web ?? []) as Hit[]).filter((h) => h.url);
@@ -42,10 +49,15 @@ export async function verifyFacility(f: Facility): Promise<Verification> {
       search(`"${f.licenseNumber}" ${f.name}`),
       search(`${f.name} ${f.city} registered ${f.kind} licence`),
     ]);
-    const hits = results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+    const hits = results.flatMap((r) =>
+      r.status === "fulfilled" ? r.value : [],
+    );
     const licence = squash(f.licenseNumber);
-    const withNumber = hits.filter((h) => squash(`${h.title} ${h.description}`).includes(licence));
-    if (!withNumber.length) return { status: "pending", note: PENDING_NOTE, url: "" };
+    const withNumber = hits.filter((h) =>
+      squash(`${h.title} ${h.description}`).includes(licence),
+    );
+    if (!withNumber.length)
+      return { status: "pending", note: PENDING_NOTE, url: "" };
 
     const { text } = await complete(
       `You check whether public web results prove a Nigerian health facility's licence. Reply with JSON only:
@@ -67,7 +79,10 @@ ${withNumber.map((h) => `- ${h.title} | ${h.url} | ${h.description}`).join("\n")
     if (verdict.verified === true && withNumber.some((h) => h.url === url)) {
       return {
         status: "verified",
-        note: typeof verdict.reason === "string" ? verdict.reason.slice(0, 240) : "Confirmed from a public listing.",
+        note:
+          typeof verdict.reason === "string"
+            ? verdict.reason.slice(0, 240)
+            : "Confirmed from a public listing.",
         url,
       };
     }

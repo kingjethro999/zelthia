@@ -9,6 +9,7 @@ Zelthia gives guidance, not a diagnosis, and does not replace a doctor or pharma
 ## What is in the app
 
 **For facilities** (`/provider`, `/for-facilities`)
+
 - Stock, price and batch per product, with one-tap quantity changes
 - Low-stock level per product and a 90-day expiry view
 - Services such as scans and tests
@@ -16,6 +17,7 @@ Zelthia gives guidance, not a diagnosis, and does not replace a doctor or pharma
 - Verified badge for facilities with a confirmed licence or registration number
 
 **For patients** (`/inventory`, `/chat`, `/doctors-note-reader`)
+
 - Public search of facility listings with price, stock, hours and directions
 - Health chat with an optional profile, and a doctor's note reader for photos and PDFs
 - Web search fallback when nothing is listed, with sources and an "unverified" label
@@ -34,13 +36,13 @@ pnpm dev
 
 Open http://localhost:3000.
 
-| Script | What it does |
-|---|---|
-| `pnpm dev` | Development server |
-| `pnpm build` | Production build |
-| `pnpm start` | Serve the production build |
-| `pnpm lint` | ESLint |
-| `pnpm format` | Prettier |
+| Script        | What it does               |
+| ------------- | -------------------------- |
+| `pnpm dev`    | Development server         |
+| `pnpm build`  | Production build           |
+| `pnpm start`  | Serve the production build |
+| `pnpm lint`   | ESLint                     |
+| `pnpm format` | Prettier                   |
 
 ## Environment
 

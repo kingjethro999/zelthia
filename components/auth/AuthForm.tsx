@@ -40,9 +40,10 @@ export function AuthForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<{ message: string; field?: string } | null>(
-    null,
-  );
+  const [error, setError] = useState<{
+    message: string;
+    field?: string;
+  } | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,19 +55,32 @@ export function AuthForm({
         : await signUp({ name, email, password, role });
     setPending(false);
     if (!result.ok) {
-      setError({ message: result.error ?? "Something went wrong.", field: result.field });
+      setError({
+        message: result.error ?? "Something went wrong.",
+        field: result.field,
+      });
       return;
     }
     const user = useSession.getState().user;
     if (user && !user.onboarded) {
-      const dest = next && next !== "/provider" ? next : role === "provider" ? "/provider/new?welcome=1" : next;
-      router.replace(`/setup${dest ? `?next=${encodeURIComponent(dest)}` : ""}`);
+      const dest =
+        next && next !== "/provider"
+          ? next
+          : role === "provider"
+            ? "/provider/new?welcome=1"
+            : next;
+      router.replace(
+        `/setup${dest ? `?next=${encodeURIComponent(dest)}` : ""}`,
+      );
     } else {
-      router.replace(next ?? (user?.role === "provider" ? "/provider" : "/chat"));
+      router.replace(
+        next ?? (user?.role === "provider" ? "/provider" : "/chat"),
+      );
     }
   };
 
-  const fieldError = (f: string) => (error?.field === f ? error.message : undefined);
+  const fieldError = (f: string) =>
+    error?.field === f ? error.message : undefined;
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
@@ -94,8 +108,14 @@ export function AuthForm({
           />
           <TextField
             label={role === "provider" ? "Your name" : "Full name"}
-            placeholder={role === "provider" ? "e.g. Amaka Okafor" : "e.g. Chidi Eze"}
-            hint={role === "provider" ? "The person managing the facility account." : undefined}
+            placeholder={
+              role === "provider" ? "e.g. Amaka Okafor" : "e.g. Chidi Eze"
+            }
+            hint={
+              role === "provider"
+                ? "The person managing the facility account."
+                : undefined
+            }
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -107,8 +127,14 @@ export function AuthForm({
       )}
 
       <TextField
-        label={mode === "signup" && role === "provider" ? "Work email" : "Email"}
-        placeholder={mode === "signup" && role === "provider" ? "desk@greenfieldpharmacy.com" : "you@example.com"}
+        label={
+          mode === "signup" && role === "provider" ? "Work email" : "Email"
+        }
+        placeholder={
+          mode === "signup" && role === "provider"
+            ? "desk@greenfieldpharmacy.com"
+            : "you@example.com"
+        }
         type="email"
         autoComplete="email"
         inputMode="email"
@@ -120,13 +146,17 @@ export function AuthForm({
       />
       <TextField
         label="Password"
-        placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+        placeholder={
+          mode === "signup" ? "At least 8 characters" : "Your password"
+        }
         type="password"
         autoComplete={mode === "signin" ? "current-password" : "new-password"}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         icon={LockKeyhole}
-        hint={mode === "signup" ? "Use a mix of letters and numbers." : undefined}
+        hint={
+          mode === "signup" ? "Use a mix of letters and numbers." : undefined
+        }
         error={fieldError("password")}
         required
         minLength={mode === "signup" ? 8 : undefined}
@@ -147,7 +177,10 @@ export function AuthForm({
       </Button>
 
       <p className="text-center text-sm text-muted">
-        <Link href="/chat" className="font-medium text-ink underline-offset-4 hover:underline">
+        <Link
+          href="/chat"
+          className="font-medium text-ink underline-offset-4 hover:underline"
+        >
           Continue as a guest
         </Link>
       </p>
@@ -155,10 +188,12 @@ export function AuthForm({
       <p className="text-center text-sm text-muted">
         {mode === "signin" ? "New to Zelthia? " : "Already have an account? "}
         <Link
-          href={`${mode === "signin" ? "/signup" : "/signin"}?${new URLSearchParams({
-            ...(next ? { next } : {}),
-            ...(role === "provider" ? { role: "provider" } : {}),
-          })}`}
+          href={`${mode === "signin" ? "/signup" : "/signin"}?${new URLSearchParams(
+            {
+              ...(next ? { next } : {}),
+              ...(role === "provider" ? { role: "provider" } : {}),
+            },
+          )}`}
           className="font-semibold text-brand underline-offset-4 hover:underline"
         >
           {mode === "signin" ? "Create an account" : "Sign in"}

@@ -11,16 +11,27 @@ export function stripTags(raw: string): string {
     .trim();
 }
 
-export function parseAiResponse(raw: string): { message: string; triageLevel: TriageLevel } {
+export function parseAiResponse(raw: string): {
+  message: string;
+  triageLevel: TriageLevel;
+} {
   const match = raw.match(TRIAGE_RE);
   let triageLevel: TriageLevel = "low";
   if (match) {
     triageLevel = match[1].toLowerCase() as TriageLevel;
   } else {
     const lower = raw.toLowerCase();
-    if (/(call 112|emergency (department|room|unit)|life-threatening|ambulance)/.test(lower)) {
+    if (
+      /(call 112|emergency (department|room|unit)|life-threatening|ambulance)/.test(
+        lower,
+      )
+    ) {
       triageLevel = "urgent";
-    } else if (/(see a doctor|consult a doctor|within 24|within 48|healthcare provider)/.test(lower)) {
+    } else if (
+      /(see a doctor|consult a doctor|within 24|within 48|healthcare provider)/.test(
+        lower,
+      )
+    ) {
       triageLevel = "moderate";
     }
   }

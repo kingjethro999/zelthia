@@ -19,7 +19,11 @@ export const metadata: Metadata = {
 };
 
 /** The chat shell lives in the layout so switching chats doesn't remount it. */
-export default function ChatLayout({ children }: { children: React.ReactNode }) {
+export default function ChatLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <>
       <Suspense fallback={<div className="h-dvh bg-paper" />}>

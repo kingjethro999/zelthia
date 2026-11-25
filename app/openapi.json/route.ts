@@ -8,18 +8,29 @@ export function GET() {
     properties: {
       id: { type: "string" },
       name: { type: "string" },
-      kind: { type: "string", enum: ["pharmacy", "clinic", "hospital", "diagnostic", "store"] },
+      kind: {
+        type: "string",
+        enum: ["pharmacy", "clinic", "hospital", "diagnostic", "store"],
+      },
       phone: { type: "string" },
       address: { type: "string" },
       city: { type: "string" },
       state: { type: "string" },
-      directions: { type: "string", description: "Landmark directions written by the facility." },
+      directions: {
+        type: "string",
+        description: "Landmark directions written by the facility.",
+      },
       openingHours: { type: "string" },
       services: { type: "array", items: { type: "string" } },
-      directionsAudioUrl: { type: ["string", "null"], description: "Path to recorded directions, if any." },
+      directionsAudioUrl: {
+        type: ["string", "null"],
+        description: "Path to recorded directions, if any.",
+      },
       verification: {
         type: "object",
-        properties: { status: { type: "string", enum: ["none", "pending", "verified"] } },
+        properties: {
+          status: { type: "string", enum: ["none", "pending", "verified"] },
+        },
       },
     },
   };
@@ -32,7 +43,10 @@ export function GET() {
       form: { type: "string" },
       strength: { type: "string" },
       packSize: { type: "string" },
-      priceNgn: { type: ["number", "null"], description: "Price in Nigerian naira." },
+      priceNgn: {
+        type: ["number", "null"],
+        description: "Price in Nigerian naira.",
+      },
       quantity: { type: "integer" },
       prescriptionOnly: { type: "boolean" },
     },
@@ -52,10 +66,29 @@ export function GET() {
           operationId: "searchDirectory",
           summary: "Search facility listings",
           parameters: [
-            { name: "q", in: "query", schema: { type: "string" }, description: "Product, medicine, test or scan to look for." },
-            { name: "city", in: "query", schema: { type: "string" }, description: "City or state to limit results to." },
-            { name: "category", in: "query", schema: { type: "string", enum: [...PRODUCT_CATEGORIES] } },
-            { name: "inStock", in: "query", schema: { type: "string", enum: ["0", "1"] }, description: "Set to 1 to return only products in stock." },
+            {
+              name: "q",
+              in: "query",
+              schema: { type: "string" },
+              description: "Product, medicine, test or scan to look for.",
+            },
+            {
+              name: "city",
+              in: "query",
+              schema: { type: "string" },
+              description: "City or state to limit results to.",
+            },
+            {
+              name: "category",
+              in: "query",
+              schema: { type: "string", enum: [...PRODUCT_CATEGORIES] },
+            },
+            {
+              name: "inStock",
+              in: "query",
+              schema: { type: "string", enum: ["0", "1"] },
+              description: "Set to 1 to return only products in stock.",
+            },
           ],
           responses: {
             "200": {
@@ -72,7 +105,11 @@ export function GET() {
                           properties: {
                             facility,
                             product,
-                            service: { type: "string", description: "Present when the match is a listed service rather than a product." },
+                            service: {
+                              type: "string",
+                              description:
+                                "Present when the match is a listed service rather than a product.",
+                            },
                           },
                         },
                       },
@@ -87,5 +124,7 @@ export function GET() {
       },
     },
   };
-  return Response.json(spec, { headers: { "Cache-Control": "public, max-age=3600" } });
+  return Response.json(spec, {
+    headers: { "Cache-Control": "public, max-age=3600" },
+  });
 }

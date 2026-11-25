@@ -42,26 +42,41 @@ import { VerificationBadge, verificationMessage } from "./VerificationBadge";
 
 type Tab = "stock" | "services" | "details";
 
-async function api<T>(url: string, init?: RequestInit): Promise<{ ok: true; data: T } | { ok: false; error: string; field?: string }> {
+async function api<T>(
+  url: string,
+  init?: RequestInit,
+): Promise<
+  { ok: true; data: T } | { ok: false; error: string; field?: string }
+> {
   try {
     const res = await fetch(url, {
       ...init,
       headers: init?.body ? { "Content-Type": "application/json" } : undefined,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return { ok: false, error: data.error ?? `Request failed (${res.status})`, field: data.field };
+    if (!res.ok)
+      return {
+        ok: false,
+        error: data.error ?? `Request failed (${res.status})`,
+        field: data.field,
+      };
     return { ok: true, data };
   } catch {
-    return { ok: false, error: "You appear to be offline. Check your connection and try again." };
+    return {
+      ok: false,
+      error: "You appear to be offline. Check your connection and try again.",
+    };
   }
 }
 
-const daysUntil = (iso: string) => Math.ceil((Date.parse(iso) - Date.now()) / 864e5);
+const daysUntil = (iso: string) =>
+  Math.ceil((Date.parse(iso) - Date.now()) / 864e5);
 
 export function ProviderDashboard() {
   const user = useSession((s) => s.user);
   const sessionStatus = useSession((s) => s.status);
-  if (sessionStatus === "ready" && user && user.role !== "provider") return <PatientGate />;
+  if (sessionStatus === "ready" && user && user.role !== "provider")
+    return <PatientGate />;
   return <FacilityDashboard />;
 }
 
@@ -72,10 +87,13 @@ function PatientGate() {
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft text-brand-strong">
           <Building2 className="h-7 w-7" aria-hidden />
         </span>
-        <h1 className="mt-5 title font-display text-3xl font-semibold text-ink">Stock tools are for facility accounts</h1>
+        <h1 className="mt-5 title font-display text-3xl font-semibold text-ink">
+          Stock tools are for facility accounts
+        </h1>
         <p className="mt-3 text-muted">
-          You are signed in with a personal account, which is for the health chat and finding medicine. To list a pharmacy,
-          clinic or hospital, create a facility account.
+          You are signed in with a personal account, which is for the health
+          chat and finding medicine. To list a pharmacy, clinic or hospital,
+          create a facility account.
         </p>
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <ButtonLink href="/signup?role=provider" size="lg">
@@ -97,7 +115,8 @@ function FacilityDashboard() {
   const [facilities, setFacilities] = useState<Facility[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const selectedId = params.get("facility") ?? facilities?.[0]?.id ?? null;
-  const facility = facilities?.find((f) => f.id === selectedId) ?? facilities?.[0] ?? null;
+  const facility =
+    facilities?.find((f) => f.id === selectedId) ?? facilities?.[0] ?? null;
   const [tab, setTab] = useState<Tab>("stock");
   const [notice, setNotice] = useState<string | null>(null);
   const [seenCreated, setSeenCreated] = useState(false);
@@ -121,7 +140,10 @@ function FacilityDashboard() {
   if (loadError) {
     return (
       <Shell>
-        <p role="alert" className="flex items-center gap-2 rounded-xl border border-alert/25 bg-alert-soft p-4 text-sm text-alert">
+        <p
+          role="alert"
+          className="flex items-center gap-2 rounded-xl border border-alert/25 bg-alert-soft p-4 text-sm text-alert"
+        >
           <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
           {loadError}
         </p>
@@ -134,7 +156,11 @@ function FacilityDashboard() {
       <Shell>
         <div className="space-y-3" aria-label="Loading your facilities">
           {[40, 70, 55].map((w) => (
-            <div key={w} className="h-5 animate-pulse rounded bg-mist" style={{ width: `${w}%` }} />
+            <div
+              key={w}
+              className="h-5 animate-pulse rounded bg-mist"
+              style={{ width: `${w}%` }}
+            />
           ))}
         </div>
       </Shell>
@@ -155,7 +181,9 @@ function FacilityDashboard() {
               {FACILITY_KIND_LABEL[facility.kind]}, {facility.city}
               <VerificationBadge v={facility.verification} />
             </p>
-            <h1 className="truncate title font-display text-2xl font-semibold text-ink sm:text-3xl">{facility.name}</h1>
+            <h1 className="truncate title font-display text-2xl font-semibold text-ink sm:text-3xl">
+              {facility.name}
+            </h1>
           </div>
         </div>
         <div className="flex flex-wrap items-end gap-2">
@@ -167,7 +195,11 @@ function FacilityDashboard() {
               className="w-64"
               value={facility.id}
               onChange={(id) => router.replace(`/provider?facility=${id}`)}
-              options={facilities.map((f) => ({ value: f.id, label: f.name, description: `${FACILITY_KIND_LABEL[f.kind]}, ${f.city}` }))}
+              options={facilities.map((f) => ({
+                value: f.id,
+                label: f.name,
+                description: `${FACILITY_KIND_LABEL[f.kind]}, ${f.city}`,
+              }))}
             />
           )}
           <ButtonLink href="/provider/new" variant="secondary">
@@ -178,10 +210,17 @@ function FacilityDashboard() {
       </div>
 
       {notice && (
-        <div role="status" className="animate-rise mt-5 flex items-start gap-3 rounded-2xl border border-line bg-surface p-4">
+        <div
+          role="status"
+          className="animate-rise mt-5 flex items-start gap-3 rounded-2xl border border-line bg-surface p-4"
+        >
           <VerificationBadge v={facility.verification} className="shrink-0" />
           <p className="flex-1 text-sm text-ink">{notice}</p>
-          <button type="button" onClick={() => setNotice(null)} className="text-sm font-medium text-muted hover:text-ink">
+          <button
+            type="button"
+            onClick={() => setNotice(null)}
+            className="text-sm font-medium text-muted hover:text-ink"
+          >
             Dismiss
           </button>
         </div>
@@ -207,7 +246,9 @@ function FacilityDashboard() {
           <ServicesTab
             key={facility.id}
             facility={facility}
-            onSaved={(f) => setFacilities((fs) => fs!.map((x) => (x.id === f.id ? f : x)))}
+            onSaved={(f) =>
+              setFacilities((fs) => fs!.map((x) => (x.id === f.id ? f : x)))
+            }
           />
         )}
         {tab === "details" && (
@@ -216,7 +257,10 @@ function FacilityDashboard() {
             facility={facility}
             onSaved={(f) => {
               setFacilities((fs) => fs!.map((x) => (x.id === f.id ? f : x)));
-              if (f.licenseNumber !== facility.licenseNumber || f.verification.status !== facility.verification.status) {
+              if (
+                f.licenseNumber !== facility.licenseNumber ||
+                f.verification.status !== facility.verification.status
+              ) {
                 setNotice(verificationMessage(f.verification));
               }
             }}
@@ -233,23 +277,42 @@ function FacilityDashboard() {
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto w-full max-w-5xl flex-1 px-4 pb-12 pt-2 sm:px-6">{children}</div>;
+  return (
+    <div className="mx-auto w-full max-w-5xl flex-1 px-4 pb-12 pt-2 sm:px-6">
+      {children}
+    </div>
+  );
 }
 
 function NoFacility() {
   const steps = [
-    { icon: Building2, title: "Register your facility", body: "Name, address, phone and landmark directions." },
-    { icon: PackagePlus, title: "Add what you stock", body: "Medicines, skin care, muscle rubs, devices, test kits." },
-    { icon: Stethoscope, title: "List services", body: "Scans and tests like X-ray, ultrasound or 2D echo." },
+    {
+      icon: Building2,
+      title: "Register your facility",
+      body: "Name, address, phone and landmark directions.",
+    },
+    {
+      icon: PackagePlus,
+      title: "Add what you stock",
+      body: "Medicines, skin care, muscle rubs, devices, test kits.",
+    },
+    {
+      icon: Stethoscope,
+      title: "List services",
+      body: "Scans and tests like X-ray, ultrasound or 2D echo.",
+    },
   ];
   return (
     <Shell>
       <div className="max-w-2xl">
         <PackageOpen className="h-9 w-9 text-brand" aria-hidden />
-        <h1 className="mt-4 title font-display text-3xl font-semibold text-ink sm:text-4xl">You haven&apos;t listed a facility yet</h1>
+        <h1 className="mt-4 title font-display text-3xl font-semibold text-ink sm:text-4xl">
+          You haven&apos;t listed a facility yet
+        </h1>
         <p className="mt-3 text-lg text-muted">
-          Register your pharmacy, clinic, hospital, scan centre or health store. People searching on Zelthia, including
-          the health chat, will see your real stock and services.
+          Register your pharmacy, clinic, hospital, scan centre or health store.
+          People searching on Zelthia, including the health chat, will see your
+          real stock and services.
         </p>
         <ol className="mt-8 space-y-4">
           {steps.map(({ icon: Icon, title, body }, i) => (
@@ -280,14 +343,18 @@ function StockTab({ facility }: { facility: Facility }) {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("ALL");
-  const [filter, setFilter] = useState<"all" | "low" | "out" | "expiring">("all");
+  const [filter, setFilter] = useState<"all" | "low" | "out" | "expiring">(
+    "all",
+  );
   const [editing, setEditing] = useState<Product | "new" | null>(null);
   const [confirm, setConfirm] = useState<Product | null>(null);
   const shownConfirm = useLastDefined(confirm);
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
-    void api<{ products: Product[] }>(`/api/facilities/${facility.id}/products`).then((res) =>
+    void api<{ products: Product[] }>(
+      `/api/facilities/${facility.id}/products`,
+    ).then((res) =>
       res.ok ? setProducts(res.data.products) : setError(res.error),
     );
   }, [facility.id]);
@@ -298,7 +365,8 @@ function StockTab({ facility }: { facility: Facility }) {
       total: list.length,
       low: list.filter((p) => stockStatus(p) === "low").length,
       out: list.filter((p) => stockStatus(p) === "out").length,
-      expiring: list.filter((p) => p.expiresOn && daysUntil(p.expiresOn) <= 90).length,
+      expiring: list.filter((p) => p.expiresOn && daysUntil(p.expiresOn) <= 90)
+        .length,
     };
   }, [products]);
 
@@ -308,21 +376,34 @@ function StockTab({ facility }: { facility: Facility }) {
       if (category !== "ALL" && p.category !== category) return false;
       if (filter === "low" && stockStatus(p) !== "low") return false;
       if (filter === "out" && stockStatus(p) !== "out") return false;
-      if (filter === "expiring" && !(p.expiresOn && daysUntil(p.expiresOn) <= 90)) return false;
-      return !needle || [p.name, p.genericName, p.batch, p.category].some((s) => s.toLowerCase().includes(needle));
+      if (
+        filter === "expiring" &&
+        !(p.expiresOn && daysUntil(p.expiresOn) <= 90)
+      )
+        return false;
+      return (
+        !needle ||
+        [p.name, p.genericName, p.batch, p.category].some((s) =>
+          s.toLowerCase().includes(needle),
+        )
+      );
     });
   }, [products, q, category, filter]);
 
   const upsert = (p: Product) =>
     setProducts((ps) => {
       const list = ps ?? [];
-      return list.some((x) => x.id === p.id) ? list.map((x) => (x.id === p.id ? p : x)) : [...list, p].sort((a, b) => a.name.localeCompare(b.name));
+      return list.some((x) => x.id === p.id)
+        ? list.map((x) => (x.id === p.id ? p : x))
+        : [...list, p].sort((a, b) => a.name.localeCompare(b.name));
     });
 
   const save = async (draft: ProductDraft) => {
     const isNew = editing === "new";
     const res = await api<{ product: Product }>(
-      isNew ? `/api/facilities/${facility.id}/products` : `/api/products/${(editing as Product).id}`,
+      isNew
+        ? `/api/facilities/${facility.id}/products`
+        : `/api/products/${(editing as Product).id}`,
       { method: isNew ? "POST" : "PUT", body: JSON.stringify(draft) },
     );
     if (!res.ok) return res;
@@ -333,22 +414,62 @@ function StockTab({ facility }: { facility: Facility }) {
 
   const adjust = async (p: Product, delta: number) => {
     setBusy(p.id);
-    const res = await api<{ product: Product }>(`/api/products/${p.id}`, { method: "PATCH", body: JSON.stringify({ delta }) });
+    const res = await api<{ product: Product }>(`/api/products/${p.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ delta }),
+    });
     setBusy(null);
     if (res.ok) upsert(res.data.product);
     else setError(res.error);
   };
 
   if (error && !products) {
-    return <p role="alert" className="rounded-xl border border-alert/25 bg-alert-soft p-4 text-sm text-alert">{error}</p>;
+    return (
+      <p
+        role="alert"
+        className="rounded-xl border border-alert/25 bg-alert-soft p-4 text-sm text-alert"
+      >
+        {error}
+      </p>
+    );
   }
-  if (!products) return <div className="h-40 animate-pulse rounded-2xl bg-mist" aria-label="Loading stock" />;
+  if (!products)
+    return (
+      <div
+        className="h-40 animate-pulse rounded-2xl bg-mist"
+        aria-label="Loading stock"
+      />
+    );
 
   const STAT = [
-    { key: "all", label: "Products", value: stats.total, icon: Boxes, tone: "text-ink" },
-    { key: "low", label: "Low stock", value: stats.low, icon: TriangleAlert, tone: "text-caution" },
-    { key: "out", label: "Out of stock", value: stats.out, icon: PackageOpen, tone: "text-alert" },
-    { key: "expiring", label: "Expiring in 90 days", value: stats.expiring, icon: CalendarClock, tone: "text-sky" },
+    {
+      key: "all",
+      label: "Products",
+      value: stats.total,
+      icon: Boxes,
+      tone: "text-ink",
+    },
+    {
+      key: "low",
+      label: "Low stock",
+      value: stats.low,
+      icon: TriangleAlert,
+      tone: "text-caution",
+    },
+    {
+      key: "out",
+      label: "Out of stock",
+      value: stats.out,
+      icon: PackageOpen,
+      tone: "text-alert",
+    },
+    {
+      key: "expiring",
+      label: "Expiring in 90 days",
+      value: stats.expiring,
+      icon: CalendarClock,
+      tone: "text-sky",
+    },
   ] as const;
 
   return (
@@ -360,10 +481,15 @@ function StockTab({ facility }: { facility: Facility }) {
             type="button"
             onClick={() => setFilter(s.key)}
             aria-pressed={filter === s.key}
-            className={cn("bg-surface p-4 text-left transition-colors hover:bg-mist", filter === s.key && "bg-mist")}
+            className={cn(
+              "bg-surface p-4 text-left transition-colors hover:bg-mist",
+              filter === s.key && "bg-mist",
+            )}
           >
             <s.icon className={cn("h-5 w-5", s.tone)} aria-hidden />
-            <p className="mt-3 font-display text-2xl font-semibold tabular-nums text-ink">{s.value}</p>
+            <p className="mt-3 font-display text-2xl font-semibold tabular-nums text-ink">
+              {s.value}
+            </p>
             <p className="text-sm text-muted">{s.label}</p>
           </button>
         ))}
@@ -372,9 +498,12 @@ function StockTab({ facility }: { facility: Facility }) {
       {products.length === 0 ? (
         <div className="mt-6 rounded-3xl border border-dashed border-line p-8 text-center">
           <PackagePlus className="mx-auto h-8 w-8 text-muted" aria-hidden />
-          <h2 className="mt-3 font-display text-xl font-semibold text-ink">No products yet</h2>
+          <h2 className="mt-3 font-display text-xl font-semibold text-ink">
+            No products yet
+          </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted">
-            Add the first item you stock. It appears in patient searches as soon as you save it.
+            Add the first item you stock. It appears in patient searches as soon
+            as you save it.
           </p>
           <Button className="mt-5" onClick={() => setEditing("new")}>
             <Plus className="h-4 w-4" aria-hidden />
@@ -385,7 +514,10 @@ function StockTab({ facility }: { facility: Facility }) {
         <>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
+              <Search
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+                aria-hidden
+              />
               <input
                 aria-label="Search your stock"
                 value={q}
@@ -400,7 +532,10 @@ function StockTab({ facility }: { facility: Facility }) {
               className="sm:w-60"
               value={category}
               onChange={setCategory}
-              options={[{ value: "ALL", label: "All categories" }, ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c }))]}
+              options={[
+                { value: "ALL", label: "All categories" },
+                ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c })),
+              ]}
               align="right"
             />
             <Button onClick={() => setEditing("new")}>
@@ -409,53 +544,127 @@ function StockTab({ facility }: { facility: Facility }) {
             </Button>
           </div>
 
-          {error && <p role="alert" className="mt-3 text-sm text-alert">{error}</p>}
+          {error && (
+            <p role="alert" className="mt-3 text-sm text-alert">
+              {error}
+            </p>
+          )}
 
           {shown.length === 0 ? (
-            <p className="mt-6 rounded-2xl bg-mist p-6 text-center text-sm text-muted">Nothing matches these filters.</p>
+            <p className="mt-6 rounded-2xl bg-mist p-6 text-center text-sm text-muted">
+              Nothing matches these filters.
+            </p>
           ) : (
             <ul className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
               {shown.map((p) => {
                 const status = stockStatus(p);
                 const days = p.expiresOn ? daysUntil(p.expiresOn) : null;
                 return (
-                  <li key={p.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                  <li
+                    key={p.id}
+                    className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center"
+                  >
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-ink">
                         {p.name}
-                        {p.strength && <span className="font-normal text-muted"> {p.strength}</span>}
-                      </p>
-                      <p className="truncate text-sm text-muted">
-                        {[p.category, p.form, p.packSize, formatNaira(p.priceNgn)].filter(Boolean).join(", ")}
-                      </p>
-                      <div className="mt-1.5 flex flex-wrap gap-1.5 text-xs font-medium">
-                        <span className={cn("rounded-full px-2 py-0.5", status === "out" ? "bg-alert-soft text-alert" : status === "low" ? "bg-caution-soft text-caution" : "bg-brand-soft text-brand-strong")}>
-                          {status === "out" ? "Out of stock" : status === "low" ? "Low stock" : "In stock"}
-                        </span>
-                        {days !== null && (
-                          <span className={cn("rounded-full px-2 py-0.5", days < 0 ? "bg-alert-soft text-alert" : days <= 90 ? "bg-sky-soft text-sky" : "bg-mist text-muted")}>
-                            {days < 0 ? "Expired" : `Expires ${new Date(p.expiresOn!).toLocaleDateString("en-NG", { month: "short", year: "numeric" })}`}
+                        {p.strength && (
+                          <span className="font-normal text-muted">
+                            {" "}
+                            {p.strength}
                           </span>
                         )}
-                        {p.prescriptionOnly && <span className="rounded-full bg-mist px-2 py-0.5 text-muted">Prescription</span>}
+                      </p>
+                      <p className="truncate text-sm text-muted">
+                        {[
+                          p.category,
+                          p.form,
+                          p.packSize,
+                          formatNaira(p.priceNgn),
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5 text-xs font-medium">
+                        <span
+                          className={cn(
+                            "rounded-full px-2 py-0.5",
+                            status === "out"
+                              ? "bg-alert-soft text-alert"
+                              : status === "low"
+                                ? "bg-caution-soft text-caution"
+                                : "bg-brand-soft text-brand-strong",
+                          )}
+                        >
+                          {status === "out"
+                            ? "Out of stock"
+                            : status === "low"
+                              ? "Low stock"
+                              : "In stock"}
+                        </span>
+                        {days !== null && (
+                          <span
+                            className={cn(
+                              "rounded-full px-2 py-0.5",
+                              days < 0
+                                ? "bg-alert-soft text-alert"
+                                : days <= 90
+                                  ? "bg-sky-soft text-sky"
+                                  : "bg-mist text-muted",
+                            )}
+                          >
+                            {days < 0
+                              ? "Expired"
+                              : `Expires ${new Date(p.expiresOn!).toLocaleDateString("en-NG", { month: "short", year: "numeric" })}`}
+                          </span>
+                        )}
+                        {p.prescriptionOnly && (
+                          <span className="rounded-full bg-mist px-2 py-0.5 text-muted">
+                            Prescription
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex h-10 items-stretch overflow-hidden rounded-xl border border-line">
-                        <button type="button" disabled={busy === p.id || p.quantity === 0} onClick={() => adjust(p, -1)} className="flex w-10 items-center justify-center text-muted hover:bg-mist hover:text-ink disabled:opacity-40" aria-label={`Remove one ${p.name}`}>
+                        <button
+                          type="button"
+                          disabled={busy === p.id || p.quantity === 0}
+                          onClick={() => adjust(p, -1)}
+                          className="flex w-10 items-center justify-center text-muted hover:bg-mist hover:text-ink disabled:opacity-40"
+                          aria-label={`Remove one ${p.name}`}
+                        >
                           <Minus className="h-4 w-4" aria-hidden />
                         </button>
-                        <span className="flex min-w-14 items-center justify-center border-x border-line px-2 font-display text-base font-semibold tabular-nums text-ink" aria-label={`${p.quantity} in stock`}>
+                        <span
+                          className="flex min-w-14 items-center justify-center border-x border-line px-2 font-display text-base font-semibold tabular-nums text-ink"
+                          aria-label={`${p.quantity} in stock`}
+                        >
                           {p.quantity}
                         </span>
-                        <button type="button" disabled={busy === p.id} onClick={() => adjust(p, 1)} className="flex w-10 items-center justify-center text-muted hover:bg-mist hover:text-ink disabled:opacity-40" aria-label={`Add one ${p.name}`}>
+                        <button
+                          type="button"
+                          disabled={busy === p.id}
+                          onClick={() => adjust(p, 1)}
+                          className="flex w-10 items-center justify-center text-muted hover:bg-mist hover:text-ink disabled:opacity-40"
+                          aria-label={`Add one ${p.name}`}
+                        >
                           <Plus className="h-4 w-4" aria-hidden />
                         </button>
                       </div>
-                      <button type="button" onClick={() => setEditing(p)} className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-mist hover:text-ink" aria-label={`Edit ${p.name}`}>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(p)}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-mist hover:text-ink"
+                        aria-label={`Edit ${p.name}`}
+                      >
                         <Pencil className="h-4 w-4" aria-hidden />
                       </button>
-                      <button type="button" onClick={() => setConfirm(p)} className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-alert-soft hover:text-alert" aria-label={`Delete ${p.name}`}>
+                      <button
+                        type="button"
+                        onClick={() => setConfirm(p)}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl text-muted hover:bg-alert-soft hover:text-alert"
+                        aria-label={`Delete ${p.name}`}
+                      >
                         <Trash2 className="h-4 w-4" aria-hidden />
                       </button>
                     </div>
@@ -480,13 +689,18 @@ function StockTab({ facility }: { facility: Facility }) {
         description="It will stop appearing in searches. This can't be undone."
         footer={
           <>
-            <Button variant="ghost" onClick={() => setConfirm(null)}>Keep it</Button>
+            <Button variant="ghost" onClick={() => setConfirm(null)}>
+              Keep it
+            </Button>
             <Button
               variant="danger"
               onClick={async () => {
                 if (!confirm) return;
-                const res = await api(`/api/products/${confirm.id}`, { method: "DELETE" });
-                if (res.ok) setProducts((ps) => ps!.filter((x) => x.id !== confirm.id));
+                const res = await api(`/api/products/${confirm.id}`, {
+                  method: "DELETE",
+                });
+                if (res.ok)
+                  setProducts((ps) => ps!.filter((x) => x.id !== confirm.id));
                 else setError(res.error);
                 setConfirm(null);
               }}
@@ -509,14 +723,21 @@ function toDraft(f: Facility): FacilityDraft {
   return rest;
 }
 
-function ServicesTab({ facility, onSaved }: { facility: Facility; onSaved: (f: Facility) => void }) {
+function ServicesTab({
+  facility,
+  onSaved,
+}: {
+  facility: Facility;
+  onSaved: (f: Facility) => void;
+}) {
   const [services, setServices] = useState(facility.services);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   return (
     <div className="max-w-2xl">
       <p className="mb-4 text-muted">
-        Tests, scans and procedures you offer. People who search for them, including from the health chat, will find you.
+        Tests, scans and procedures you offer. People who search for them,
+        including from the health chat, will find you.
       </p>
       <TagInput
         label="Services"
@@ -525,17 +746,31 @@ function ServicesTab({ facility, onSaved }: { facility: Facility; onSaved: (f: F
         tone="sky"
         icon={Stethoscope}
         placeholder="e.g. Ultrasound scan"
-        suggestions={["2D echocardiogram", "ECG", "X-ray", "Ultrasound scan", "MRI scan", "CT scan", "Laboratory tests", "Malaria test", "Vaccination", "Physiotherapy"]}
+        suggestions={[
+          "2D echocardiogram",
+          "ECG",
+          "X-ray",
+          "Ultrasound scan",
+          "MRI scan",
+          "CT scan",
+          "Laboratory tests",
+          "Malaria test",
+          "Vaccination",
+          "Physiotherapy",
+        ]}
       />
       <div className="mt-5 flex items-center gap-3">
         <Button
           loading={saving}
           onClick={async () => {
             setSaving(true);
-            const res = await api<{ facility: Facility }>(`/api/facilities/${facility.id}`, {
-              method: "PUT",
-              body: JSON.stringify({ ...toDraft(facility), services }),
-            });
+            const res = await api<{ facility: Facility }>(
+              `/api/facilities/${facility.id}`,
+              {
+                method: "PUT",
+                body: JSON.stringify({ ...toDraft(facility), services }),
+              },
+            );
             setSaving(false);
             if (res.ok) {
               onSaved(res.data.facility);
@@ -545,7 +780,14 @@ function ServicesTab({ facility, onSaved }: { facility: Facility; onSaved: (f: F
         >
           Save services
         </Button>
-        {msg && <p role="status" className={cn("text-sm", msg.ok ? "text-brand" : "text-alert")}>{msg.text}</p>}
+        {msg && (
+          <p
+            role="status"
+            className={cn("text-sm", msg.ok ? "text-brand" : "text-alert")}
+          >
+            {msg.text}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -571,7 +813,10 @@ function DetailsTab({
         submitLabel={saved ? "Saved" : "Save details"}
         onSubmit={async (draft) => {
           setSaved(false);
-          const res = await api<{ facility: Facility }>(`/api/facilities/${facility.id}`, { method: "PUT", body: JSON.stringify(draft) });
+          const res = await api<{ facility: Facility }>(
+            `/api/facilities/${facility.id}`,
+            { method: "PUT", body: JSON.stringify(draft) },
+          );
           if (!res.ok) return res;
           onSaved(res.data.facility);
           setSaved(true);
@@ -579,10 +824,22 @@ function DetailsTab({
         }}
       />
       <section className="mt-12 rounded-3xl border border-alert/25 p-5 sm:p-7">
-        <h2 className="font-display text-xl font-semibold text-ink">Remove this facility</h2>
-        <p className="mt-1 text-sm text-muted">Deletes the facility and all of its products from Zelthia.</p>
-        {error && <p role="alert" className="mt-2 text-sm text-alert">{error}</p>}
-        <Button variant="danger" className="mt-4" onClick={() => setConfirm(true)}>
+        <h2 className="font-display text-xl font-semibold text-ink">
+          Remove this facility
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          Deletes the facility and all of its products from Zelthia.
+        </p>
+        {error && (
+          <p role="alert" className="mt-2 text-sm text-alert">
+            {error}
+          </p>
+        )}
+        <Button
+          variant="danger"
+          className="mt-4"
+          onClick={() => setConfirm(true)}
+        >
           <Trash2 className="h-4 w-4" aria-hidden />
           Delete facility
         </Button>
@@ -594,13 +851,17 @@ function DetailsTab({
         description="The facility, its products and its services are removed from Zelthia. This can't be undone."
         footer={
           <>
-            <Button variant="ghost" onClick={() => setConfirm(false)}>Keep facility</Button>
+            <Button variant="ghost" onClick={() => setConfirm(false)}>
+              Keep facility
+            </Button>
             <Button
               variant="danger"
               loading={deleting}
               onClick={async () => {
                 setDeleting(true);
-                const res = await api(`/api/facilities/${facility.id}`, { method: "DELETE" });
+                const res = await api(`/api/facilities/${facility.id}`, {
+                  method: "DELETE",
+                });
                 setDeleting(false);
                 setConfirm(false);
                 if (res.ok) onDeleted(facility.id);
@@ -621,7 +882,8 @@ export function NewFacility() {
   const user = useSession((s) => s.user);
   const sessionStatus = useSession((s) => s.status);
   const welcome = useSearchParams().get("welcome") === "1";
-  if (sessionStatus === "ready" && user && user.role !== "provider") return <PatientGate />;
+  if (sessionStatus === "ready" && user && user.role !== "provider")
+    return <PatientGate />;
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
       {welcome ? (
@@ -630,7 +892,10 @@ export function NewFacility() {
           Your profile is set up
         </p>
       ) : (
-        <Link href="/provider" className="text-sm font-medium text-muted hover:text-ink">
+        <Link
+          href="/provider"
+          className="text-sm font-medium text-muted hover:text-ink"
+        >
           Back to dashboard
         </Link>
       )}
@@ -646,10 +911,15 @@ export function NewFacility() {
       <FacilityWizard
         submitLabel="Register facility"
         onSubmit={async (draft) => {
-          const res = await api<{ facility: Facility }>("/api/facilities", { method: "POST", body: JSON.stringify(draft) });
+          const res = await api<{ facility: Facility }>("/api/facilities", {
+            method: "POST",
+            body: JSON.stringify(draft),
+          });
           if (!res.ok) return res;
           void useSession.getState().hydrate();
-          router.replace(`/provider?facility=${res.data.facility.id}&created=1`);
+          router.replace(
+            `/provider?facility=${res.data.facility.id}&created=1`,
+          );
           return { ok: true };
         }}
       />

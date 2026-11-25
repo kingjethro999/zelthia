@@ -19,7 +19,10 @@ export function LegalPage({
             <h2>Contact</h2>
             <p>
               Questions about this page:{" "}
-              <a href={`mailto:${contact}`} className="font-semibold text-brand underline-offset-4 hover:underline">
+              <a
+                href={`mailto:${contact}`}
+                className="font-semibold text-brand underline-offset-4 hover:underline"
+              >
                 {contact}
               </a>
             </p>

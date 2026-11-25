@@ -69,7 +69,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (user && listStatus === "idle") void useChat.getState().loadConversations();
+    if (user && listStatus === "idle")
+      void useChat.getState().loadConversations();
   }, [user, listStatus]);
 
   const isProvider = user?.role === "provider";
@@ -78,7 +79,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/inventory", label: "Find medicine", icon: Pill },
     ...(isProvider
       ? !facilityCount
-        ? [{ href: "/provider/new?welcome=1", label: "Set up your facility", icon: PlusCircle, highlight: true }]
+        ? [
+            {
+              href: "/provider/new?welcome=1",
+              label: "Set up your facility",
+              icon: PlusCircle,
+              highlight: true,
+            },
+          ]
         : [{ href: "/provider", label: "Manage stock", icon: Boxes }]
       : []),
   ];
@@ -86,9 +94,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const panel = (closeButton: React.ReactNode) => (
     <div className="flex h-full w-72 flex-col bg-surface">
       <div className="flex h-14 items-center justify-between px-3">
-        <Link href="/" className="flex items-center gap-2 rounded-lg px-1.5 py-1" aria-label="Zelthia home">
-          <Image src="/icons/icon-96.png" alt="" width={26} height={26} unoptimized />
-          <span className="font-display text-lg font-semibold text-ink">Zelthia</span>
+        <Link
+          href="/"
+          className="flex items-center gap-2 rounded-lg px-1.5 py-1"
+          aria-label="Zelthia home"
+        >
+          <Image
+            src="/icons/icon-96.png"
+            alt=""
+            width={26}
+            height={26}
+            unoptimized
+          />
+          <span className="font-display text-lg font-semibold text-ink">
+            Zelthia
+          </span>
         </Link>
         {closeButton}
       </div>
@@ -96,7 +116,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <nav className="space-y-0.5 px-2" aria-label="Zelthia">
         {items.map(({ href, label, icon: Icon, ...rest }) => {
           const path = href.split("?")[0];
-          const active = path === "/provider" ? pathname.startsWith("/provider") : pathname === path || pathname.startsWith(`${path}/`);
+          const active =
+            path === "/provider"
+              ? pathname.startsWith("/provider")
+              : pathname === path || pathname.startsWith(`${path}/`);
           const highlight = "highlight" in rest && rest.highlight;
           return (
             <Link
@@ -105,12 +128,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "press press-soft flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors",
-                highlight ? "bg-brand-soft font-medium text-brand-strong hover:bg-brand-soft/70" : active ? "bg-mist font-medium text-ink" : "text-ink hover:bg-mist",
+                highlight
+                  ? "bg-brand-soft font-medium text-brand-strong hover:bg-brand-soft/70"
+                  : active
+                    ? "bg-mist font-medium text-ink"
+                    : "text-ink hover:bg-mist",
               )}
             >
-              <Icon className={cn("h-[18px] w-[18px]", active || highlight ? "text-brand" : "text-muted")} aria-hidden />
+              <Icon
+                className={cn(
+                  "h-[18px] w-[18px]",
+                  active || highlight ? "text-brand" : "text-muted",
+                )}
+                aria-hidden
+              />
               {label}
-              {highlight && <span className="ml-auto h-2 w-2 rounded-full bg-brand" aria-hidden />}
+              {highlight && (
+                <span
+                  className="ml-auto h-2 w-2 rounded-full bg-brand"
+                  aria-hidden
+                />
+              )}
             </Link>
           );
         })}
@@ -130,7 +168,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {sessionStatus !== "ready" ? (
           <div className="space-y-2 px-3" aria-label="Loading">
             {[70, 50, 85].map((w) => (
-              <div key={w} className="h-4 animate-pulse rounded bg-mist" style={{ width: `${w}%` }} />
+              <div
+                key={w}
+                className="h-4 animate-pulse rounded bg-mist"
+                style={{ width: `${w}%` }}
+              />
             ))}
           </div>
         ) : !user ? (
@@ -138,24 +180,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <History className="h-5 w-5 text-muted" aria-hidden />
             <p className="mt-2 text-sm font-semibold text-ink">Make it yours</p>
             <p className="mt-1 text-sm text-muted">
-              Create an account to keep your chats and health profile, or to list your pharmacy or clinic.
+              Create an account to keep your chats and health profile, or to
+              list your pharmacy or clinic.
             </p>
             <div className="mt-3 flex flex-col gap-2">
-              <ButtonLink href={`/signup?next=${encodeURIComponent(pathname)}`} size="sm">
+              <ButtonLink
+                href={`/signup?next=${encodeURIComponent(pathname)}`}
+                size="sm"
+              >
                 Create account
               </ButtonLink>
-              <ButtonLink href={`/signin?next=${encodeURIComponent(pathname)}`} size="sm" variant="secondary">
+              <ButtonLink
+                href={`/signin?next=${encodeURIComponent(pathname)}`}
+                size="sm"
+                variant="secondary"
+              >
                 Sign in
               </ButtonLink>
             </div>
           </div>
         ) : (
           <>
-            <h2 className="px-3 pb-1 text-xs font-medium text-muted">Recent chats</h2>
+            <h2 className="px-3 pb-1 text-xs font-medium text-muted">
+              Recent chats
+            </h2>
             {listStatus === "loading" || listStatus === "idle" ? (
               <div className="space-y-2 px-3 pt-1" aria-label="Loading chats">
                 {[70, 50, 85].map((w) => (
-                  <div key={w} className="h-4 animate-pulse rounded bg-mist" style={{ width: `${w}%` }} />
+                  <div
+                    key={w}
+                    className="h-4 animate-pulse rounded bg-mist"
+                    style={{ width: `${w}%` }}
+                  />
                 ))}
               </div>
             ) : conversations.length ? (
@@ -172,17 +228,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 ))}
               </ul>
             ) : (
-              <p className="px-3 text-sm text-muted">Your chats will show up here.</p>
+              <p className="px-3 text-sm text-muted">
+                Your chats will show up here.
+              </p>
             )}
             {!isProvider && (
               <Link
                 href="/signup?role=provider"
                 className="press-soft mx-1 mt-5 flex items-start gap-3 rounded-2xl border border-line bg-paper p-3 text-sm hover:border-brand/50"
               >
-                <Store className="mt-0.5 h-[18px] w-[18px] shrink-0 text-brand" aria-hidden />
+                <Store
+                  className="mt-0.5 h-[18px] w-[18px] shrink-0 text-brand"
+                  aria-hidden
+                />
                 <span>
-                  <span className="block font-medium text-ink">Run a pharmacy or clinic?</span>
-                  <span className="block text-muted">Create a facility account to list your stock.</span>
+                  <span className="block font-medium text-ink">
+                    Run a pharmacy or clinic?
+                  </span>
+                  <span className="block text-muted">
+                    Create a facility account to list your stock.
+                  </span>
                 </span>
               </Link>
             )}
@@ -217,9 +282,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {drawer.mounted && (
-        <div data-closing={drawer.closing || undefined} inert={drawer.closing || undefined} className="fixed inset-0 z-50 lg:hidden">
-          <button type="button" className="scrim animate-fade absolute inset-0" aria-label="Close sidebar" onClick={() => setMobileOpen(false)} />
-          <aside ref={drawerRef} {...swipe} className="animate-sheet-left absolute inset-y-0 left-0 touch-pan-y shadow-2xl" aria-label="Sidebar">
+        <div
+          data-closing={drawer.closing || undefined}
+          inert={drawer.closing || undefined}
+          className="fixed inset-0 z-50 lg:hidden"
+        >
+          <button
+            type="button"
+            className="scrim animate-fade absolute inset-0"
+            aria-label="Close sidebar"
+            onClick={() => setMobileOpen(false)}
+          />
+          <aside
+            ref={drawerRef}
+            {...swipe}
+            className="animate-sheet-left absolute inset-y-0 left-0 touch-pan-y shadow-2xl"
+            aria-label="Sidebar"
+          >
             {panel(
               <button
                 type="button"
@@ -255,7 +334,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           )}
         </div>
-        <main id="main" className="flex min-h-0 flex-1 flex-col overflow-y-auto" key={pathname.split("/")[1]}>
+        <main
+          id="main"
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+          key={pathname.split("/")[1]}
+        >
           <div className="animate-rise flex flex-1 flex-col">{children}</div>
         </main>
       </div>

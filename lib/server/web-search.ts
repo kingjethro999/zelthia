@@ -4,7 +4,12 @@ import { fetchService } from "./http";
 
 const TIMEOUT_MS = 15000;
 
-type Hit = { url?: string; title?: string; description?: string; content?: string };
+type Hit = {
+  url?: string;
+  title?: string;
+  description?: string;
+  content?: string;
+};
 
 const toPlaces = (hits: Hit[], source: WebPlace["source"]): WebPlace[] =>
   hits
@@ -19,12 +24,19 @@ const toPlaces = (hits: Hit[], source: WebPlace["source"]): WebPlace[] =>
 async function firecrawl(q: string, limit: number): Promise<WebPlace[]> {
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) throw new Error("FIRECRAWL_API_KEY not set");
-  const res = await fetchService("Firecrawl", "https://api.firecrawl.dev/v2/search", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ query: q, limit, country: "NG" }),
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  });
+  const res = await fetchService(
+    "Firecrawl",
+    "https://api.firecrawl.dev/v2/search",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: q, limit, country: "NG" }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    },
+  );
   if (!res.ok) throw new Error(`Firecrawl responded ${res.status}`);
   const data = await res.json().catch(() => ({}));
   return toPlaces(data?.data?.web ?? [], "firecrawl");
@@ -35,7 +47,10 @@ async function tavily(q: string, limit: number, images = false) {
   if (!key) throw new Error("TAVILY_API_KEY not set");
   const res = await fetchService("Tavily", "https://api.tavily.com/search", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       query: q,
       max_results: limit,
@@ -49,21 +64,29 @@ async function tavily(q: string, limit: number, images = false) {
   const data = await res.json().catch(() => ({}));
   return {
     places: toPlaces(data?.results ?? [], "tavily"),
-    images: (data?.images ?? []) as { url?: string; title?: string; description?: string }[],
+    images: (data?.images ?? []) as {
+      url?: string;
+      title?: string;
+      description?: string;
+    }[],
   };
 }
 
 async function jina(q: string, limit: number): Promise<WebPlace[]> {
   const key = process.env.JINA_API_KEY;
   if (!key) throw new Error("JINA_API_KEY not set");
-  const res = await fetchService("Jina", `https://s.jina.ai/?q=${encodeURIComponent(q)}`, {
-    headers: {
-      Authorization: `Bearer ${key}`,
-      Accept: "application/json",
-      "X-Respond-With": "no-content",
+  const res = await fetchService(
+    "Jina",
+    `https://s.jina.ai/?q=${encodeURIComponent(q)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${key}`,
+        Accept: "application/json",
+        "X-Respond-With": "no-content",
+      },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     },
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  });
+  );
   if (!res.ok) throw new Error(`Jina responded ${res.status}`);
   const data = await res.json().catch(() => ({}));
   return toPlaces((data?.data ?? []).slice(0, limit), "jina");
@@ -77,20 +100,32 @@ const LOW_VALUE =
  * Real web search for places offering a health product or service.
  * Firecrawl, then Tavily, then Jina. Returns [] when all fail.
  */
-export async function searchPlaces(what: string, where: string | null, limit = 6) {
-  const q = `${what} ${where ? `in ${where}` : ""} Nigeria hospital OR pharmacy OR clinic OR centre`
-    .replace(/\s+/g, " ")
-    .trim();
+export async function searchPlaces(
+  what: string,
+  where: string | null,
+  limit = 6,
+) {
+  const q =
+    `${what} ${where ? `in ${where}` : ""} Nigeria hospital OR pharmacy OR clinic OR centre`
+      .replace(/\s+/g, " ")
+      .trim();
   const errors: string[] = [];
   const engines: (() => Promise<WebPlace[]>)[] = [
     () => firecrawl(q, limit + 4),
-    async () => (await tavily(`where to get ${what}${where ? ` in ${where}` : ""} Nigeria`, limit + 4)).places,
+    async () =>
+      (
+        await tavily(
+          `where to get ${what}${where ? ` in ${where}` : ""} Nigeria`,
+          limit + 4,
+        )
+      ).places,
     () => jina(q, limit + 4),
   ];
   for (const engine of engines) {
     try {
       const found = (await engine()).filter((p) => !LOW_VALUE.test(p.url));
-      if (found.length) return { places: found.slice(0, limit), query: q, errors };
+      if (found.length)
+        return { places: found.slice(0, limit), query: q, errors };
     } catch (err) {
       errors.push((err as Error).message);
       console.warn("Web search engine failed", (err as Error).message);
@@ -112,23 +147,47 @@ const origin = (u: string) => {
  * source page. Firecrawl images first (they include the page URL), Tavily
  * images as a fallback (linked to the image's own site).
  */
-export async function searchImages(what: string, where: string | null, limit = 8): Promise<WebImage[]> {
+export async function searchImages(
+  what: string,
+  where: string | null,
+  limit = 8,
+): Promise<WebImage[]> {
   const q = `${what}${where ? ` ${where}` : ""} Nigeria`;
   const key = process.env.FIRECRAWL_API_KEY;
   if (key) {
     try {
-      const res = await fetchService("Firecrawl", "https://api.firecrawl.dev/v2/search", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, limit: limit + 4, sources: ["images"], country: "NG" }),
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-      });
+      const res = await fetchService(
+        "Firecrawl",
+        "https://api.firecrawl.dev/v2/search",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${key}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: q,
+            limit: limit + 4,
+            sources: ["images"],
+            country: "NG",
+          }),
+          signal: AbortSignal.timeout(TIMEOUT_MS),
+        },
+      );
       if (!res.ok) throw new Error(`Firecrawl responded ${res.status}`);
       const data = await res.json().catch(() => ({}));
-      const imgs: { imageUrl?: string; title?: string; url?: string; imageWidth?: number; imageHeight?: number }[] =
-        data?.data?.images ?? [];
+      const imgs: {
+        imageUrl?: string;
+        title?: string;
+        url?: string;
+        imageWidth?: number;
+        imageHeight?: number;
+      }[] = data?.data?.images ?? [];
       const out = imgs
-        .filter((i) => i.imageUrl?.startsWith("http") && i.url && !LOW_VALUE.test(i.url))
+        .filter(
+          (i) =>
+            i.imageUrl?.startsWith("http") && i.url && !LOW_VALUE.test(i.url),
+        )
         .map((i) => ({
           imageUrl: i.imageUrl!.replace(/^http:\/\//, "https://"),
           title: String(i.title ?? ""),

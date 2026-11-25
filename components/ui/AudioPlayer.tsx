@@ -11,7 +11,15 @@ const fmt = (s: number) => {
 };
 
 /** Compact audio player with a seekable progress bar. */
-export function AudioPlayer({ src, label, className }: { src: string; label: string; className?: string }) {
+export function AudioPlayer({
+  src,
+  label,
+  className,
+}: {
+  src: string;
+  label: string;
+  className?: string;
+}) {
   const ref = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,7 +32,8 @@ export function AudioPlayer({ src, label, className }: { src: string; label: str
     if (!a) return;
     const onTime = () => setTime(a.currentTime);
     // MediaRecorder webm files report Infinity until fully read.
-    const onMeta = () => setDuration(Number.isFinite(a.duration) ? a.duration : 0);
+    const onMeta = () =>
+      setDuration(Number.isFinite(a.duration) ? a.duration : 0);
     const onEnd = () => setPlaying(false);
     a.addEventListener("timeupdate", onTime);
     a.addEventListener("loadedmetadata", onMeta);
@@ -62,7 +71,12 @@ export function AudioPlayer({ src, label, className }: { src: string; label: str
   const pct = duration ? Math.min(100, (time / duration) * 100) : 0;
 
   return (
-    <div className={cn("flex items-center gap-3 rounded-2xl border border-line bg-paper p-2 pr-3", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-2xl border border-line bg-paper p-2 pr-3",
+        className,
+      )}
+    >
       <audio ref={ref} src={src} preload="metadata" />
       <button
         type="button"
@@ -79,7 +93,9 @@ export function AudioPlayer({ src, label, className }: { src: string; label: str
         )}
       </button>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium text-ink">{failed ? "Couldn't play this recording" : label}</p>
+        <p className="truncate text-xs font-medium text-ink">
+          {failed ? "Couldn't play this recording" : label}
+        </p>
         <div
           role="slider"
           tabIndex={0}
@@ -97,12 +113,17 @@ export function AudioPlayer({ src, label, className }: { src: string; label: str
           onKeyDown={(e) => {
             const a = ref.current;
             if (!a) return;
-            if (e.key === "ArrowRight") a.currentTime = Math.min(duration, a.currentTime + 5);
-            if (e.key === "ArrowLeft") a.currentTime = Math.max(0, a.currentTime - 5);
+            if (e.key === "ArrowRight")
+              a.currentTime = Math.min(duration, a.currentTime + 5);
+            if (e.key === "ArrowLeft")
+              a.currentTime = Math.max(0, a.currentTime - 5);
           }}
           className="mt-1.5 h-1.5 cursor-pointer rounded-full bg-line"
         >
-          <div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${pct}%` }} />
+          <div
+            className="h-full rounded-full bg-brand transition-[width]"
+            style={{ width: `${pct}%` }}
+          />
         </div>
       </div>
       <span className="shrink-0 tabular-nums text-xs text-muted">

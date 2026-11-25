@@ -1,7 +1,8 @@
 import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 
-const INLINE = /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:https?:\/\/|\/)[^)\s]+\)|https?:\/\/[^\s)<]+|`[^`]+`|\*[^*\s][^*]*\*)/g;
+const INLINE =
+  /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:https?:\/\/|\/)[^)\s]+\)|https?:\/\/[^\s)<]+|`[^`]+`|\*[^*\s][^*]*\*)/g;
 
 function Inline({ text }: { text: string }) {
   const parts = text.split(INLINE);
@@ -19,7 +20,9 @@ function Inline({ text }: { text: string }) {
         const link = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
         if (link || /^https?:\/\//.test(part)) {
           const href = link ? link[2] : part;
-          const label = link ? link[1] : part.replace(/^https?:\/\/(www\.)?/, "").slice(0, 48);
+          const label = link
+            ? link[1]
+            : part.replace(/^https?:\/\/(www\.)?/, "").slice(0, 48);
           const external = /^https?:\/\//.test(href);
           return (
             <a
@@ -40,7 +43,8 @@ function Inline({ text }: { text: string }) {
             </code>
           );
         }
-        if (/^\*[^*][\s\S]*\*$/.test(part)) return <em key={i}>{part.slice(1, -1)}</em>;
+        if (/^\*[^*][\s\S]*\*$/.test(part))
+          return <em key={i}>{part.slice(1, -1)}</em>;
         return <Fragment key={i}>{part}</Fragment>;
       })}
     </>
@@ -80,7 +84,9 @@ export function Markdown({ text }: { text: string }) {
           key={i}
           className={cn(
             "font-display font-semibold text-ink first:mt-0",
-            heading[1].length <= 2 ? "mb-2 mt-6 text-lg" : "mb-1.5 mt-5 text-base",
+            heading[1].length <= 2
+              ? "mb-2 mt-6 text-lg"
+              : "mb-1.5 mt-5 text-base",
           )}
         >
           <Inline text={heading[2]} />
@@ -94,9 +100,13 @@ export function Markdown({ text }: { text: string }) {
       const head = cells(line);
       const rows: string[][] = [];
       i += 2;
-      while (i < lines.length && lines[i].trim().startsWith("|")) rows.push(cells(lines[i++]));
+      while (i < lines.length && lines[i].trim().startsWith("|"))
+        rows.push(cells(lines[i++]));
       out.push(
-        <div key={`t${i}`} className="my-3 overflow-x-auto rounded-xl border border-line">
+        <div
+          key={`t${i}`}
+          className="my-3 overflow-x-auto rounded-xl border border-line"
+        >
           <table className="w-full text-left text-sm">
             <thead className="bg-mist">
               <tr>
@@ -131,7 +141,10 @@ export function Markdown({ text }: { text: string }) {
         i++;
       }
       out.push(
-        <blockquote key={`q${i}`} className="my-3 border-l-2 border-brand pl-3 text-muted">
+        <blockquote
+          key={`q${i}`}
+          className="my-3 border-l-2 border-brand pl-3 text-muted"
+        >
           <Inline text={quote.join(" ")} />
         </blockquote>,
       );
@@ -149,7 +162,8 @@ export function Markdown({ text }: { text: string }) {
           items.push(m[2]);
         } else if (m || (/^\s{2,}\S/.test(l) && items.length)) {
           // Nested or continuation line: fold into the previous item.
-          items[items.length - 1] += ` ${l.trim().replace(/^([-*]|\d+\.)\s+/, "")}`;
+          items[items.length - 1] +=
+            ` ${l.trim().replace(/^([-*]|\d+\.)\s+/, "")}`;
         } else break;
         i++;
       }
@@ -157,7 +171,10 @@ export function Markdown({ text }: { text: string }) {
       out.push(
         <Tag
           key={`l${i}`}
-          className={cn("my-2 space-y-1.5 pl-5", ordered ? "list-decimal" : "list-disc marker:text-brand")}
+          className={cn(
+            "my-2 space-y-1.5 pl-5",
+            ordered ? "list-decimal" : "list-disc marker:text-brand",
+          )}
         >
           {items.map((it, j) => (
             <li key={j} className="pl-1">

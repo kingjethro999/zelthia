@@ -24,7 +24,12 @@ export async function GET() {
   } catch (err) {
     console.error("GET /api/auth/session failed", err);
     return NextResponse.json(
-      { user: null, profile: null, facilityCount: null, error: "Session service is unavailable." },
+      {
+        user: null,
+        profile: null,
+        facilityCount: null,
+        error: "Session service is unavailable.",
+      },
       { status: 503 },
     );
   }

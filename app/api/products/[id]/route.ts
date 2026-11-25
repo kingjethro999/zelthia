@@ -1,5 +1,16 @@
-import { adjustProductQuantity, deleteProduct, parseProductInput, updateProduct } from "@/lib/server/inventory";
-import { HttpError, handle, json, readJson, requireUser } from "@/lib/server/api";
+import {
+  adjustProductQuantity,
+  deleteProduct,
+  parseProductInput,
+  updateProduct,
+} from "@/lib/server/inventory";
+import {
+  HttpError,
+  handle,
+  json,
+  readJson,
+  requireUser,
+} from "@/lib/server/api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -7,7 +18,11 @@ export async function PUT(req: Request, { params }: Ctx) {
   try {
     const user = await requireUser();
     const { id } = await params;
-    const product = await updateProduct(id, user.id, parseProductInput(await readJson(req)));
+    const product = await updateProduct(
+      id,
+      user.id,
+      parseProductInput(await readJson(req)),
+    );
     if (!product) throw new HttpError("Product not found.", 404);
     return json({ product });
   } catch (err) {
@@ -36,7 +51,8 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   try {
     const user = await requireUser();
     const { id } = await params;
-    if (!(await deleteProduct(id, user.id))) throw new HttpError("Product not found.", 404);
+    if (!(await deleteProduct(id, user.id)))
+      throw new HttpError("Product not found.", 404);
     return json({ ok: true });
   } catch (err) {
     return handle("DELETE /api/products/[id]", err);

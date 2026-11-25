@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { readFiles, runTurn, StepTracker, userTurnText, type IncomingFile } from "@/lib/ai/agent";
+import {
+  readFiles,
+  runTurn,
+  StepTracker,
+  userTurnText,
+  type IncomingFile,
+} from "@/lib/ai/agent";
 import type { Turn } from "@/lib/ai/providers";
 import {
   ACCEPTED_MIME,
@@ -40,17 +46,21 @@ export async function POST(req: NextRequest) {
 
   const text = typeof body.text === "string" ? body.text.slice(0, 8000) : "";
   const rawFiles = Array.isArray(body.files) ? body.files : [];
-  if (!text.trim() && rawFiles.length === 0) return bad("Type a message or attach a file.");
-  if (rawFiles.length > MAX_ATTACHMENTS) return bad(`Attach up to ${MAX_ATTACHMENTS} files at a time.`);
+  if (!text.trim() && rawFiles.length === 0)
+    return bad("Type a message or attach a file.");
+  if (rawFiles.length > MAX_ATTACHMENTS)
+    return bad(`Attach up to ${MAX_ATTACHMENTS} files at a time.`);
 
   const files: IncomingFile[] = [];
   for (const f of rawFiles as Record<string, unknown>[]) {
     const mime = String(f?.mime ?? "");
     const base64 = String(f?.base64 ?? "");
     const name = String(f?.name ?? "file").slice(0, 120);
-    if (!ACCEPTED_MIME.includes(mime)) return bad(`${name} isn't a supported file type.`);
+    if (!ACCEPTED_MIME.includes(mime))
+      return bad(`${name} isn't a supported file type.`);
     const size = Math.floor((base64.length * 3) / 4);
-    if (!base64 || size > MAX_ATTACHMENT_BYTES) return bad(`${name} is larger than 3 MB.`);
+    if (!base64 || size > MAX_ATTACHMENT_BYTES)
+      return bad(`${name} is larger than 3 MB.`);
     files.push({ name, mime, size, base64 });
   }
 
@@ -63,8 +73,14 @@ export async function POST(req: NextRequest) {
     console.warn("Chat: session lookup failed, continuing as guest", err);
     sessionFailed = true;
   }
-  const limit = user ? rateLimit(`chat:u:${user.id}`, 40, 10 * 60_000) : rateLimit(`chat:ip:${clientIp(req)}`, 15, 10 * 60_000);
-  if (!limit.ok) return bad(`You're sending messages quickly. Try again in ${limit.retryAfter} seconds.`, 429);
+  const limit = user
+    ? rateLimit(`chat:u:${user.id}`, 40, 10 * 60_000)
+    : rateLimit(`chat:ip:${clientIp(req)}`, 15, 10 * 60_000);
+  if (!limit.ok)
+    return bad(
+      `You're sending messages quickly. Try again in ${limit.retryAfter} seconds.`,
+      429,
+    );
 
   const saved = Boolean(user) && body.temporary !== true;
   let conversationId: string | null = null;
@@ -78,7 +94,8 @@ export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
   const streamBody = new ReadableStream({
     async start(controller) {
-      const emit = (e: ChatEvent) => controller.enqueue(encoder.encode(`${JSON.stringify(e)}\n`));
+      const emit = (e: ChatEvent) =>
+        controller.enqueue(encoder.encode(`${JSON.stringify(e)}\n`));
       const steps = new StepTracker(emit);
       try {
         if (sessionFailed) {
@@ -107,7 +124,12 @@ export async function POST(req: NextRequest) {
           history = await getHistoryTurns(conversationId);
         } else if (Array.isArray(body.history)) {
           history = (body.history as Turn[])
-            .filter((t) => t && (t.role === "user" || t.role === "assistant") && typeof t.content === "string")
+            .filter(
+              (t) =>
+                t &&
+                (t.role === "user" || t.role === "assistant") &&
+                typeof t.content === "string",
+            )
             .slice(-20)
             .map((t) => ({ role: t.role, content: t.content.slice(0, 12000) }));
         }
@@ -120,7 +142,11 @@ export async function POST(req: NextRequest) {
           role: "user",
           content: text,
           createdAt: new Date().toISOString(),
-          attachments: read.map((f) => ({ name: f.name, mime: f.mime, size: f.size })),
+          attachments: read.map((f) => ({
+            name: f.name,
+            mime: f.mime,
+            size: f.size,
+          })),
         };
         if (saved && conversationId) {
           const row = await insertMessage(conversationId, "user", text);
@@ -129,10 +155,16 @@ export async function POST(req: NextRequest) {
             read.map(async (f, i) => {
               let stored = null;
               try {
-                stored = await uploadPrivate(`data:${f.mime};base64,${f.base64}`, `zelthia/chat/${user!.id}`);
+                stored = await uploadPrivate(
+                  `data:${f.mime};base64,${f.base64}`,
+                  `zelthia/chat/${user!.id}`,
+                );
               } catch (err) {
                 // Recover: the file was already read for this answer; tell the user it isn't stored.
-                console.error("Attachment upload failed; keeping the transcript only", err);
+                console.error(
+                  "Attachment upload failed; keeping the transcript only",
+                  err,
+                );
                 steps.finish(
                   steps.start(`Saving ${f.name}`),
                   "Couldn't store this file, so it won't open from your history. It was still read for this answer.",
@@ -150,14 +182,36 @@ export async function POST(req: NextRequest) {
                 format: stored?.format ?? null,
                 extractedText: f.extracted,
               });
-              attachments[i] = { id, name: f.name, mime: f.mime, size: f.size, url: stored ? `/api/attachments/${id}` : undefined };
+              attachments[i] = {
+                id,
+                name: f.name,
+                mime: f.mime,
+                size: f.size,
+                url: stored ? `/api/attachments/${id}` : undefined,
+              };
             }),
           );
-          userView = { ...userView, id: row.id, createdAt: row.created_at.toISOString(), attachments };
+          userView = {
+            ...userView,
+            id: row.id,
+            createdAt: row.created_at.toISOString(),
+            attachments,
+          };
         }
-        emit({ type: "user-saved", message: userView, context: userTurnText(text, read) });
+        emit({
+          type: "user-saved",
+          message: userView,
+          context: userTurnText(text, read),
+        });
 
-        const result = await runTurn({ history, text, files: read, profile, steps, emit });
+        const result = await runTurn({
+          history,
+          text,
+          files: read,
+          profile,
+          steps,
+          emit,
+        });
 
         let assistant: ChatMessageView = {
           id: randomUUID(),
@@ -167,11 +221,24 @@ export async function POST(req: NextRequest) {
           meta: result.meta,
         };
         if (saved && conversationId) {
-          const row = await insertMessage(conversationId, "assistant", result.content, result.meta);
-          assistant = { ...assistant, id: row.id, createdAt: row.created_at.toISOString() };
+          const row = await insertMessage(
+            conversationId,
+            "assistant",
+            result.content,
+            result.meta,
+          );
+          assistant = {
+            ...assistant,
+            id: row.id,
+            createdAt: row.created_at.toISOString(),
+          };
           if (isNew) {
             await renameConversation(conversationId, user!.id, result.title);
-            emit({ type: "conversation", id: conversationId, title: result.title });
+            emit({
+              type: "conversation",
+              id: conversationId,
+              title: result.title,
+            });
           }
           await touchConversation(conversationId);
         }
@@ -180,7 +247,8 @@ export async function POST(req: NextRequest) {
         console.error("POST /api/chat failed", err);
         emit({
           type: "error",
-          message: "Zelthia couldn't finish this answer. Check your connection and send it again. If symptoms are severe, call 112.",
+          message:
+            "Zelthia couldn't finish this answer. Check your connection and send it again. If symptoms are severe, call 112.",
         });
       } finally {
         controller.close();

@@ -36,7 +36,10 @@ function configured(): ProviderCfg[] {
             apiKey: env("GROQ_API_KEY"),
             model: env("GROQ_MODEL") || "openai/gpt-oss-120b",
             visionModel: env("GROQ_VISION_MODEL") || null,
-            maxTokens: Math.min(intEnv("GROQ_MAX_OUTPUT_TOKENS", 2000), REPLY_TOKEN_CAP),
+            maxTokens: Math.min(
+              intEnv("GROQ_MAX_OUTPUT_TOKENS", 2000),
+              REPLY_TOKEN_CAP,
+            ),
             pdf: false,
           }
         : null,
@@ -49,7 +52,10 @@ function configured(): ProviderCfg[] {
             apiKey: env("GEMINI_API_KEY"),
             model: env("GEMINI_MODEL") || "gemini-2.5-flash",
             visionModel: env("GEMINI_MODEL") || "gemini-2.5-flash",
-            maxTokens: Math.min(intEnv("GEMINI_MAX_OUTPUT_TOKENS", 2000), REPLY_TOKEN_CAP),
+            maxTokens: Math.min(
+              intEnv("GEMINI_MAX_OUTPUT_TOKENS", 2000),
+              REPLY_TOKEN_CAP,
+            ),
             pdf: true,
           }
         : null,
@@ -58,11 +64,15 @@ function configured(): ProviderCfg[] {
         ? {
             id: "nvidia",
             kind: "openai",
-            baseUrl: env("NVIDIA_BASE_URL") || "https://integrate.api.nvidia.com/v1",
+            baseUrl:
+              env("NVIDIA_BASE_URL") || "https://integrate.api.nvidia.com/v1",
             apiKey: env("NVIDIA_API_KEY"),
             model: env("NVIDIA_MODEL"),
             visionModel: env("NVIDIA_VISION_MODEL") || null,
-            maxTokens: Math.min(intEnv("NVIDIA_MAX_OUTPUT_TOKENS", 2000), REPLY_TOKEN_CAP),
+            maxTokens: Math.min(
+              intEnv("NVIDIA_MAX_OUTPUT_TOKENS", 2000),
+              REPLY_TOKEN_CAP,
+            ),
             pdf: false,
           }
         : null,
@@ -75,7 +85,10 @@ function configured(): ProviderCfg[] {
             apiKey: env("APMIX_API_KEY"),
             model: env("APMIX_MODEL"),
             visionModel: null,
-            maxTokens: Math.min(intEnv("APMIX_MAX_OUTPUT_TOKENS", 2000), REPLY_TOKEN_CAP),
+            maxTokens: Math.min(
+              intEnv("APMIX_MAX_OUTPUT_TOKENS", 2000),
+              REPLY_TOKEN_CAP,
+            ),
             pdf: false,
           }
         : null,
@@ -88,7 +101,10 @@ function configured(): ProviderCfg[] {
             apiKey: env("OPENAI_API_KEY"),
             model: env("OPENAI_MODEL") || "gpt-4.1-mini",
             visionModel: env("OPENAI_MODEL") || "gpt-4.1-mini",
-            maxTokens: Math.min(intEnv("OPENAI_MAX_OUTPUT_TOKENS", 2000), REPLY_TOKEN_CAP),
+            maxTokens: Math.min(
+              intEnv("OPENAI_MAX_OUTPUT_TOKENS", 2000),
+              REPLY_TOKEN_CAP,
+            ),
             pdf: false,
           }
         : null,
@@ -96,13 +112,20 @@ function configured(): ProviderCfg[] {
   const order = (env("AI_PROVIDER_ORDER") || "groq,gemini,nvidia,apmix")
     .split(",")
     .map((s) => s.trim().toLowerCase());
-  const list = order.map((id) => defs[id]?.()).filter((p): p is ProviderCfg => Boolean(p));
+  const list = order
+    .map((id) => defs[id]?.())
+    .filter((p): p is ProviderCfg => Boolean(p));
   return list.slice(0, 1 + intEnv("AI_MAX_FALLBACKS", 3));
 }
 
 /* ---------- request builders ---------- */
 
-function openaiBody(p: ProviderCfg, system: string, turns: Turn[], extra: object) {
+function openaiBody(
+  p: ProviderCfg,
+  system: string,
+  turns: Turn[],
+  extra: object,
+) {
   return {
     model: p.model,
     temperature: 0.2,
@@ -112,7 +135,12 @@ function openaiBody(p: ProviderCfg, system: string, turns: Turn[], extra: object
   };
 }
 
-function geminiBody(p: ProviderCfg, system: string, turns: Turn[], json = false) {
+function geminiBody(
+  p: ProviderCfg,
+  system: string,
+  turns: Turn[],
+  json = false,
+) {
   return {
     system_instruction: { parts: [{ text: system }] },
     contents: turns.map((t) => ({
@@ -136,14 +164,26 @@ async function failIfBad(res: Response, id: string) {
 
 /* ---------- one-shot completion ---------- */
 
-async function completeOne(p: ProviderCfg, system: string, turns: Turn[], json: boolean) {
+async function completeOne(
+  p: ProviderCfg,
+  system: string,
+  turns: Turn[],
+  json: boolean,
+) {
   if (p.kind === "gemini") {
-    const res = await fetchService(p.id, `${p.baseUrl}/models/${p.model}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": p.apiKey },
-      body: JSON.stringify(geminiBody(p, system, turns, json)),
-      signal: AbortSignal.timeout(timeoutMs()),
-    });
+    const res = await fetchService(
+      p.id,
+      `${p.baseUrl}/models/${p.model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": p.apiKey,
+        },
+        body: JSON.stringify(geminiBody(p, system, turns, json)),
+        signal: AbortSignal.timeout(timeoutMs()),
+      },
+    );
     await failIfBad(res, p.id);
     const data = await res.json();
     const text = (data?.candidates?.[0]?.content?.parts ?? [])
@@ -154,30 +194,49 @@ async function completeOne(p: ProviderCfg, system: string, turns: Turn[], json: 
   }
   const res = await fetchService(p.id, `${p.baseUrl}/chat/completions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${p.apiKey}` },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${p.apiKey}`,
+    },
     body: JSON.stringify(
-      openaiBody(p, system, turns, json ? { response_format: { type: "json_object" } } : {}),
+      openaiBody(
+        p,
+        system,
+        turns,
+        json ? { response_format: { type: "json_object" } } : {},
+      ),
     ),
     signal: AbortSignal.timeout(timeoutMs()),
   });
   await failIfBad(res, p.id);
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content;
-  if (typeof text !== "string" || !text.trim()) throw new Error(`${p.id} returned no text`);
+  if (typeof text !== "string" || !text.trim())
+    throw new Error(`${p.id} returned no text`);
   return text;
 }
 
-export async function complete(system: string, turns: Turn[], opts: { json?: boolean } = {}) {
+export async function complete(
+  system: string,
+  turns: Turn[],
+  opts: { json?: boolean } = {},
+) {
   const errors: string[] = [];
   for (const p of configured()) {
     try {
-      return { text: await completeOne(p, system, turns, Boolean(opts.json)), model: p.model };
+      return {
+        text: await completeOne(p, system, turns, Boolean(opts.json)),
+        model: p.model,
+      };
     } catch (err) {
       errors.push((err as Error).message);
       // A provider that rejects json mode may still answer in plain text.
       if (opts.json) {
         try {
-          return { text: await completeOne(p, system, turns, false), model: p.model };
+          return {
+            text: await completeOne(p, system, turns, false),
+            model: p.model,
+          };
         } catch {
           /* fall through to the next provider */
         }
@@ -214,17 +273,26 @@ async function streamOne(
 ) {
   let text = "";
   if (p.kind === "gemini") {
-    const res = await fetchService(p.id, `${p.baseUrl}/models/${p.model}:streamGenerateContent?alt=sse`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": p.apiKey },
-      body: JSON.stringify(geminiBody(p, system, turns)),
-      signal: AbortSignal.timeout(STREAM_TIMEOUT_MS),
-    });
+    const res = await fetchService(
+      p.id,
+      `${p.baseUrl}/models/${p.model}:streamGenerateContent?alt=sse`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": p.apiKey,
+        },
+        body: JSON.stringify(geminiBody(p, system, turns)),
+        signal: AbortSignal.timeout(STREAM_TIMEOUT_MS),
+      },
+    );
     await failIfBad(res, p.id);
     for await (const data of sseData(res)) {
       try {
         const parts = JSON.parse(data)?.candidates?.[0]?.content?.parts ?? [];
-        const chunk = parts.map((x: { text?: string }) => x.text ?? "").join("");
+        const chunk = parts
+          .map((x: { text?: string }) => x.text ?? "")
+          .join("");
         if (chunk) {
           text += chunk;
           onDelta(chunk);
@@ -236,7 +304,10 @@ async function streamOne(
   } else {
     const res = await fetchService(p.id, `${p.baseUrl}/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${p.apiKey}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${p.apiKey}`,
+      },
       body: JSON.stringify(openaiBody(p, system, turns, { stream: true })),
       signal: AbortSignal.timeout(STREAM_TIMEOUT_MS),
     });
@@ -263,7 +334,11 @@ async function streamOne(
  * abandoned if it fails before sending any text, so the user never sees a
  * half answer spliced with another model's.
  */
-export async function stream(system: string, turns: Turn[], onDelta: (t: string) => void) {
+export async function stream(
+  system: string,
+  turns: Turn[],
+  onDelta: (t: string) => void,
+) {
   const errors: string[] = [];
   for (const p of configured()) {
     let sent = false;
@@ -295,23 +370,32 @@ export async function readWithVision(prompt: string, file: BinaryInput) {
     if (!p.visionModel || (isPdf && !p.pdf)) continue;
     try {
       if (p.kind === "gemini") {
-        const res = await fetchService(p.id, `${p.baseUrl}/models/${p.visionModel}:generateContent`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": p.apiKey },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [
-                  { inline_data: { mime_type: file.mime, data: file.base64 } },
-                  { text: prompt },
-                ],
-              },
-            ],
-            generationConfig: { temperature: 0.1, maxOutputTokens: 2000 },
-          }),
-          signal: AbortSignal.timeout(45000),
-        });
+        const res = await fetchService(
+          p.id,
+          `${p.baseUrl}/models/${p.visionModel}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": p.apiKey,
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      inline_data: { mime_type: file.mime, data: file.base64 },
+                    },
+                    { text: prompt },
+                  ],
+                },
+              ],
+              generationConfig: { temperature: 0.1, maxOutputTokens: 2000 },
+            }),
+            signal: AbortSignal.timeout(45000),
+          },
+        );
         await failIfBad(res, p.id);
         const data = await res.json();
         const text = (data?.candidates?.[0]?.content?.parts ?? [])
@@ -322,7 +406,10 @@ export async function readWithVision(prompt: string, file: BinaryInput) {
       }
       const res = await fetchService(p.id, `${p.baseUrl}/chat/completions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${p.apiKey}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${p.apiKey}`,
+        },
         body: JSON.stringify({
           model: p.visionModel,
           temperature: 0.1,
@@ -332,7 +419,10 @@ export async function readWithVision(prompt: string, file: BinaryInput) {
               role: "user",
               content: [
                 { type: "text", text: prompt },
-                { type: "image_url", image_url: { url: `data:${file.mime};base64,${file.base64}` } },
+                {
+                  type: "image_url",
+                  image_url: { url: `data:${file.mime};base64,${file.base64}` },
+                },
               ],
             },
           ],
@@ -342,11 +432,14 @@ export async function readWithVision(prompt: string, file: BinaryInput) {
       await failIfBad(res, p.id);
       const data = await res.json();
       const text = data?.choices?.[0]?.message?.content;
-      if (typeof text === "string" && text.trim()) return { text, model: p.visionModel };
+      if (typeof text === "string" && text.trim())
+        return { text, model: p.visionModel };
       throw new Error(`${p.id} vision returned no text`);
     } catch (err) {
       errors.push((err as Error).message);
     }
   }
-  throw new Error(`No vision provider could read the file: ${errors.join(" | ")}`);
+  throw new Error(
+    `No vision provider could read the file: ${errors.join(" | ")}`,
+  );
 }

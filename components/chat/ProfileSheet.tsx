@@ -9,11 +9,22 @@ import { Button } from "@/components/ui/Button";
 import { ChoiceGroup } from "@/components/ui/Choice";
 import { useSession } from "@/lib/store/session";
 import type { BiometricProfile } from "@/lib/ai/types";
-import { AboutFields, BodyFields, HistoryFields, NotesField } from "@/components/profile/ProfileSections";
+import {
+  AboutFields,
+  BodyFields,
+  HistoryFields,
+  NotesField,
+} from "@/components/profile/ProfileSections";
 
 type Tab = "about" | "body" | "history" | "notes";
 
-export function ProfileSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function ProfileSheet({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   // Stay mounted through the exit so the sheet leaves the way it came; a
   // fresh open after that starts from a clean draft.
   const { mounted } = usePresence(open);
@@ -21,13 +32,20 @@ export function ProfileSheet({ open, onClose }: { open: boolean; onClose: () => 
   return <ProfileSheetInner open={open} onClose={onClose} />;
 }
 
-function ProfileSheetInner({ open, onClose }: { open: boolean; onClose: () => void }) {
+function ProfileSheetInner({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   const { profile, user, saveProfile } = useSession();
   const [draft, setDraft] = useState<BiometricProfile>(profile);
   const [tab, setTab] = useState<Tab>("history");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const patch = (p: Partial<BiometricProfile>) => setDraft((d) => ({ ...d, ...p }));
+  const patch = (p: Partial<BiometricProfile>) =>
+    setDraft((d) => ({ ...d, ...p }));
 
   const save = async () => {
     setSaving(true);
@@ -48,7 +66,10 @@ function ProfileSheetInner({ open, onClose }: { open: boolean; onClose: () => vo
       footer={
         <>
           {error && (
-            <p role="alert" className="mr-auto flex items-center gap-1.5 text-sm text-alert">
+            <p
+              role="alert"
+              className="mr-auto flex items-center gap-1.5 text-sm text-alert"
+            >
               <AlertCircle className="h-4 w-4" aria-hidden />
               {error}
             </p>
@@ -67,7 +88,10 @@ function ProfileSheetInner({ open, onClose }: { open: boolean; onClose: () => vo
           <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <span>
             Saved on this device only.{" "}
-            <Link href="/signup" className="font-semibold text-brand underline-offset-4 hover:underline">
+            <Link
+              href="/signup"
+              className="font-semibold text-brand underline-offset-4 hover:underline"
+            >
               Create an account
             </Link>{" "}
             to keep it everywhere.

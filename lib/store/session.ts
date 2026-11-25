@@ -53,7 +53,9 @@ async function post(url: string, body?: unknown, method = "POST") {
   } catch {
     return {
       res: null,
-      data: { error: "You appear to be offline. Check your connection and try again." },
+      data: {
+        error: "You appear to be offline. Check your connection and try again.",
+      },
     };
   }
 }
@@ -88,8 +90,12 @@ export const useSession = create<SessionState>()(
       },
 
       signIn: async (email, password) => {
-        const { res, data } = await post("/api/auth/signin", { email, password });
-        if (!res?.ok) return { ok: false, error: data.error, field: data.field };
+        const { res, data } = await post("/api/auth/signin", {
+          email,
+          password,
+        });
+        if (!res?.ok)
+          return { ok: false, error: data.error, field: data.field };
         set({
           user: data.user,
           profile: { ...EMPTY_PROFILE, ...(data.profile ?? get().profile) },
@@ -101,14 +107,24 @@ export const useSession = create<SessionState>()(
 
       signUp: async (input) => {
         const { res, data } = await post("/api/auth/signup", input);
-        if (!res?.ok) return { ok: false, error: data.error, field: data.field };
-        set({ user: data.user, status: "ready", facilityCount: data.user.role === "provider" ? 0 : null });
+        if (!res?.ok)
+          return { ok: false, error: data.error, field: data.field };
+        set({
+          user: data.user,
+          status: "ready",
+          facilityCount: data.user.role === "provider" ? 0 : null,
+        });
         return { ok: true };
       },
 
       signOut: async () => {
         await post("/api/auth/signout");
-        set({ user: null, profile: EMPTY_PROFILE, status: "ready", facilityCount: null });
+        set({
+          user: null,
+          profile: EMPTY_PROFILE,
+          status: "ready",
+          facilityCount: null,
+        });
       },
 
       saveProfile: async (profile, opts = {}) => {
@@ -137,7 +153,11 @@ export const useSession = create<SessionState>()(
       name: "zelthia-session",
       storage: createJSONStorage(() => localStorage),
       // The user object is cached only to avoid a signed-out flash; the server stays the source of truth.
-      partialize: (s) => ({ user: s.user, profile: s.profile, facilityCount: s.facilityCount }),
+      partialize: (s) => ({
+        user: s.user,
+        profile: s.profile,
+        facilityCount: s.facilityCount,
+      }),
       skipHydration: true,
     },
   ),

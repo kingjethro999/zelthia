@@ -27,7 +27,9 @@ export function ImageGallery({ images }: { images: WebImage[] }) {
         <Images className="h-4 w-4 text-muted" aria-hidden />
         Photos from the web
       </h4>
-      <p className="mb-2 text-xs text-muted">Tap a photo to open the page it came from.</p>
+      <p className="mb-2 text-xs text-muted">
+        Tap a photo to open the page it came from.
+      </p>
       <ul className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2 sm:grid sm:grid-cols-4 sm:overflow-visible">
         {shown.map((img) => (
           <li key={img.imageUrl} className="w-40 shrink-0 snap-start sm:w-auto">
@@ -51,10 +53,17 @@ export function ImageGallery({ images }: { images: WebImage[] }) {
               </div>
               <div className="flex items-center gap-1.5 px-2.5 py-2">
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-medium text-ink">{img.title || host(img.sourceUrl)}</span>
-                  <span className="block truncate text-[11px] text-muted">{host(img.sourceUrl)}</span>
+                  <span className="block truncate text-xs font-medium text-ink">
+                    {img.title || host(img.sourceUrl)}
+                  </span>
+                  <span className="block truncate text-[11px] text-muted">
+                    {host(img.sourceUrl)}
+                  </span>
                 </span>
-                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted group-hover:text-brand" aria-hidden />
+                <ExternalLink
+                  className="h-3.5 w-3.5 shrink-0 text-muted group-hover:text-brand"
+                  aria-hidden
+                />
               </div>
             </a>
           </li>

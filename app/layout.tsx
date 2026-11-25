@@ -94,7 +94,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${display.variable} ${body.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col bg-paper text-ink selection:bg-brand selection:text-white">
         <a
           href="#main"

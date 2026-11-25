@@ -88,7 +88,8 @@ export const useChat = create<ChatState>()((set, get) => ({
     set({ listStatus: "loading" });
     try {
       const res = await fetch("/api/conversations", { cache: "no-store" });
-      if (res.status === 401) return set({ conversations: [], listStatus: "ready" });
+      if (res.status === 401)
+        return set({ conversations: [], listStatus: "ready" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       set({ conversations: data.conversations, listStatus: "ready" });
@@ -101,13 +102,24 @@ export const useChat = create<ChatState>()((set, get) => ({
   openConversation: async (id) => {
     if (get().activeId === id && get().messages.length) return;
     get().stop();
-    set({ activeId: id, messages: [], loadingThread: true, threadError: null, temporary: false, localTurns: [], sendError: null });
+    set({
+      activeId: id,
+      messages: [],
+      loadingThread: true,
+      threadError: null,
+      temporary: false,
+      localTurns: [],
+      sendError: null,
+    });
     setUrl(`/chat/${id}`, "push");
     try {
-      const res = await fetch(`/api/conversations/${id}`, { cache: "no-store" });
+      const res = await fetch(`/api/conversations/${id}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Couldn't load this chat.");
-      if (get().activeId === id) set({ messages: data.messages, loadingThread: false });
+      if (get().activeId === id)
+        set({ messages: data.messages, loadingThread: false });
     } catch (err) {
       if (get().activeId === id)
         set({ loadingThread: false, threadError: (err as Error).message });
@@ -143,9 +155,12 @@ export const useChat = create<ChatState>()((set, get) => ({
       role: "user",
       content: text,
       createdAt: new Date().toISOString(),
-      attachments: files.map(
-        (f): AttachmentView => ({ name: f.name, mime: f.mime, size: f.size, url: f.previewUrl }),
-      ),
+      attachments: files.map((f): AttachmentView => ({
+        name: f.name,
+        mime: f.mime,
+        size: f.size,
+        url: f.previewUrl,
+      })),
     };
     set((s) => ({
       messages: [...s.messages, optimistic],
@@ -163,7 +178,12 @@ export const useChat = create<ChatState>()((set, get) => ({
         signal: controller.signal,
         body: JSON.stringify({
           text,
-          files: files.map(({ name, mime, size, base64 }) => ({ name, mime, size, base64 })),
+          files: files.map(({ name, mime, size, base64 }) => ({
+            name,
+            mime,
+            size,
+            base64,
+          })),
           conversationId: saved ? get().activeId : null,
           temporary: !saved,
           history: saved ? undefined : get().localTurns,
@@ -184,7 +204,11 @@ export const useChat = create<ChatState>()((set, get) => ({
             set((s) => ({
               activeId: e.id,
               conversations: [
-                { id: e.id, title: e.title, updatedAt: new Date().toISOString() },
+                {
+                  id: e.id,
+                  title: e.title,
+                  updatedAt: new Date().toISOString(),
+                },
                 ...s.conversations.filter((c) => c.id !== e.id),
               ],
             }));
@@ -205,7 +229,9 @@ export const useChat = create<ChatState>()((set, get) => ({
                     }
                   : m,
               ),
-              localTurns: saved ? s.localTurns : [...s.localTurns, { role: "user", content: e.context }],
+              localTurns: saved
+                ? s.localTurns
+                : [...s.localTurns, { role: "user", content: e.context }],
             }));
             break;
           case "step":
@@ -227,10 +253,17 @@ export const useChat = create<ChatState>()((set, get) => ({
               liveText: "",
               localTurns: saved
                 ? s.localTurns
-                : [...s.localTurns, { role: "assistant", content: e.message.content }],
+                : [
+                    ...s.localTurns,
+                    { role: "assistant", content: e.message.content },
+                  ],
               conversations: s.activeId
                 ? s.conversations
-                    .map((c) => (c.id === s.activeId ? { ...c, updatedAt: new Date().toISOString() } : c))
+                    .map((c) =>
+                      c.id === s.activeId
+                        ? { ...c, updatedAt: new Date().toISOString() }
+                        : c,
+                    )
                     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
                 : s.conversations,
             }));
@@ -290,7 +323,9 @@ export const useChat = create<ChatState>()((set, get) => ({
 
   rename: async (id, title) => {
     const prev = get().conversations;
-    set({ conversations: prev.map((c) => (c.id === id ? { ...c, title } : c)) });
+    set({
+      conversations: prev.map((c) => (c.id === id ? { ...c, title } : c)),
+    });
     const res = await fetch(`/api/conversations/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -303,7 +338,9 @@ export const useChat = create<ChatState>()((set, get) => ({
   remove: async (id) => {
     const prev = get().conversations;
     set({ conversations: prev.filter((c) => c.id !== id) });
-    const res = await fetch(`/api/conversations/${id}`, { method: "DELETE" }).catch(() => null);
+    const res = await fetch(`/api/conversations/${id}`, {
+      method: "DELETE",
+    }).catch(() => null);
     if (!res?.ok) {
       set({ conversations: prev });
       return false;

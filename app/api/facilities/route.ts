@@ -1,5 +1,10 @@
 import { connection } from "next/server";
-import { createFacility, listOwnedFacilities, parseFacilityInput, setVerification } from "@/lib/server/inventory";
+import {
+  createFacility,
+  listOwnedFacilities,
+  parseFacilityInput,
+  setVerification,
+} from "@/lib/server/inventory";
 import { verifyFacility } from "@/lib/server/verify";
 import { handle, json, readJson, requireUser } from "@/lib/server/api";
 
@@ -18,9 +23,14 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
-    let facility = await createFacility(user.id, parseFacilityInput(await readJson(req)));
+    let facility = await createFacility(
+      user.id,
+      parseFacilityInput(await readJson(req)),
+    );
     if (facility.licenseNumber) {
-      facility = (await setVerification(facility.id, await verifyFacility(facility))) ?? facility;
+      facility =
+        (await setVerification(facility.id, await verifyFacility(facility))) ??
+        facility;
     }
     return json({ facility }, 201);
   } catch (err) {

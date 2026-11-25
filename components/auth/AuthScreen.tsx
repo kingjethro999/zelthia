@@ -14,18 +14,29 @@ export function AuthScreen({ mode }: { mode: "signin" | "signup" }) {
   const params = useSearchParams();
   const next = params.get("next");
   const [role, setRole] = useState<UserRole>(
-    params.get("role") === "provider" || next?.startsWith("/provider") ? "provider" : "patient",
+    params.get("role") === "provider" || next?.startsWith("/provider")
+      ? "provider"
+      : "patient",
   );
   const facility = role === "provider";
 
   const copy =
     mode === "signup"
       ? facility
-        ? { title: "List your facility", subtitle: "Free to list. Takes about a minute." }
-        : { title: "Create your account", subtitle: "Free for patients. Takes about a minute." }
+        ? {
+            title: "List your facility",
+            subtitle: "Free to list. Takes about a minute.",
+          }
+        : {
+            title: "Create your account",
+            subtitle: "Free for patients. Takes about a minute.",
+          }
       : facility
         ? { title: "Welcome back", subtitle: "Sign in to manage your stock." }
-        : { title: "Welcome back", subtitle: "Sign in to continue with your health profile." };
+        : {
+            title: "Welcome back",
+            subtitle: "Sign in to continue with your health profile.",
+          };
 
   return (
     <AuthShell {...copy} role={role}>

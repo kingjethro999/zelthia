@@ -1,6 +1,17 @@
 import { connection } from "next/server";
-import { createProduct, getOwnedFacility, listProducts, parseProductInput } from "@/lib/server/inventory";
-import { HttpError, handle, json, readJson, requireUser } from "@/lib/server/api";
+import {
+  createProduct,
+  getOwnedFacility,
+  listProducts,
+  parseProductInput,
+} from "@/lib/server/inventory";
+import {
+  HttpError,
+  handle,
+  json,
+  readJson,
+  requireUser,
+} from "@/lib/server/api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -25,7 +36,10 @@ export async function GET(_req: Request, { params }: Ctx) {
 export async function POST(req: Request, { params }: Ctx) {
   try {
     const facility = await owned(params);
-    const product = await createProduct(facility.id, parseProductInput(await readJson(req)));
+    const product = await createProduct(
+      facility.id,
+      parseProductInput(await readJson(req)),
+    );
     return json({ product }, 201);
   } catch (err) {
     return handle("POST /api/facilities/[id]/products", err);

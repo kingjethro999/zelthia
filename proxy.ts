@@ -16,12 +16,19 @@ export function proxy(request: NextRequest) {
   if (!request.cookies.has(SESSION_COOKIE)) {
     const url = new URL("/signin", request.url);
     url.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
-    if (pathname.startsWith("/provider")) url.searchParams.set("role", "provider");
+    if (pathname.startsWith("/provider"))
+      url.searchParams.set("role", "provider");
     return NextResponse.redirect(url);
   }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/setup", "/account", "/provider", "/provider/:path*", "/inventory"],
+  matcher: [
+    "/setup",
+    "/account",
+    "/provider",
+    "/provider/:path*",
+    "/inventory",
+  ],
 };

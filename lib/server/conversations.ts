@@ -14,16 +14,23 @@ interface MessageRow {
   content: string;
   meta: MessageMeta;
   created_at: Date;
-  attachments: { id: string; name: string; mime: string; size: number }[] | null;
+  attachments:
+    { id: string; name: string; mime: string; size: number }[] | null;
 }
 
-export async function listConversations(userId: string): Promise<ConversationSummary[]> {
+export async function listConversations(
+  userId: string,
+): Promise<ConversationSummary[]> {
   const rows = await query<{ id: string; title: string; updated_at: Date }>(
     `select id, title, updated_at from conversations
       where user_id = $1 order by updated_at desc limit 200`,
     [userId],
   );
-  return rows.map((r) => ({ id: r.id, title: r.title, updatedAt: r.updated_at.toISOString() }));
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    updatedAt: r.updated_at.toISOString(),
+  }));
 }
 
 export async function getConversation(id: string, userId: string) {
@@ -43,7 +50,11 @@ export async function createConversation(userId: string, title: string) {
   return rows[0];
 }
 
-export async function renameConversation(id: string, userId: string, title: string) {
+export async function renameConversation(
+  id: string,
+  userId: string,
+  title: string,
+) {
   const rows = await query<{ id: string }>(
     "update conversations set title = $3 where id = $1 and user_id = $2 returning id",
     [id, userId, title.trim().slice(0, 120) || "New chat"],
@@ -52,20 +63,29 @@ export async function renameConversation(id: string, userId: string, title: stri
 }
 
 export async function touchConversation(id: string) {
-  await query("update conversations set updated_at = now() where id = $1", [id]);
+  await query("update conversations set updated_at = now() where id = $1", [
+    id,
+  ]);
 }
 
 export async function deleteConversation(id: string, userId: string) {
   if (!isUuid(id)) return [];
   // Return stored files so the caller can remove them from storage too.
-  const files = await query<{ storage_id: string; resource_type: string; format: string }>(
+  const files = await query<{
+    storage_id: string;
+    resource_type: string;
+    format: string;
+  }>(
     `select a.storage_id, a.resource_type, a.format from attachments a
        join messages m on m.id = a.message_id
        join conversations c on c.id = m.conversation_id
       where c.id = $1 and c.user_id = $2 and a.storage_id is not null`,
     [id, userId],
   );
-  await query("delete from conversations where id = $1 and user_id = $2", [id, userId]);
+  await query("delete from conversations where id = $1 and user_id = $2", [
+    id,
+    userId,
+  ]);
   return files;
 }
 
@@ -75,18 +95,18 @@ const toView = (r: MessageRow): ChatMessageView => ({
   content: r.content,
   createdAt: r.created_at.toISOString(),
   meta: r.meta ?? {},
-  attachments: (r.attachments ?? []).map(
-    (a): AttachmentView => ({
-      id: a.id,
-      name: a.name,
-      mime: a.mime,
-      size: a.size,
-      url: `/api/attachments/${a.id}`,
-    }),
-  ),
+  attachments: (r.attachments ?? []).map((a): AttachmentView => ({
+    id: a.id,
+    name: a.name,
+    mime: a.mime,
+    size: a.size,
+    url: `/api/attachments/${a.id}`,
+  })),
 });
 
-export async function getMessages(conversationId: string): Promise<ChatMessageView[]> {
+export async function getMessages(
+  conversationId: string,
+): Promise<ChatMessageView[]> {
   const rows = await query<MessageRow>(
     `select m.id, m.role, m.content, m.meta, m.created_at,
             (select json_agg(json_build_object('id', a.id, 'name', a.name, 'mime', a.mime, 'size', a.size)
@@ -100,7 +120,11 @@ export async function getMessages(conversationId: string): Promise<ChatMessageVi
 
 /** Text the model sees for earlier turns, including what was read from attachments. */
 export async function getHistoryTurns(conversationId: string, limit = 20) {
-  const rows = await query<{ role: "user" | "assistant"; content: string; notes: string | null }>(
+  const rows = await query<{
+    role: "user" | "assistant";
+    content: string;
+    notes: string | null;
+  }>(
     `select * from (
        select m.role, m.content, m.created_at,
               (select string_agg('[Attached ' || a.name || ']\n' || coalesce(a.extracted_text, ''), '\n\n')
@@ -144,7 +168,17 @@ export async function insertAttachment(a: {
   const rows = await query<{ id: string }>(
     `insert into attachments (user_id, message_id, name, mime, size, storage_id, resource_type, format, extracted_text)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning id`,
-    [a.userId, a.messageId, a.name, a.mime, a.size, a.storageId, a.resourceType, a.format, a.extractedText],
+    [
+      a.userId,
+      a.messageId,
+      a.name,
+      a.mime,
+      a.size,
+      a.storageId,
+      a.resourceType,
+      a.format,
+      a.extractedText,
+    ],
   );
   return rows[0].id;
 }

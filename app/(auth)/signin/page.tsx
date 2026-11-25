@@ -4,7 +4,8 @@ import { AuthScreen } from "@/components/auth/AuthScreen";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to Zelthia to pick up your health profile and conversations.",
+  description:
+    "Sign in to Zelthia to pick up your health profile and conversations.",
   alternates: { canonical: "/signin" },
   robots: { index: false, follow: true },
 };

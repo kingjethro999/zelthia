@@ -17,7 +17,15 @@ import { useSession } from "@/lib/store/session";
 import { cn } from "@/lib/utils";
 
 /** Routes that render their own chrome (the app sidebar or a full-screen flow). */
-const APP = ["/chat", "/inventory", "/provider", "/account", "/signin", "/signup", "/setup"];
+const APP = [
+  "/chat",
+  "/inventory",
+  "/provider",
+  "/account",
+  "/signin",
+  "/signup",
+  "/setup",
+];
 
 const AUDIENCES = [
   { href: "/", label: "For people", icon: UserRound },
@@ -34,7 +42,10 @@ export function AudienceSwitch({ className }: { className?: string }) {
   return (
     <nav
       aria-label="Audience"
-      className={cn("relative grid grid-cols-2 rounded-full bg-mist p-1 text-sm font-medium", className)}
+      className={cn(
+        "relative grid grid-cols-2 rounded-full bg-mist p-1 text-sm font-medium",
+        className,
+      )}
     >
       <span
         aria-hidden
@@ -64,7 +75,8 @@ export function AudienceSwitch({ className }: { className?: string }) {
 
 export function Header() {
   const pathname = usePathname();
-  if (APP.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
+  if (APP.some((p) => pathname === p || pathname.startsWith(`${p}/`)))
+    return null;
 
   return (
     <header className="material-bar sticky top-0 z-40 border-b border-line/60">
@@ -133,16 +145,26 @@ export function AccountControls({ stacked = false }: { stacked?: boolean }) {
       <div className="flex flex-col">
         <p className="px-2 pb-2 text-sm text-muted">Signed in as {user.name}</p>
         {!user.onboarded && (
-          <Link href="/setup" className="flex items-center gap-3 rounded-xl px-2 py-3 font-medium text-brand hover:bg-mist">
+          <Link
+            href="/setup"
+            className="flex items-center gap-3 rounded-xl px-2 py-3 font-medium text-brand hover:bg-mist"
+          >
             <Settings2 className="h-5 w-5" aria-hidden />
             Finish account setup
           </Link>
         )}
-        <Link href="/account" className="flex items-center gap-3 rounded-xl px-2 py-3 font-medium text-ink hover:bg-mist">
+        <Link
+          href="/account"
+          className="flex items-center gap-3 rounded-xl px-2 py-3 font-medium text-ink hover:bg-mist"
+        >
           <CircleUserRound className="h-5 w-5 text-muted" aria-hidden />
           Account and health profile
         </Link>
-        <button type="button" onClick={doSignOut} className="flex items-center gap-3 rounded-xl px-2 py-3 text-left font-medium text-ink hover:bg-mist">
+        <button
+          type="button"
+          onClick={doSignOut}
+          className="flex items-center gap-3 rounded-xl px-2 py-3 text-left font-medium text-ink hover:bg-mist"
+        >
           <LogOut className="h-5 w-5 text-muted" aria-hidden />
           Sign out
         </button>
@@ -162,27 +184,49 @@ export function AccountControls({ stacked = false }: { stacked?: boolean }) {
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-soft text-xs font-semibold text-brand-strong">
           {initials || <CircleUserRound className="h-4 w-4" aria-hidden />}
         </span>
-        <span className="max-w-32 truncate text-sm font-medium text-ink">{user.name.split(" ")[0]}</span>
+        <span className="max-w-32 truncate text-sm font-medium text-ink">
+          {user.name.split(" ")[0]}
+        </span>
         <ChevronDown className="h-4 w-4 text-muted" aria-hidden />
       </button>
       {menu && (
-        <div role="menu" className="animate-pop material-popover absolute right-0 mt-2 w-64 origin-top-right rounded-2xl border border-line p-1.5">
+        <div
+          role="menu"
+          className="animate-pop material-popover absolute right-0 mt-2 w-64 origin-top-right rounded-2xl border border-line p-1.5"
+        >
           <div className="px-3 py-2">
-            <p className="truncate text-sm font-semibold text-ink">{user.name}</p>
+            <p className="truncate text-sm font-semibold text-ink">
+              {user.name}
+            </p>
             <p className="truncate text-xs text-muted">{user.email}</p>
           </div>
           <div className="my-1 h-px bg-line" />
           {!user.onboarded && (
-            <Link role="menuitem" href="/setup" onClick={() => setMenu(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-brand hover:bg-mist">
+            <Link
+              role="menuitem"
+              href="/setup"
+              onClick={() => setMenu(false)}
+              className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-brand hover:bg-mist"
+            >
               <Settings2 className="h-4 w-4" aria-hidden />
               Finish account setup
             </Link>
           )}
-          <Link role="menuitem" href="/account" onClick={() => setMenu(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist">
+          <Link
+            role="menuitem"
+            href="/account"
+            onClick={() => setMenu(false)}
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist"
+          >
             <CircleUserRound className="h-4 w-4 text-muted" aria-hidden />
             Account and health profile
           </Link>
-          <button role="menuitem" type="button" onClick={doSignOut} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-ink hover:bg-mist">
+          <button
+            role="menuitem"
+            type="button"
+            onClick={doSignOut}
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-ink hover:bg-mist"
+          >
             <LogOut className="h-4 w-4 text-muted" aria-hidden />
             Sign out
           </button>

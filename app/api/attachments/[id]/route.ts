@@ -4,11 +4,18 @@ import { getOwnedAttachment } from "@/lib/server/conversations";
 import { downloadPrivate } from "@/lib/server/storage";
 
 /** Streams a private attachment to its owner only. */
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   await connection();
   try {
     const user = await getSessionUser();
-    if (!user) return NextResponse.json({ error: "Sign in to view this file." }, { status: 401 });
+    if (!user)
+      return NextResponse.json(
+        { error: "Sign in to view this file." },
+        { status: 401 },
+      );
     const { id } = await params;
     const a = await getOwnedAttachment(id, user.id);
     if (!a?.storage_id || !a.resource_type) {
@@ -20,7 +27,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       format: a.format ?? "",
     });
     if (!res.ok || !res.body) {
-      return NextResponse.json({ error: "File is unavailable right now." }, { status: 502 });
+      return NextResponse.json(
+        { error: "File is unavailable right now." },
+        { status: 502 },
+      );
     }
     return new Response(res.body, {
       headers: {
@@ -32,6 +42,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     });
   } catch (err) {
     console.error("GET /api/attachments/[id] failed", err);
-    return NextResponse.json({ error: "File is unavailable right now." }, { status: 503 });
+    return NextResponse.json(
+      { error: "File is unavailable right now." },
+      { status: 503 },
+    );
   }
 }

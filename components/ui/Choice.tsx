@@ -141,7 +141,12 @@ export function ChoiceGroup<T extends string>({
                   {opt.label}
                 </span>
                 {opt.description && (
-                  <span className={cn("mt-0.5 text-xs text-muted", dense ? "hidden sm:block" : "block")}>
+                  <span
+                    className={cn(
+                      "mt-0.5 text-xs text-muted",
+                      dense ? "hidden sm:block" : "block",
+                    )}
+                  >
                     {opt.description}
                   </span>
                 )}

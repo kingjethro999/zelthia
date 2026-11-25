@@ -19,14 +19,20 @@ export function usePresence(open: boolean, ms = EXIT_MS) {
   }
   useEffect(() => {
     if (open || !mounted) return;
-    const t = window.setTimeout(() => setMounted(false), prefersReducedMotion() ? 0 : ms);
+    const t = window.setTimeout(
+      () => setMounted(false),
+      prefersReducedMotion() ? 0 : ms,
+    );
     return () => window.clearTimeout(t);
   }, [open, mounted, ms]);
   return { mounted: mounted || open, closing: mounted && !open };
 }
 
 export function prefersReducedMotion() {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 /** Apple's scroll-deceleration projection: where a flick would come to rest. */
@@ -43,9 +49,12 @@ type Direction = "down" | "left";
 type Point = { clientX: number; clientY: number };
 
 /** Distance travelled in the dismiss direction (down, or leftwards). */
-const along = (dir: Direction, e: Point) => (dir === "down" ? e.clientY : -e.clientX);
-const across = (dir: Direction, e: Point) => (dir === "down" ? e.clientX : e.clientY);
-const sizeOf = (dir: Direction, el: HTMLElement) => (dir === "down" ? el.offsetHeight : el.offsetWidth);
+const along = (dir: Direction, e: Point) =>
+  dir === "down" ? e.clientY : -e.clientX;
+const across = (dir: Direction, e: Point) =>
+  dir === "down" ? e.clientX : e.clientY;
+const sizeOf = (dir: Direction, el: HTMLElement) =>
+  dir === "down" ? el.offsetHeight : el.offsetWidth;
 
 function setOffset(dir: Direction, el: HTMLElement, px: number) {
   // The standalone `translate` property composes with the entrance/exit
@@ -81,7 +90,11 @@ export function useDragDismiss(
     (e: React.PointerEvent) => {
       if (e.pointerType === "mouse" || !ref.current) return;
       // Bottom sheets only exist below the sm breakpoint.
-      if (direction === "down" && window.matchMedia("(min-width: 640px)").matches) return;
+      if (
+        direction === "down" &&
+        window.matchMedia("(min-width: 640px)").matches
+      )
+        return;
       state.current = {
         id: e.pointerId,
         start: along(direction, e),
@@ -103,7 +116,10 @@ export function useDragDismiss(
         // ~10px hysteresis, then commit only if the motion is mostly along
         // our axis and heading toward dismissal.
         if (Math.abs(d) < 10) return;
-        if (Math.abs(across(direction, e) - s.startCross) > Math.abs(d) || d < 0) {
+        if (
+          Math.abs(across(direction, e) - s.startCross) > Math.abs(d) ||
+          d < 0
+        ) {
           state.current = null;
           return;
         }
@@ -117,7 +133,11 @@ export function useDragDismiss(
         el.style.transition = "none";
       }
       const raw = along(direction, e) - s.start;
-      setOffset(direction, el, raw >= 0 ? raw : rubberband(raw, sizeOf(direction, el)));
+      setOffset(
+        direction,
+        el,
+        raw >= 0 ? raw : rubberband(raw, sizeOf(direction, el)),
+      );
       s.samples.push({ t: e.timeStamp, v: raw });
       if (s.samples.length > 6) s.samples.shift();
     },
@@ -136,7 +156,8 @@ export function useDragDismiss(
       const velocity = dt > 0 ? ((last.v - first.v) / dt) * 1000 : 0; // px/s
       const current = Math.max(0, last?.v ?? 0);
       const size = sizeOf(direction, el);
-      const dismiss = e.type !== "pointercancel" && current + project(velocity) > size / 2;
+      const dismiss =
+        e.type !== "pointercancel" && current + project(velocity) > size / 2;
 
       const remaining = dismiss ? size - current : current;
       if (remaining < 1) {
@@ -145,7 +166,9 @@ export function useDragDismiss(
         return;
       }
       const speed = Math.max(Math.abs(velocity), 1);
-      const ms = Math.round(Math.min(360, Math.max(160, (remaining / speed) * 1000 * 1.6)));
+      const ms = Math.round(
+        Math.min(360, Math.max(160, (remaining / speed) * 1000 * 1.6)),
+      );
       el.style.transition = `translate ${ms}ms cubic-bezier(0.32, 0.72, 0, 1)`;
       setOffset(direction, el, dismiss ? size : 0);
       // transitionend is not guaranteed (background tabs, interrupted
@@ -169,7 +192,12 @@ export function useDragDismiss(
     [ref, direction, onDismiss],
   );
 
-  return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp };
+  return {
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onPointerCancel: onPointerUp,
+  };
 }
 
 /** Last non-null value, so a closing dialog keeps its text while it animates out. */

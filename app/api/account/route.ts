@@ -69,7 +69,11 @@ export async function DELETE() {
     const user = await getSessionUser();
     if (!user)
       return NextResponse.json({ error: "Not signed in." }, { status: 401 });
-    const files = await query<{ storage_id: string; resource_type: string; format: string }>(
+    const files = await query<{
+      storage_id: string;
+      resource_type: string;
+      format: string;
+    }>(
       "select storage_id, resource_type, format from attachments where user_id = $1 and storage_id is not null",
       [user.id],
     );
@@ -78,11 +82,19 @@ export async function DELETE() {
     // Uploaded documents are health data: remove them from storage too.
     const results = await Promise.allSettled(
       files.map((f) =>
-        deletePrivate({ storageId: f.storage_id, resourceType: f.resource_type, format: f.format }),
+        deletePrivate({
+          storageId: f.storage_id,
+          resourceType: f.resource_type,
+          format: f.format,
+        }),
       ),
     );
     const failed = results.filter((r) => r.status === "rejected").length;
-    if (failed) console.error(`Account deleted but ${failed} stored file(s) failed to delete`, user.id);
+    if (failed)
+      console.error(
+        `Account deleted but ${failed} stored file(s) failed to delete`,
+        user.id,
+      );
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("DELETE /api/account failed", err);
