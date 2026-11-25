@@ -83,7 +83,7 @@ export function InfoPage(p: InfoPageProps) {
           <h1 className="max-w-3xl display font-display text-4xl font-semibold text-ink sm:text-5xl">
             {p.title}
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{p.lead}</p>
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">{p.lead}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href={p.primary.href} size="lg">
               {p.primary.label}
@@ -99,7 +99,7 @@ export function InfoPage(p: InfoPageProps) {
         <section className="border-y border-line bg-surface">
           <div className="mx-auto max-w-6xl space-y-4 px-4 py-12 sm:px-6 lg:py-16">
             {p.summary.map((para) => (
-              <p key={para.slice(0, 32)} className="max-w-3xl text-lg leading-relaxed text-ink">
+              <p key={para.slice(0, 32)} className="max-w-xl text-lg leading-relaxed text-ink">
                 {para}
               </p>
             ))}
@@ -152,7 +152,7 @@ export function InfoPage(p: InfoPageProps) {
                     {f.question}
                     <ChevronDown className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
                   </summary>
-                  <p className="pb-5 pr-8 leading-relaxed text-muted">{f.answer}</p>
+                  <p className="max-w-2xl pb-5 pr-8 leading-relaxed text-muted">{f.answer}</p>
                 </details>
               ))}
             </div>

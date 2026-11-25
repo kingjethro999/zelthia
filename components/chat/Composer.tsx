@@ -204,7 +204,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
           }
         }}
         placeholder={placeholder}
-        className="block max-h-[200px] min-h-11 w-full resize-none overflow-hidden bg-transparent px-3 py-2.5 text-[15px] text-ink placeholder:truncate placeholder:text-muted/70 focus:outline-none"
+        className="block max-h-[200px] min-h-11 w-full resize-none overflow-hidden bg-transparent px-3 py-2.5 text-[15px] text-ink placeholder:truncate placeholder:text-muted focus:outline-none"
       />
 
       <div className="flex items-center justify-between gap-2 px-1">

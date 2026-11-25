@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zelthia
 
-## Getting Started
+Inventory for pharmacies, clinics and hospitals in Nigeria, with a health companion on the patient side.
 
-First, run the development server:
+Facilities keep their stock, prices, batches, expiry dates and landmark directions up to date. Patients search what is listed and see what is available nearby before they travel. The health companion answers questions with a person's allergies, conditions and medicines in mind, and explains doctor's notes from a photo. Zelthia is free to use. Paid add-ons for specific features, such as verified facility listings, are planned.
+
+Zelthia gives guidance, not a diagnosis, and does not replace a doctor or pharmacist. It does not sell or dispense medicine.
+
+## What is in the app
+
+**For facilities** (`/provider`, `/for-facilities`)
+- Stock, price and batch per product, with one-tap quantity changes
+- Low-stock level per product and a 90-day expiry view
+- Services such as scans and tests
+- Landmark directions, including recorded voice directions
+- Verified badge for facilities with a confirmed licence or registration number
+
+**For patients** (`/inventory`, `/chat`, `/doctors-note-reader`)
+- Public search of facility listings with price, stock, hours and directions
+- Health chat with an optional profile, and a doctor's note reader for photos and PDFs
+- Web search fallback when nothing is listed, with sources and an "unverified" label
+
+## Stack
+
+Next.js 16 (App Router), React 19, Tailwind CSS 4, PostgreSQL (`pg`), Zustand, lucide-react, pnpm. Tables are created on first use.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script | What it does |
+|---|---|
+| `pnpm dev` | Development server |
+| `pnpm build` | Production build |
+| `pnpm start` | Serve the production build |
+| `pnpm lint` | ESLint |
+| `pnpm format` | Prettier |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment
 
-## Learn More
+Copy `.env.example` to `.env`. The main groups are:
 
-To learn more about Next.js, take a look at the following resources:
+- `DATABASE_URL`: accounts, sessions, health profiles and listings
+- `NEXT_PUBLIC_SITE_URL`: canonical links, sitemap and Open Graph
+- `AI_PROVIDER_ORDER` plus the provider keys (`GROQ_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`, `APMIX_API_KEY`, `OPENAI_API_KEY`): providers are tried in order and unset keys are skipped
+- `FIRECRAWL_API_KEY`, `TAVILY_API_KEY`, `JINA_API_KEY`: web search and photos for "where can I get this" answers
+- `CLOUDINARY_*`: private storage for chat uploads and recorded directions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Never commit `.env`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Layout
 
-## Deploy on Vercel
+```
+app/          routes: chat, inventory, provider, for-facilities, doctors-note-reader, account, setup, legal pages
+components/   ui kit, marketing, chat, inventory, profile
+lib/          ai, server (db, auth, inventory), motion, site facts
+mobile/       native Android and iOS work, see mobile/README.md
+scripts/      SEO and route checks
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Agent-facing text is served at `/llms.txt`, `/llms-full.txt` and `/openapi.json`.

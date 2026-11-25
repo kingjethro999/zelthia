@@ -352,7 +352,7 @@ function StockTab({ facility }: { facility: Facility }) {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search name, ingredient or batch"
-                className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-3 text-sm text-ink placeholder:text-muted/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-3 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <Select

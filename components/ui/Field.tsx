@@ -5,7 +5,7 @@ import { Eye, EyeOff, Minus, Plus, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const inputBase =
-  "w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-muted/70 transition-colors hover:border-brand/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20";
+  "w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-muted transition-colors hover:border-brand/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20";
 
 interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -186,7 +186,7 @@ export function Stepper({
             }}
             onBlur={() => value !== null && onChange(clamp(value))}
             aria-describedby={hint ? `${id}-hint` : undefined}
-            className="w-16 bg-transparent text-center font-display text-lg font-semibold tabular-nums text-ink placeholder:text-muted/60 focus:outline-none"
+            className="w-16 bg-transparent text-center font-display text-lg font-semibold tabular-nums text-ink placeholder:text-muted focus:outline-none"
           />
           {unit && <span className="text-sm text-muted">{unit}</span>}
         </div>
@@ -297,7 +297,7 @@ export function TagInput({
           onBlur={() => add(draft)}
           placeholder={values.length ? "Add another" : placeholder}
           aria-describedby={hint ? `${id}-hint` : undefined}
-          className="h-8 min-w-36 flex-1 bg-transparent px-2 text-sm text-ink placeholder:text-muted/70 focus:outline-none"
+          className="h-8 min-w-36 flex-1 bg-transparent px-2 text-sm text-ink placeholder:text-muted focus:outline-none"
         />
       </div>
       {hint && (

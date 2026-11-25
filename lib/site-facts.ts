@@ -18,10 +18,10 @@ export function llmsText(full: boolean) {
   const lines = [
     "# Zelthia",
     "",
-    "> Zelthia is a free health and care companion for Nigeria. It combines an AI health chat that accounts for a person's allergies, conditions and medicines; a reader that explains doctor's notes, prescriptions and results from a photo; a search for medicines, health products, tests and scans that facilities have listed; and a free inventory dashboard for pharmacies, clinics, hospitals, scan centres and health stores.",
+    "> Zelthia is inventory for pharmacies, clinics, hospitals, scan centres and health stores in Nigeria. Facilities keep stock, prices, batches and landmark directions up to date; patients search what is listed before they travel. A health companion on the patient side accounts for allergies, conditions and medicines, and explains doctor's notes, prescriptions and results from a photo.",
     "",
     "Key facts:",
-    "- Free for patients and for facilities. No account is needed to try the chat or search.",
+    "- Free to use for patients and for facilities. Paid add-ons for specific features, such as verified facility listings, are planned. No account is needed to try the chat or search.",
     "- Zelthia gives guidance, not a diagnosis, and does not replace a doctor or pharmacist. Emergency number in Nigeria: 112.",
     "- Stock and services shown come only from facilities that listed them. Web results are labelled unverified and link to their sources. Zelthia does not invent facilities, prices or phone numbers.",
     "- Facilities with a confirmed licence or registration number carry a verified badge.",

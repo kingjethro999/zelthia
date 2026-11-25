@@ -20,9 +20,9 @@ import { useSession } from "@/lib/store/session";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/chat", label: "Health chat", icon: MessageCircleHeart },
-  { href: "/inventory", label: "Find medicine", icon: Pill },
   { href: "/for-facilities", label: "For facilities", icon: Building2 },
+  { href: "/inventory", label: "Find medicine", icon: Pill },
+  { href: "/chat", label: "Health chat", icon: MessageCircleHeart },
 ];
 
 /** Routes that render their own full-height chrome. */

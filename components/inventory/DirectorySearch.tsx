@@ -86,7 +86,7 @@ export function DirectorySearch() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="e.g. paracetamol, Deep Heat, ultrasound scan"
-          className="h-11 min-w-0 flex-1 bg-transparent text-[15px] text-ink placeholder:text-muted/70 focus:outline-none"
+          className="h-11 min-w-0 flex-1 bg-transparent text-[15px] text-ink placeholder:text-muted focus:outline-none"
         />
         <Button type="submit" className="shrink-0">Search</Button>
       </form>
