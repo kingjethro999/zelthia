@@ -12,9 +12,10 @@ function createPool() {
     throw new Error("DATABASE_URL is not set");
   }
   const local = /localhost|127\.0\.0\.1/.test(connectionString);
+  const ca = process.env.DATABASE_CA_CERT?.replace(/\\n/g, "\n");
   const pool = new Pool({
     connectionString,
-    ssl: local ? undefined : { rejectUnauthorized: false },
+    ssl: local ? undefined : { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
     max: 5,
     idleTimeoutMillis: 30_000,
   });
@@ -127,6 +128,30 @@ alter table facilities add column if not exists verification_status text not nul
 alter table facilities add column if not exists verification_note text not null default '';
 alter table facilities add column if not exists verification_url text not null default '';
 alter table facilities add column if not exists verified_at timestamptz;
+alter table facilities add column if not exists verification_evidence jsonb not null default '[]'::jsonb;
+alter table facilities add column if not exists verified_by uuid references users(id) on delete set null;
+alter table users add column if not exists wrapped_dek text;
+alter table users add column if not exists terms_accepted_at timestamptz;
+alter table users add column if not exists terms_version text not null default '';
+alter table health_profiles add column if not exists data_enc text;
+alter table conversations add column if not exists title_enc text;
+alter table messages add column if not exists payload_enc text;
+alter table attachments add column if not exists extracted_enc text;
+alter table attachments add column if not exists encrypted boolean not null default false;
+create table if not exists rate_limits (
+  bucket_key text not null,
+  hit_at timestamptz not null default now()
+);
+create index if not exists rate_limits_key_hit_idx on rate_limits(bucket_key, hit_at desc);
+create table if not exists admin_audit_log (
+  id uuid primary key default gen_random_uuid(),
+  admin_id uuid references users(id) on delete set null,
+  action text not null,
+  target_type text not null,
+  target_id uuid,
+  details jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
 `;
 
 /** Creates tables on first use so deploys need no manual migration step. */
