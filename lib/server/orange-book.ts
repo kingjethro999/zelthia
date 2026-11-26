@@ -134,6 +134,19 @@ export interface OrangeBookSearchResult {
   discontinuedCount: number;
 }
 
+export function getOrangeBookStats(): {
+  available: boolean;
+  totalEntries: number;
+  source: string;
+} {
+  const idx = loadIndex();
+  return {
+    available: Boolean(idx),
+    totalEntries: idx?.entries.length ?? 0,
+    source: "US FDA Orange Book (EOBZIP_2026_10)",
+  };
+}
+
 /**
  * Searches the indexed US FDA Orange Book dataset (products, patents, exclusivity).
  * Gracefully reports `available: false` in deployments where `data/` is omitted,

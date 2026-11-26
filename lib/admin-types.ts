@@ -145,4 +145,16 @@ export interface AdminSystemHealth {
     category: string;
     configured: boolean;
   }[];
+  compliance: {
+    usersConsented: number;
+    usersProcessingRestricted: number;
+    termsVersion: string;
+  };
+  datasets: {
+    id: string;
+    label: string;
+    records: number;
+    source: string;
+    status: "ready" | "fallback";
+  }[];
 }

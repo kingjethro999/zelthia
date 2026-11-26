@@ -4,10 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Activity,
   AlertCircle,
+  BookOpenCheck,
   CheckCircle2,
   Database,
   Lock,
   RefreshCw,
+  Scale,
   Server,
   ShieldCheck,
   Sparkles,
@@ -350,6 +352,98 @@ export function SystemView() {
               </div>
             </GlassCard>
           </div>
+
+          {/* Regulatory Datasets & UKPGA DPA 2018 Compliance */}
+          <GlassCard padding="lg">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft text-brand-strong">
+                  <Scale className="h-5 w-5" aria-hidden />
+                </span>
+                <div>
+                  <h2 className="font-display text-lg font-semibold text-ink">
+                    Regulatory datasets &amp; DPA 2018 compliance
+                  </h2>
+                  <p className="text-xs text-muted">
+                    Live indexed datasets powering verification, clinical
+                    safety, and statutory compliance
+                  </p>
+                </div>
+              </div>
+              <GlassBadge tone="brand" icon={BookOpenCheck}>
+                <span className="font-mono">{data.compliance.termsVersion}</span>
+              </GlassBadge>
+            </div>
+
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
+              <GlassInset className="p-3">
+                <p className="adm-caption text-[11px] font-medium text-muted">
+                  Consented accounts (NDPA / DPA)
+                </p>
+                <p className="adm-kpi mt-0.5 font-display text-xl font-semibold text-ink">
+                  {data.compliance.usersConsented.toLocaleString("en-NG")} /{" "}
+                  {data.encryption.usersTotal.toLocaleString("en-NG")}
+                </p>
+              </GlassInset>
+              <GlassInset className="p-3">
+                <p className="adm-caption text-[11px] font-medium text-muted">
+                  Processing restricted (Art. 18 / s. 47)
+                </p>
+                <p className="adm-kpi mt-0.5 font-display text-xl font-semibold text-ink">
+                  {data.compliance.usersProcessingRestricted.toLocaleString(
+                    "en-NG",
+                  )}
+                </p>
+              </GlassInset>
+              <GlassInset className="p-3">
+                <p className="adm-caption text-[11px] font-medium text-muted">
+                  Indexed regulatory datasets
+                </p>
+                <p className="adm-kpi mt-0.5 font-display text-xl font-semibold text-ink">
+                  {data.datasets.length}
+                </p>
+              </GlassInset>
+            </div>
+
+            <ul className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+              {data.datasets.map((ds) => (
+                <li
+                  key={ds.id}
+                  className="adm-inner-well flex flex-col justify-between gap-2 rounded-2xl p-3.5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold text-ink">
+                        {ds.label}
+                      </p>
+                      <p className="mt-0.5 text-[11px] leading-snug text-muted">
+                        {ds.source}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                        ds.status === "ready"
+                          ? "bg-brand-soft text-brand-strong"
+                          : "bg-caution-soft text-caution",
+                      )}
+                    >
+                      {ds.status === "ready" && (
+                        <CheckCircle2 className="h-3 w-3" aria-hidden />
+                      )}
+                      {ds.status === "ready" ? "Ready" : "Fallback"}
+                    </span>
+                  </div>
+                  <p className="tabular text-xs font-medium text-ink">
+                    {ds.records.toLocaleString("en-NG")}{" "}
+                    <span className="font-normal text-muted">
+                      {ds.id === "openfda_apis" ? "endpoints" : "records"}
+                    </span>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </GlassCard>
         </>
       )}
     </div>

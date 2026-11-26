@@ -18,6 +18,8 @@ import {
 } from "@/lib/inventory-types";
 import { isAdminEmail } from "./auth";
 import { readServerEnv } from "./admin-route";
+import { getComplianceFrameworkSummary } from "./compliance";
+import { CURRENT_TERMS_VERSION } from "./crypto";
 import { query } from "./db";
 import {
   isUuid,
@@ -25,6 +27,9 @@ import {
   toFacility,
   toProduct,
 } from "./inventory";
+import { getMhraAgencyOverview } from "./mhra";
+import { getOrangeBookStats } from "./orange-book";
+import { getSocialCareSummary } from "./social-care";
 import { deletePrivate } from "./storage";
 
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
@@ -91,6 +96,30 @@ function getServiceStatusList() {
       label: "Tavily Web Search",
       category: "Search",
       configured: Boolean(process.env.TAVILY_API_KEY?.trim()),
+    },
+    {
+      id: "you",
+      label: "You.com Live Web Search",
+      category: "Search",
+      configured: Boolean(readServerEnv("YOU_API_KEY")),
+    },
+    {
+      id: "jina",
+      label: "Jina Reader & Search",
+      category: "Search",
+      configured: Boolean(readServerEnv("JINA_API_KEY")),
+    },
+    {
+      id: "zenrows",
+      label: "ZenRows Anti-Bot Scraper",
+      category: "Search",
+      configured: Boolean(readServerEnv("ZENROWS_API_KEY")),
+    },
+    {
+      id: "tinyfish",
+      label: "TinyFish Web Agent",
+      category: "Search",
+      configured: Boolean(readServerEnv("TINYFISH_API_KEY")),
     },
   ];
 }
@@ -905,66 +934,74 @@ export async function getAdminSystemHealth(): Promise<AdminSystemHealth> {
   await query("select 1");
   const dbLatencyMs = Math.max(1, Date.now() - started);
 
-  const [sizeRow, countsRow, encRow, maintRow, rateRows] = await Promise.all([
-    query<{ bytes: string }>(
-      "select pg_database_size(current_database())::text as bytes",
-    ),
-    query<{
-      users: number;
-      sessions: number;
-      health_profiles: number;
-      conversations: number;
-      messages: number;
-      attachments: number;
-      facilities: number;
-      products: number;
-      admin_audit_log: number;
-    }>(`
-      select
-        (select count(*)::int from users) as users,
-        (select count(*)::int from sessions) as sessions,
-        (select count(*)::int from health_profiles) as health_profiles,
-        (select count(*)::int from conversations) as conversations,
-        (select count(*)::int from messages) as messages,
-        (select count(*)::int from attachments) as attachments,
-        (select count(*)::int from facilities) as facilities,
-        (select count(*)::int from products) as products,
-        (select count(*)::int from admin_audit_log) as admin_audit_log
-    `),
-    query<{
-      users_total: number;
-      users_enc: number;
-      profiles_total: number;
-      profiles_enc: number;
-      convs_total: number;
-      convs_enc: number;
-      msgs_total: number;
-      msgs_enc: number;
-    }>(`
-      select
-        (select count(*)::int from users) as users_total,
-        (select count(*)::int from users where wrapped_dek is not null) as users_enc,
-        (select count(*)::int from health_profiles) as profiles_total,
-        (select count(*)::int from health_profiles where data_enc is not null) as profiles_enc,
-        (select count(*)::int from conversations) as convs_total,
-        (select count(*)::int from conversations where title_enc is not null) as convs_enc,
-        (select count(*)::int from messages) as msgs_total,
-        (select count(*)::int from messages where payload_enc is not null) as msgs_enc
-    `),
-    query<{ expired_sessions: number; stale_rate_limits: number }>(`
-      select
-        (select count(*)::int from sessions where expires_at <= now()) as expired_sessions,
-        (select count(*)::int from rate_limits where hit_at < now() - interval '24 hours') as stale_rate_limits
-    `),
-    query<{ grp: string; hits: number }>(`
-      select split_part(bucket_key, ':', 1) as grp, count(*)::int as hits
-      from rate_limits
-      where hit_at >= now() - interval '24 hours'
-      group by 1
-      order by hits desc
-      limit 12
-    `),
-  ]);
+  const [sizeRow, countsRow, encRow, maintRow, rateRows, compRow] =
+    await Promise.all([
+      query<{ bytes: string }>(
+        "select pg_database_size(current_database())::text as bytes",
+      ),
+      query<{
+        users: number;
+        sessions: number;
+        health_profiles: number;
+        conversations: number;
+        messages: number;
+        attachments: number;
+        facilities: number;
+        products: number;
+        regulatory_cache: number;
+        admin_audit_log: number;
+      }>(`
+        select
+          (select count(*)::int from users) as users,
+          (select count(*)::int from sessions) as sessions,
+          (select count(*)::int from health_profiles) as health_profiles,
+          (select count(*)::int from conversations) as conversations,
+          (select count(*)::int from messages) as messages,
+          (select count(*)::int from attachments) as attachments,
+          (select count(*)::int from facilities) as facilities,
+          (select count(*)::int from products) as products,
+          (select count(*)::int from regulatory_cache) as regulatory_cache,
+          (select count(*)::int from admin_audit_log) as admin_audit_log
+      `),
+      query<{
+        users_total: number;
+        users_enc: number;
+        profiles_total: number;
+        profiles_enc: number;
+        convs_total: number;
+        convs_enc: number;
+        msgs_total: number;
+        msgs_enc: number;
+      }>(`
+        select
+          (select count(*)::int from users) as users_total,
+          (select count(*)::int from users where wrapped_dek is not null) as users_enc,
+          (select count(*)::int from health_profiles) as profiles_total,
+          (select count(*)::int from health_profiles where data_enc is not null) as profiles_enc,
+          (select count(*)::int from conversations) as convs_total,
+          (select count(*)::int from conversations where title_enc is not null) as convs_enc,
+          (select count(*)::int from messages) as msgs_total,
+          (select count(*)::int from messages where payload_enc is not null) as msgs_enc
+      `),
+      query<{ expired_sessions: number; stale_rate_limits: number }>(`
+        select
+          (select count(*)::int from sessions where expires_at <= now()) as expired_sessions,
+          (select count(*)::int from rate_limits where hit_at < now() - interval '24 hours') as stale_rate_limits
+      `),
+      query<{ grp: string; hits: number }>(`
+        select split_part(bucket_key, ':', 1) as grp, count(*)::int as hits
+        from rate_limits
+        where hit_at >= now() - interval '24 hours'
+        group by 1
+        order by hits desc
+        limit 12
+      `),
+      query<{ users_consented: number; users_restricted: number }>(`
+        select
+          (select count(*)::int from users where terms_accepted_at is not null) as users_consented,
+          (select count(*)::int from users where processing_restricted = true) as users_restricted
+      `),
+    ]);
 
   const c = countsRow[0] ?? {
     users: 0,
@@ -975,6 +1012,7 @@ export async function getAdminSystemHealth(): Promise<AdminSystemHealth> {
     attachments: 0,
     facilities: 0,
     products: 0,
+    regulatory_cache: 0,
     admin_audit_log: 0,
   };
   const e = encRow[0] ?? {
@@ -988,6 +1026,15 @@ export async function getAdminSystemHealth(): Promise<AdminSystemHealth> {
     msgs_enc: 0,
   };
   const m = maintRow[0] ?? { expired_sessions: 0, stale_rate_limits: 0 };
+  const compStats = compRow[0] ?? {
+    users_consented: 0,
+    users_restricted: 0,
+  };
+
+  const orangeBook = getOrangeBookStats();
+  const mhra = getMhraAgencyOverview();
+  const compFramework = getComplianceFrameworkSummary();
+  const asc = getSocialCareSummary();
 
   return {
     dbLatencyMs,
@@ -1001,6 +1048,7 @@ export async function getAdminSystemHealth(): Promise<AdminSystemHealth> {
       { name: "attachments", count: c.attachments },
       { name: "facilities", count: c.facilities },
       { name: "products", count: c.products },
+      { name: "regulatory_cache", count: c.regulatory_cache },
       { name: "admin_audit_log", count: c.admin_audit_log },
     ],
     encryption: {
@@ -1022,6 +1070,49 @@ export async function getAdminSystemHealth(): Promise<AdminSystemHealth> {
       hits: r.hits,
     })),
     services: getServiceStatusList(),
+    compliance: {
+      usersConsented: compStats.users_consented,
+      usersProcessingRestricted: compStats.users_restricted,
+      termsVersion: CURRENT_TERMS_VERSION,
+    },
+    datasets: [
+      {
+        id: "fda_orange_book",
+        label: "US FDA Orange Book (EOBZIP)",
+        records: orangeBook.totalEntries,
+        source: orangeBook.source,
+        status: orangeBook.available ? "ready" : "fallback",
+      },
+      {
+        id: "openfda_apis",
+        label: "US openFDA Live REST APIs",
+        records: 7,
+        source:
+          "NDC, Drugs@FDA, SPL Label, FAERS, Enforcement, Food, CAERS",
+        status: "ready",
+      },
+      {
+        id: "uk_mhra",
+        label: "UK MHRA Safety PARs & HC 516",
+        records: mhra.parsCatalog.totalReports,
+        source: "GOV.UK MHRA (2006–2026) & 2025–2026 Annual Report",
+        status: "ready",
+      },
+      {
+        id: "ukpga_dpa2018",
+        label: "UKPGA Data Protection Act 2018",
+        records: compFramework.provisionsIndexed,
+        source: "UKPGA 2018 c. 12 (354 pp.) & National Security Guidance",
+        status: "ready",
+      },
+      {
+        id: "dhsc_social_care",
+        label: "England Adult Social Care 2025–26",
+        records: asc.totalCsvRowsProcessed,
+        source: "DHSC GOV.UK (9 regions · 153 Local Authorities)",
+        status: "ready",
+      },
+    ],
   };
 }
 
