@@ -1,0 +1,1167 @@
+{
+  "source": "Department of Health & Social Care — Adult Social Care Finance Report, England 2025–2026",
+  "url": "https://www.gov.uk/government/statistics/adult-social-care-finance-report-england-2025-to-2026",
+  "updated": "2026-11-25",
+  "prereleasePages": 4,
+  "totalCsvRowsProcessed": 509352,
+  "regionsCount": 9,
+  "localAuthoritiesCount": 153,
+  "dataQualityNotice": "Nottinghamshire 2025 to 2026 return carries an official DHSC data quality notice.",
+  "englandTotals": {
+    "fyEnding": 2026,
+    "currency": "GBP (thousands)",
+    "totalGrossCurrentExpenditureK": 31643733,
+    "totalNetCurrentExpenditureK": 26684153,
+    "longTermCareGrossCurrentK": 25755398,
+    "longTermCareNetCurrentK": 21044531,
+    "bySupportReasonGrossK": {
+      "Physical Support": 11652515,
+      "Sensory Support": 213729,
+      "Support with Memory and Cognition": 2670585,
+      "Learning Disability Support": 9597119,
+      "Mental Health Support": 2672585
+    },
+    "byAgeBandGrossK": {
+      "18 to 64": 12844189,
+      "65 and Over": 13962344
+    },
+    "bySettingGrossK": {
+      "Nursing": 3326443,
+      "Residential": 8566063,
+      "Supported Accommodation": 1007245,
+      "Community: Direct Payments": 2645317,
+      "Community: Home Care": 4264264,
+      "Community: Supported Living": 4603203,
+      "Community: Other Long Term Care": 1342864
+    }
+  },
+  "regions": [
+    {
+      "regionCode": "E12000008",
+      "name": "South East",
+      "totalGrossCurrentK": 5102662,
+      "totalNetCurrentK": 4328941
+    },
+    {
+      "regionCode": "E12000002",
+      "name": "North West",
+      "totalGrossCurrentK": 4605914,
+      "totalNetCurrentK": 3807580
+    },
+    {
+      "regionCode": "E12000007",
+      "name": "London",
+      "totalGrossCurrentK": 4439080,
+      "totalNetCurrentK": 3882039
+    },
+    {
+      "regionCode": "E12000006",
+      "name": "East of England",
+      "totalGrossCurrentK": 3547064,
+      "totalNetCurrentK": 3002688
+    },
+    {
+      "regionCode": "E12000009",
+      "name": "South West",
+      "totalGrossCurrentK": 3305676,
+      "totalNetCurrentK": 2779843
+    },
+    {
+      "regionCode": "E12000005",
+      "name": "West Midlands",
+      "totalGrossCurrentK": 3304376,
+      "totalNetCurrentK": 2761562
+    },
+    {
+      "regionCode": "E12000003",
+      "name": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 3228517,
+      "totalNetCurrentK": 2663958
+    },
+    {
+      "regionCode": "E12000004",
+      "name": "East Midlands",
+      "totalGrossCurrentK": 2463360,
+      "totalNetCurrentK": 2118263
+    },
+    {
+      "regionCode": "E12000001",
+      "name": "North East",
+      "totalGrossCurrentK": 1647083,
+      "totalNetCurrentK": 1339278
+    }
+  ],
+  "localAuthorities": [
+    {
+      "code": "E10000016",
+      "name": "Kent",
+      "region": "South East",
+      "totalGrossCurrentK": 938763,
+      "totalNetCurrentK": 798383
+    },
+    {
+      "code": "E10000012",
+      "name": "Essex",
+      "region": "East of England",
+      "totalGrossCurrentK": 865040,
+      "totalNetCurrentK": 741535
+    },
+    {
+      "code": "E10000017",
+      "name": "Lancashire",
+      "region": "North West",
+      "totalGrossCurrentK": 764196,
+      "totalNetCurrentK": 617075
+    },
+    {
+      "code": "E10000014",
+      "name": "Hampshire",
+      "region": "South East",
+      "totalGrossCurrentK": 755771,
+      "totalNetCurrentK": 639609
+    },
+    {
+      "code": "E10000015",
+      "name": "Hertfordshire",
+      "region": "East of England",
+      "totalGrossCurrentK": 659535,
+      "totalNetCurrentK": 564649
+    },
+    {
+      "code": "E10000030",
+      "name": "Surrey",
+      "region": "South East",
+      "totalGrossCurrentK": 637958,
+      "totalNetCurrentK": 552212
+    },
+    {
+      "code": "E08000025",
+      "name": "Birmingham",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 580729,
+      "totalNetCurrentK": 505647
+    },
+    {
+      "code": "E10000020",
+      "name": "Norfolk",
+      "region": "East of England",
+      "totalGrossCurrentK": 548678,
+      "totalNetCurrentK": 467601
+    },
+    {
+      "code": "E10000008",
+      "name": "Devon",
+      "region": "South West",
+      "totalGrossCurrentK": 506581,
+      "totalNetCurrentK": 407828
+    },
+    {
+      "code": "E10000029",
+      "name": "Suffolk",
+      "region": "East of England",
+      "totalGrossCurrentK": 484218,
+      "totalNetCurrentK": 392091
+    },
+    {
+      "code": "E10000028",
+      "name": "Staffordshire",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 460377,
+      "totalNetCurrentK": 368648
+    },
+    {
+      "code": "E10000024",
+      "name": "Nottinghamshire",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 459508,
+      "totalNetCurrentK": 649737
+    },
+    {
+      "code": "E10000007",
+      "name": "Derbyshire",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 438547,
+      "totalNetCurrentK": 367136
+    },
+    {
+      "code": "E10000032",
+      "name": "West Sussex",
+      "region": "South East",
+      "totalGrossCurrentK": 426135,
+      "totalNetCurrentK": 349514
+    },
+    {
+      "code": "E06000065",
+      "name": "North Yorkshire",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 405804,
+      "totalNetCurrentK": 318119
+    },
+    {
+      "code": "E10000011",
+      "name": "East Sussex",
+      "region": "South East",
+      "totalGrossCurrentK": 405005,
+      "totalNetCurrentK": 338758
+    },
+    {
+      "code": "E08000035",
+      "name": "Leeds",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 404336,
+      "totalNetCurrentK": 342191
+    },
+    {
+      "code": "E06000052",
+      "name": "Cornwall",
+      "region": "South West",
+      "totalGrossCurrentK": 382914,
+      "totalNetCurrentK": 338750
+    },
+    {
+      "code": "E10000025",
+      "name": "Oxfordshire",
+      "region": "South East",
+      "totalGrossCurrentK": 367546,
+      "totalNetCurrentK": 306054
+    },
+    {
+      "code": "E08000003",
+      "name": "Manchester",
+      "region": "North West",
+      "totalGrossCurrentK": 362518,
+      "totalNetCurrentK": 315054
+    },
+    {
+      "code": "E08000019",
+      "name": "Sheffield",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 361679,
+      "totalNetCurrentK": 310987
+    },
+    {
+      "code": "E10000031",
+      "name": "Warwickshire",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 352549,
+      "totalNetCurrentK": 263758
+    },
+    {
+      "code": "E10000003",
+      "name": "Cambridgeshire",
+      "region": "East of England",
+      "totalGrossCurrentK": 339058,
+      "totalNetCurrentK": 285000
+    },
+    {
+      "code": "E10000018",
+      "name": "Leicestershire",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 329797,
+      "totalNetCurrentK": 270777
+    },
+    {
+      "code": "E10000019",
+      "name": "Lincolnshire",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 322585,
+      "totalNetCurrentK": 304521
+    },
+    {
+      "code": "E08000012",
+      "name": "Liverpool",
+      "region": "North West",
+      "totalGrossCurrentK": 319367,
+      "totalNetCurrentK": 282201
+    },
+    {
+      "code": "E10000034",
+      "name": "Worcestershire",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 318057,
+      "totalNetCurrentK": 272376
+    },
+    {
+      "code": "E06000066",
+      "name": "Somerset",
+      "region": "South West",
+      "totalGrossCurrentK": 316427,
+      "totalNetCurrentK": 274982
+    },
+    {
+      "code": "E10000013",
+      "name": "Gloucestershire",
+      "region": "South West",
+      "totalGrossCurrentK": 312489,
+      "totalNetCurrentK": 259685
+    },
+    {
+      "code": "E06000023",
+      "name": "Bristol, City of",
+      "region": "South West",
+      "totalGrossCurrentK": 272811,
+      "totalNetCurrentK": 236581
+    },
+    {
+      "code": "E06000011",
+      "name": "East Riding of Yorkshire",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 267729,
+      "totalNetCurrentK": 196390
+    },
+    {
+      "code": "E06000047",
+      "name": "County Durham",
+      "region": "North East",
+      "totalGrossCurrentK": 265867,
+      "totalNetCurrentK": 207196
+    },
+    {
+      "code": "E08000032",
+      "name": "Bradford",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 261802,
+      "totalNetCurrentK": 226321
+    },
+    {
+      "code": "E06000060",
+      "name": "Buckinghamshire",
+      "region": "South East",
+      "totalGrossCurrentK": 254650,
+      "totalNetCurrentK": 222410
+    },
+    {
+      "code": "E06000054",
+      "name": "Wiltshire",
+      "region": "South West",
+      "totalGrossCurrentK": 244021,
+      "totalNetCurrentK": 205684
+    },
+    {
+      "code": "E06000059",
+      "name": "Dorset",
+      "region": "South West",
+      "totalGrossCurrentK": 239705,
+      "totalNetCurrentK": 196731
+    },
+    {
+      "code": "E06000016",
+      "name": "Leicester",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 239643,
+      "totalNetCurrentK": 210485
+    },
+    {
+      "code": "E06000058",
+      "name": "Bournemouth, Christchurch and Poole",
+      "region": "South West",
+      "totalGrossCurrentK": 237174,
+      "totalNetCurrentK": 201521
+    },
+    {
+      "code": "E08000034",
+      "name": "Kirklees",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 236373,
+      "totalNetCurrentK": 202675
+    },
+    {
+      "code": "E06000049",
+      "name": "Cheshire East",
+      "region": "North West",
+      "totalGrossCurrentK": 236207,
+      "totalNetCurrentK": 191865
+    },
+    {
+      "code": "E06000050",
+      "name": "Cheshire West and Chester",
+      "region": "North West",
+      "totalGrossCurrentK": 230268,
+      "totalNetCurrentK": 196855
+    },
+    {
+      "code": "E09000008",
+      "name": "Croydon",
+      "region": "London",
+      "totalGrossCurrentK": 222858,
+      "totalNetCurrentK": 194066
+    },
+    {
+      "code": "E06000051",
+      "name": "Shropshire",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 217327,
+      "totalNetCurrentK": 181163
+    },
+    {
+      "code": "E08000015",
+      "name": "Wirral",
+      "region": "North West",
+      "totalGrossCurrentK": 212631,
+      "totalNetCurrentK": 171705
+    },
+    {
+      "code": "E06000057",
+      "name": "Northumberland",
+      "region": "North East",
+      "totalGrossCurrentK": 209733,
+      "totalNetCurrentK": 167629
+    },
+    {
+      "code": "E08000036",
+      "name": "Wakefield",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 209125,
+      "totalNetCurrentK": 171954
+    },
+    {
+      "code": "E09000003",
+      "name": "Barnet",
+      "region": "London",
+      "totalGrossCurrentK": 205825,
+      "totalNetCurrentK": 179751
+    },
+    {
+      "code": "E08000021",
+      "name": "Newcastle upon Tyne",
+      "region": "North East",
+      "totalGrossCurrentK": 203339,
+      "totalNetCurrentK": 174046
+    },
+    {
+      "code": "E08000017",
+      "name": "Doncaster",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 195109,
+      "totalNetCurrentK": 158366
+    },
+    {
+      "code": "E06000062",
+      "name": "West Northamptonshire",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 193255,
+      "totalNetCurrentK": 165460
+    },
+    {
+      "code": "E06000025",
+      "name": "South Gloucestershire",
+      "region": "South West",
+      "totalGrossCurrentK": 192584,
+      "totalNetCurrentK": 165682
+    },
+    {
+      "code": "E08000024",
+      "name": "Sunderland",
+      "region": "North East",
+      "totalGrossCurrentK": 189713,
+      "totalNetCurrentK": 156921
+    },
+    {
+      "code": "E06000043",
+      "name": "Brighton and Hove",
+      "region": "South East",
+      "totalGrossCurrentK": 183142,
+      "totalNetCurrentK": 159969
+    },
+    {
+      "code": "E08000007",
+      "name": "Stockport",
+      "region": "North West",
+      "totalGrossCurrentK": 180050,
+      "totalNetCurrentK": 152092
+    },
+    {
+      "code": "E09000030",
+      "name": "Tower Hamlets",
+      "region": "London",
+      "totalGrossCurrentK": 178372,
+      "totalNetCurrentK": 172032
+    },
+    {
+      "code": "E08000010",
+      "name": "Wigan",
+      "region": "North West",
+      "totalGrossCurrentK": 177170,
+      "totalNetCurrentK": 145884
+    },
+    {
+      "code": "E06000061",
+      "name": "North Northamptonshire",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 174851,
+      "totalNetCurrentK": 147035
+    },
+    {
+      "code": "E08000014",
+      "name": "Sefton",
+      "region": "North West",
+      "totalGrossCurrentK": 173911,
+      "totalNetCurrentK": 139927
+    },
+    {
+      "code": "E08000026",
+      "name": "Coventry",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 172389,
+      "totalNetCurrentK": 149017
+    },
+    {
+      "code": "E09000007",
+      "name": "Camden",
+      "region": "London",
+      "totalGrossCurrentK": 172017,
+      "totalNetCurrentK": 156542
+    },
+    {
+      "code": "E08000018",
+      "name": "Rotherham",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 171231,
+      "totalNetCurrentK": 148405
+    },
+    {
+      "code": "E08000027",
+      "name": "Dudley",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 170653,
+      "totalNetCurrentK": 140219
+    },
+    {
+      "code": "E06000010",
+      "name": "Kingston upon Hull, City of",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 168757,
+      "totalNetCurrentK": 137232
+    },
+    {
+      "code": "E06000018",
+      "name": "Nottingham",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 168324,
+      "totalNetCurrentK": 145202
+    },
+    {
+      "code": "E08000001",
+      "name": "Bolton",
+      "region": "North West",
+      "totalGrossCurrentK": 167339,
+      "totalNetCurrentK": 137026
+    },
+    {
+      "code": "E08000030",
+      "name": "Walsall",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 166322,
+      "totalNetCurrentK": 148022
+    },
+    {
+      "code": "E08000031",
+      "name": "Wolverhampton",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 165715,
+      "totalNetCurrentK": 135723
+    },
+    {
+      "code": "E08000028",
+      "name": "Sandwell",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 165155,
+      "totalNetCurrentK": 142371
+    },
+    {
+      "code": "E06000021",
+      "name": "Stoke-on-Trent",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 163940,
+      "totalNetCurrentK": 137223
+    },
+    {
+      "code": "E09000022",
+      "name": "Lambeth",
+      "region": "London",
+      "totalGrossCurrentK": 163902,
+      "totalNetCurrentK": 142681
+    },
+    {
+      "code": "E09000032",
+      "name": "Wandsworth",
+      "region": "London",
+      "totalGrossCurrentK": 161605,
+      "totalNetCurrentK": 144715
+    },
+    {
+      "code": "E06000056",
+      "name": "Central Bedfordshire",
+      "region": "East of England",
+      "totalGrossCurrentK": 161035,
+      "totalNetCurrentK": 133405
+    },
+    {
+      "code": "E06000063",
+      "name": "Cumberland",
+      "region": "North West",
+      "totalGrossCurrentK": 160121,
+      "totalNetCurrentK": 127571
+    },
+    {
+      "code": "E09000014",
+      "name": "Haringey",
+      "region": "London",
+      "totalGrossCurrentK": 158430,
+      "totalNetCurrentK": 142630
+    },
+    {
+      "code": "E09000012",
+      "name": "Hackney",
+      "region": "London",
+      "totalGrossCurrentK": 157372,
+      "totalNetCurrentK": 146513
+    },
+    {
+      "code": "E09000009",
+      "name": "Ealing",
+      "region": "London",
+      "totalGrossCurrentK": 157007,
+      "totalNetCurrentK": 125596
+    },
+    {
+      "code": "E09000006",
+      "name": "Bromley",
+      "region": "London",
+      "totalGrossCurrentK": 154953,
+      "totalNetCurrentK": 128028
+    },
+    {
+      "code": "E09000011",
+      "name": "Greenwich",
+      "region": "London",
+      "totalGrossCurrentK": 154636,
+      "totalNetCurrentK": 136806
+    },
+    {
+      "code": "E06000035",
+      "name": "Medway",
+      "region": "South East",
+      "totalGrossCurrentK": 152765,
+      "totalNetCurrentK": 130274
+    },
+    {
+      "code": "E06000064",
+      "name": "Westmorland and Furness",
+      "region": "North West",
+      "totalGrossCurrentK": 150393,
+      "totalNetCurrentK": 120291
+    },
+    {
+      "code": "E09000019",
+      "name": "Islington",
+      "region": "London",
+      "totalGrossCurrentK": 150347,
+      "totalNetCurrentK": 136306
+    },
+    {
+      "code": "E06000026",
+      "name": "Plymouth",
+      "region": "South West",
+      "totalGrossCurrentK": 149418,
+      "totalNetCurrentK": 125326
+    },
+    {
+      "code": "E09000028",
+      "name": "Southwark",
+      "region": "London",
+      "totalGrossCurrentK": 149357,
+      "totalNetCurrentK": 133964
+    },
+    {
+      "code": "E06000007",
+      "name": "Warrington",
+      "region": "North West",
+      "totalGrossCurrentK": 148646,
+      "totalNetCurrentK": 121756
+    },
+    {
+      "code": "E09000010",
+      "name": "Enfield",
+      "region": "London",
+      "totalGrossCurrentK": 148161,
+      "totalNetCurrentK": 151097
+    },
+    {
+      "code": "E09000025",
+      "name": "Newham",
+      "region": "London",
+      "totalGrossCurrentK": 142438,
+      "totalNetCurrentK": 127519
+    },
+    {
+      "code": "E09000026",
+      "name": "Redbridge",
+      "region": "London",
+      "totalGrossCurrentK": 141673,
+      "totalNetCurrentK": 119382
+    },
+    {
+      "code": "E08000037",
+      "name": "Gateshead",
+      "region": "North East",
+      "totalGrossCurrentK": 141446,
+      "totalNetCurrentK": 116634
+    },
+    {
+      "code": "E08000006",
+      "name": "Salford",
+      "region": "North West",
+      "totalGrossCurrentK": 140780,
+      "totalNetCurrentK": 119868
+    },
+    {
+      "code": "E06000024",
+      "name": "North Somerset",
+      "region": "South West",
+      "totalGrossCurrentK": 140675,
+      "totalNetCurrentK": 112227
+    },
+    {
+      "code": "E06000042",
+      "name": "Milton Keynes",
+      "region": "South East",
+      "totalGrossCurrentK": 140652,
+      "totalNetCurrentK": 118858
+    },
+    {
+      "code": "E08000008",
+      "name": "Tameside",
+      "region": "North West",
+      "totalGrossCurrentK": 139185,
+      "totalNetCurrentK": 112853
+    },
+    {
+      "code": "E08000005",
+      "name": "Rochdale",
+      "region": "North West",
+      "totalGrossCurrentK": 138871,
+      "totalNetCurrentK": 117418
+    },
+    {
+      "code": "E09000017",
+      "name": "Hillingdon",
+      "region": "London",
+      "totalGrossCurrentK": 138614,
+      "totalNetCurrentK": 121197
+    },
+    {
+      "code": "E09000031",
+      "name": "Waltham Forest",
+      "region": "London",
+      "totalGrossCurrentK": 138020,
+      "totalNetCurrentK": 120380
+    },
+    {
+      "code": "E09000018",
+      "name": "Hounslow",
+      "region": "London",
+      "totalGrossCurrentK": 133856,
+      "totalNetCurrentK": 117082
+    },
+    {
+      "code": "E09000023",
+      "name": "Lewisham",
+      "region": "London",
+      "totalGrossCurrentK": 131225,
+      "totalNetCurrentK": 114682
+    },
+    {
+      "code": "E09000016",
+      "name": "Havering",
+      "region": "London",
+      "totalGrossCurrentK": 129068,
+      "totalNetCurrentK": 109847
+    },
+    {
+      "code": "E08000009",
+      "name": "Trafford",
+      "region": "North West",
+      "totalGrossCurrentK": 127855,
+      "totalNetCurrentK": 108272
+    },
+    {
+      "code": "E08000011",
+      "name": "Knowsley",
+      "region": "North West",
+      "totalGrossCurrentK": 126795,
+      "totalNetCurrentK": 104599
+    },
+    {
+      "code": "E08000029",
+      "name": "Solihull",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 126140,
+      "totalNetCurrentK": 107120
+    },
+    {
+      "code": "E06000045",
+      "name": "Southampton",
+      "region": "South East",
+      "totalGrossCurrentK": 124893,
+      "totalNetCurrentK": 106539
+    },
+    {
+      "code": "E08000016",
+      "name": "Barnsley",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 124626,
+      "totalNetCurrentK": 98799
+    },
+    {
+      "code": "E06000019",
+      "name": "Herefordshire, County of",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 124508,
+      "totalNetCurrentK": 107653
+    },
+    {
+      "code": "E09000015",
+      "name": "Harrow",
+      "region": "London",
+      "totalGrossCurrentK": 123495,
+      "totalNetCurrentK": 105718
+    },
+    {
+      "code": "E08000033",
+      "name": "Calderdale",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 123438,
+      "totalNetCurrentK": 104818
+    },
+    {
+      "code": "E09000033",
+      "name": "Westminster",
+      "region": "London",
+      "totalGrossCurrentK": 122271,
+      "totalNetCurrentK": 113377
+    },
+    {
+      "code": "E08000013",
+      "name": "St. Helens",
+      "region": "North West",
+      "totalGrossCurrentK": 121344,
+      "totalNetCurrentK": 95166
+    },
+    {
+      "code": "E06000020",
+      "name": "Telford and Wrekin",
+      "region": "West Midlands",
+      "totalGrossCurrentK": 120516,
+      "totalNetCurrentK": 102838
+    },
+    {
+      "code": "E08000004",
+      "name": "Oldham",
+      "region": "North West",
+      "totalGrossCurrentK": 120346,
+      "totalNetCurrentK": 99296
+    },
+    {
+      "code": "E06000030",
+      "name": "Swindon",
+      "region": "South West",
+      "totalGrossCurrentK": 119635,
+      "totalNetCurrentK": 103734
+    },
+    {
+      "code": "E08000022",
+      "name": "North Tyneside",
+      "region": "North East",
+      "totalGrossCurrentK": 119509,
+      "totalNetCurrentK": 96434
+    },
+    {
+      "code": "E06000046",
+      "name": "Isle of Wight",
+      "region": "South East",
+      "totalGrossCurrentK": 119468,
+      "totalNetCurrentK": 99406
+    },
+    {
+      "code": "E08000002",
+      "name": "Bury",
+      "region": "North West",
+      "totalGrossCurrentK": 119460,
+      "totalNetCurrentK": 98153
+    },
+    {
+      "code": "E09000029",
+      "name": "Sutton",
+      "region": "London",
+      "totalGrossCurrentK": 113846,
+      "totalNetCurrentK": 104090
+    },
+    {
+      "code": "E08000023",
+      "name": "South Tyneside",
+      "region": "North East",
+      "totalGrossCurrentK": 113026,
+      "totalNetCurrentK": 93645
+    },
+    {
+      "code": "E06000014",
+      "name": "York",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 112504,
+      "totalNetCurrentK": 92096
+    },
+    {
+      "code": "E06000015",
+      "name": "Derby",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 112086,
+      "totalNetCurrentK": 92426
+    },
+    {
+      "code": "E09000002",
+      "name": "Barking and Dagenham",
+      "region": "London",
+      "totalGrossCurrentK": 109302,
+      "totalNetCurrentK": 93255
+    },
+    {
+      "code": "E09000005",
+      "name": "Brent",
+      "region": "London",
+      "totalGrossCurrentK": 107679,
+      "totalNetCurrentK": 150924
+    },
+    {
+      "code": "E06000009",
+      "name": "Blackpool",
+      "region": "North West",
+      "totalGrossCurrentK": 106630,
+      "totalNetCurrentK": 83543
+    },
+    {
+      "code": "E06000055",
+      "name": "Bedford",
+      "region": "East of England",
+      "totalGrossCurrentK": 106409,
+      "totalNetCurrentK": 91303
+    },
+    {
+      "code": "E06000004",
+      "name": "Stockton-on-Tees",
+      "region": "North East",
+      "totalGrossCurrentK": 105235,
+      "totalNetCurrentK": 84836
+    },
+    {
+      "code": "E06000032",
+      "name": "Luton",
+      "region": "East of England",
+      "totalGrossCurrentK": 103829,
+      "totalNetCurrentK": 92280
+    },
+    {
+      "code": "E06000033",
+      "name": "Southend-on-Sea",
+      "region": "East of England",
+      "totalGrossCurrentK": 103741,
+      "totalNetCurrentK": 84159
+    },
+    {
+      "code": "E06000044",
+      "name": "Portsmouth",
+      "region": "South East",
+      "totalGrossCurrentK": 103593,
+      "totalNetCurrentK": 87572
+    },
+    {
+      "code": "E09000027",
+      "name": "Richmond upon Thames",
+      "region": "London",
+      "totalGrossCurrentK": 103162,
+      "totalNetCurrentK": 89584
+    },
+    {
+      "code": "E09000004",
+      "name": "Bexley",
+      "region": "London",
+      "totalGrossCurrentK": 102113,
+      "totalNetCurrentK": 84637
+    },
+    {
+      "code": "E09000013",
+      "name": "Hammersmith and Fulham",
+      "region": "London",
+      "totalGrossCurrentK": 101370,
+      "totalNetCurrentK": 95286
+    },
+    {
+      "code": "E06000037",
+      "name": "West Berkshire",
+      "region": "South East",
+      "totalGrossCurrentK": 99809,
+      "totalNetCurrentK": 81924
+    },
+    {
+      "code": "E06000013",
+      "name": "North Lincolnshire",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 99383,
+      "totalNetCurrentK": 83667
+    },
+    {
+      "code": "E06000022",
+      "name": "Bath and North East Somerset",
+      "region": "South West",
+      "totalGrossCurrentK": 98853,
+      "totalNetCurrentK": 83414
+    },
+    {
+      "code": "E06000031",
+      "name": "Peterborough",
+      "region": "East of England",
+      "totalGrossCurrentK": 97923,
+      "totalNetCurrentK": 85111
+    },
+    {
+      "code": "E09000024",
+      "name": "Merton",
+      "region": "London",
+      "totalGrossCurrentK": 96190,
+      "totalNetCurrentK": 82331
+    },
+    {
+      "code": "E06000041",
+      "name": "Wokingham",
+      "region": "South East",
+      "totalGrossCurrentK": 93558,
+      "totalNetCurrentK": 81254
+    },
+    {
+      "code": "E06000006",
+      "name": "Halton",
+      "region": "North West",
+      "totalGrossCurrentK": 91142,
+      "totalNetCurrentK": 73422
+    },
+    {
+      "code": "E06000002",
+      "name": "Middlesbrough",
+      "region": "North East",
+      "totalGrossCurrentK": 91034,
+      "totalNetCurrentK": 74119
+    },
+    {
+      "code": "E06000008",
+      "name": "Blackburn with Darwen",
+      "region": "North West",
+      "totalGrossCurrentK": 90688,
+      "totalNetCurrentK": 80372
+    },
+    {
+      "code": "E06000027",
+      "name": "Torbay",
+      "region": "South West",
+      "totalGrossCurrentK": 89984,
+      "totalNetCurrentK": 69515
+    },
+    {
+      "code": "E06000012",
+      "name": "North East Lincolnshire",
+      "region": "Yorkshire and The Humber",
+      "totalGrossCurrentK": 86620,
+      "totalNetCurrentK": 71938
+    },
+    {
+      "code": "E09000021",
+      "name": "Kingston upon Thames",
+      "region": "London",
+      "totalGrossCurrentK": 86394,
+      "totalNetCurrentK": 70304
+    },
+    {
+      "code": "E06000003",
+      "name": "Redcar and Cleveland",
+      "region": "North East",
+      "totalGrossCurrentK": 83345,
+      "totalNetCurrentK": 66438
+    },
+    {
+      "code": "E06000038",
+      "name": "Reading",
+      "region": "South East",
+      "totalGrossCurrentK": 83233,
+      "totalNetCurrentK": 77819
+    },
+    {
+      "code": "E06000034",
+      "name": "Thurrock",
+      "region": "East of England",
+      "totalGrossCurrentK": 77599,
+      "totalNetCurrentK": 65554
+    },
+    {
+      "code": "E06000040",
+      "name": "Windsor and Maidenhead",
+      "region": "South East",
+      "totalGrossCurrentK": 77554,
+      "totalNetCurrentK": 64643
+    },
+    {
+      "code": "E09000020",
+      "name": "Kensington and Chelsea",
+      "region": "London",
+      "totalGrossCurrentK": 73343,
+      "totalNetCurrentK": 66587
+    },
+    {
+      "code": "E06000039",
+      "name": "Slough",
+      "region": "South East",
+      "totalGrossCurrentK": 71326,
+      "totalNetCurrentK": 64770
+    },
+    {
+      "code": "E06000036",
+      "name": "Bracknell Forest",
+      "region": "South East",
+      "totalGrossCurrentK": 66841,
+      "totalNetCurrentK": 57260
+    },
+    {
+      "code": "E06000005",
+      "name": "Darlington",
+      "region": "North East",
+      "totalGrossCurrentK": 64493,
+      "totalNetCurrentK": 51329
+    },
+    {
+      "code": "E06000001",
+      "name": "Hartlepool",
+      "region": "North East",
+      "totalGrossCurrentK": 60344,
+      "totalNetCurrentK": 50051
+    },
+    {
+      "code": "E06000017",
+      "name": "Rutland",
+      "region": "East Midlands",
+      "totalGrossCurrentK": 24765,
+      "totalNetCurrentK": 21461
+    },
+    {
+      "code": "E09000001",
+      "name": "City of London",
+      "region": "London",
+      "totalGrossCurrentK": 10181,
+      "totalNetCurrentK": 9614
+    },
+    {
+      "code": "E06000053",
+      "name": "Isles of Scilly",
+      "region": "South West",
+      "totalGrossCurrentK": 2405,
+      "totalNetCurrentK": 2116
+    }
+  ]
+}

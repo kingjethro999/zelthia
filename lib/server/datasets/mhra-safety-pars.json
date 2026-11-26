@@ -1,0 +1,542 @@
+{
+  "source": "UK MHRA Safety Public Assessment Reports (GOV.UK)",
+  "url": "https://www.gov.uk/guidance/safety-public-assessment-reports",
+  "published": "2019-01-04",
+  "lastUpdated": "2026-10-15",
+  "sourcePdfPages": 11,
+  "totalReports": 45,
+  "reports": [
+    {
+      "year": 2026,
+      "title": "Antidepressants – updated safety communications",
+      "url": "https://2018—2017—2015—2014—2013—2012—2011—2010—2009—2008—www.gov.uk/government/publications/antidepressants-updated-safety-communications",
+      "keywords": [
+        "antidepressants",
+        "communications"
+      ]
+    },
+    {
+      "year": 2026,
+      "title": "Bladder Anticholinergics: review of risk of dementia",
+      "url": "https://www.gov.uk/government/publications/bladder-anticholinergics-review-of-risk-of-dementia",
+      "keywords": [
+        "bladder",
+        "anticholinergics",
+        "dementia"
+      ]
+    },
+    {
+      "year": 2026,
+      "title": ", Benzodiazepines and Z-Drugs",
+      "url": "https://www.gov.uk/government/publications/improving-information-supplied-with-gabapentinoids-pregabalingabapentin-benzodiazepines-and-z-drugs",
+      "keywords": [
+        "benzodiazepines",
+        "z-drugs"
+      ]
+    },
+    {
+      "year": 2026,
+      "title": "Review of the impact of recommendations for the prescribing of isotretinoin",
+      "url": "https://www.gov.uk/government/publications/review-of-the-impact-of-recommendations-for-the-prescribing-of-isotretinoin",
+      "keywords": [
+        "impact",
+        "recommendations",
+        "prescribing",
+        "isotretinoin"
+      ]
+    },
+    {
+      "year": 2025,
+      "title": "Review of risk minimisation for disabling and potentially long-lasting/irreversible side effects associated with fluoroquinolone antibiotics",
+      "url": "https://www.gov.uk/government/publications/review-of-risk-minimisation-for-disabling-and-potentially-long-lastingirreversible-side-effects-associated-with-fluoroquinolone-antibiotics",
+      "keywords": [
+        "minimisation",
+        "disabling",
+        "potentially",
+        "long-lasting",
+        "irreversible",
+        "side",
+        "effects",
+        "fluoroquinolone",
+        "antibiotics"
+      ]
+    },
+    {
+      "year": 2025,
+      "title": "Modified Release Opioids and Treatment of Post-operative Pain",
+      "url": "https://www.gov.uk/government/publications/modified-release-opioids-and-treatment-of-post-operative-pain",
+      "keywords": [
+        "modified",
+        "release",
+        "opioids",
+        "post-operative",
+        "pain"
+      ]
+    },
+    {
+      "year": 2025,
+      "title": "Valproate: Managing reproductive risks in male patients under 55",
+      "url": "https://www.gov.uk/government/publications/valproate-managing-reproductive-risks-in-male-patients-under-55",
+      "keywords": [
+        "valproate",
+        "managing",
+        "reproductive",
+        "risks",
+        "male",
+        "under"
+      ]
+    },
+    {
+      "year": 2024,
+      "title": "Valproate: Paternal exposure to valproate and risk of neurodevelopmental disorders and congenital malformations in offspring",
+      "url": "https://www.gov.uk/government/publications/valproate-paternal-exposure-to-valproate-and-risk-of-neurodevelopmental-disorders-and-congenital-malformations-in-offspring",
+      "keywords": [
+        "valproate",
+        "paternal",
+        "exposure",
+        "neurodevelopmental",
+        "disorders",
+        "congenital",
+        "malformations",
+        "offspring"
+      ]
+    },
+    {
+      "year": 2024,
+      "title": "Topiramate: review of safety in pregnancy",
+      "url": "https://www.gov.uk/government/publications/topiramate-review-of-safety-in-pregnancy",
+      "keywords": [
+        "topiramate",
+        "pregnancy"
+      ]
+    },
+    {
+      "year": 2024,
+      "title": "Finasteride: review of safety data and expert advice on management of risks",
+      "url": "https://www.gov.uk/government/publications/finasteride-review-of-safety-data-and-expert-advice-on-management-of-risks",
+      "keywords": [
+        "finasteride",
+        "data",
+        "expert",
+        "management",
+        "risks"
+      ]
+    },
+    {
+      "year": 2023,
+      "title": "Valproate: review of safety data and expert advice on management of risks",
+      "url": "https://www.gov.uk/government/publications/valproate-review-of-safety-data-and-expert-advice-on-management-of-risks",
+      "keywords": [
+        "valproate",
+        "data",
+        "expert",
+        "management",
+        "risks"
+      ]
+    },
+    {
+      "year": 2022,
+      "title": "Chloramphenicol eye drops containing borax and boric acid buffers: review of the use in children under 2 years",
+      "url": "https://www.gov.uk/government/publications/chloramphenicol-eye-drops-containing-borax-and-boric-acid-buffers-review-of-the-use-in-children-under-2-years",
+      "keywords": [
+        "chloramphenicol",
+        "eye",
+        "drops",
+        "containing",
+        "borax",
+        "boric",
+        "acid",
+        "buffers",
+        "children",
+        "under",
+        "years"
+      ]
+    },
+    {
+      "year": 2022,
+      "title": "Hydroxychloroquine or chloroquine, in combination with macrolide antibiotics: review of epidemiological data for cardiovascular safety",
+      "url": "https://www.gov.uk/government/publications/hydroxychloroquine-or-chloroquine-in-combination-with-macrolide-antibiotics-review-of-epidemiological-data-for-cardiovascular-safety",
+      "keywords": [
+        "hydroxychloroquine",
+        "chloroquine",
+        "combination",
+        "macrolide",
+        "antibiotics",
+        "epidemiological",
+        "data",
+        "cardiovascular"
+      ]
+    },
+    {
+      "year": 2021,
+      "title": "Public Assessment Report: safety of macrolide antibiotics in pregnancy: a review of the epidemiological evidence",
+      "url": "https://www.gov.uk/government/publications/public-assessment-report-safety-of-macrolide-antibiotics-in-pregnancy-a-review-of-the-epidemiological-evidence",
+      "keywords": [
+        "macrolide",
+        "antibiotics",
+        "pregnancy",
+        "epidemiological",
+        "evidence"
+      ]
+    },
+    {
+      "year": 2021,
+      "title": "Antiepileptic drugs: review of safety of use during pregnancy",
+      "url": "https://www.gov.uk/government/publications/public-assesment-report-of-antiepileptic-drugs-review-of-safety-of-use-during-pregnancy/antiepileptic-drugs-review-of-safety-of-use-during-pregnancy",
+      "keywords": [
+        "antiepileptic",
+        "drugs",
+        "during",
+        "pregnancy"
+      ]
+    },
+    {
+      "year": 2021,
+      "title": "Topical steroid withdrawal reactions: a review of the evidence",
+      "url": "https://www.gov.uk/government/publications/topical-steroid-withdrawal-reactions-a-review-of-the-evidence",
+      "keywords": [
+        "topical",
+        "steroid",
+        "withdrawal",
+        "reactions",
+        "evidence"
+      ]
+    },
+    {
+      "year": 2021,
+      "title": "Review of the use of haloperidol in elderly patients with acute delirium",
+      "url": "https://www.gov.uk/government/publications/review-of-the-use-of-haloperidol-in-elderly-patients-with-acute-delirium",
+      "keywords": [
+        "haloperidol",
+        "elderly",
+        "acute",
+        "delirium"
+      ]
+    },
+    {
+      "year": 2020,
+      "title": "Public Assessment Report of over-the-counter stimulant laxatives: benefit-risk review",
+      "url": "https://www.gov.uk/government/publications/public-assessment-report-of-over-the-counter-stimulant-laxatives-benefit-risk-review",
+      "keywords": [
+        "over-the-counter",
+        "stimulant",
+        "laxatives",
+        "benefit-risk"
+      ]
+    },
+    {
+      "year": 2019,
+      "title": "Yellow fever vaccine - benefit-risk and risk minimisation measures",
+      "url": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/847858/Yellow-Fever-Vaccine-EWG-report__002_.pdf",
+      "keywords": [
+        "yellow",
+        "fever",
+        "vaccine",
+        "benefit-risk",
+        "minimisation",
+        "measures"
+      ]
+    },
+    {
+      "year": 2018,
+      "title": "Oral lidocaine products: risk minimisation measures for use in teething",
+      "url": "https://assets.publishing.service.gov.uk/media/5c0fded9ed915d0bbf782c2d/Lidocaine_PAR-for-pub.pdf",
+      "keywords": [
+        "oral",
+        "lidocaine",
+        "minimisation",
+        "measures",
+        "teething"
+      ]
+    },
+    {
+      "year": 2015,
+      "title": "Pseudoephedrine and ephedrine managing the risk of medicines misuse 2015",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610eed915d0933009728/Pseudoephedrine_and_ephedrine_managing_the_risk_of_medicines_misuse_2015.pdf",
+      "keywords": [
+        "pseudoephedrine",
+        "ephedrine",
+        "managing",
+        "misuse",
+        "2015"
+      ]
+    },
+    {
+      "year": 2015,
+      "title": "Reclassification of Nexium Control 20mg Gastro-Resistant Tablets",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ee5274a08df9dd859/Reclassification_of_Nexium_Control_20mg_Gastro-Resistant_Tablets.pdf",
+      "keywords": [
+        "reclassification",
+        "nexium",
+        "control",
+        "20mg",
+        "gastro-resistant",
+        "tablets"
+      ]
+    },
+    {
+      "year": 2012,
+      "title": "Pseudoephedrine and ephedrine managing the risk of misuse - 2012 review",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610e40f0b6094267a5c4/Pseudoephedrine_and_ephedrine_managing_the_risk_of_misuse_-_2012_review.pdf",
+      "keywords": [
+        "pseudoephedrine",
+        "ephedrine",
+        "managing",
+        "misuse",
+        "2012"
+      ]
+    },
+    {
+      "year": 2012,
+      "title": "0.18% saline or 4% glucose IV solution safety risks in children",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610bed915d093931ae90/0.18__saline_or_4__glucose_IV_solution_safety_risks_in_children.pdf",
+      "keywords": [
+        "saline",
+        "glucose",
+        "solution",
+        "risks",
+        "children"
+      ]
+    },
+    {
+      "year": 2012,
+      "title": "Atomoxetine effects on heart rate and blood pressure",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610c40f0b609574bca10/Atomoxetine_effects_on_heart_rate_and_blood_pressure.pdf",
+      "keywords": [
+        "atomoxetine",
+        "effects",
+        "heart",
+        "rate",
+        "blood",
+        "pressure"
+      ]
+    },
+    {
+      "year": 2011,
+      "title": "Reboxetine review of benefits and risks",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610eed915d093931ae94/Reboxetine_review_of_benefits_and_risks.pdf",
+      "keywords": [
+        "reboxetine",
+        "benefits",
+        "risks"
+      ]
+    },
+    {
+      "year": 2011,
+      "title": "Fluoxetine in pregnancy slight risk of heart defects in unborn child",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610de5274a08dacf0fe4/Fluoxetine_in_pregnancy_slight_risk_of_heart_defects_in_unborn_child.pdf",
+      "keywords": [
+        "fluoxetine",
+        "pregnancy",
+        "slight",
+        "heart",
+        "defects",
+        "unborn",
+        "child"
+      ]
+    },
+    {
+      "year": 2011,
+      "title": "Tamoxifen reduced effectiveness when used with CYP2D6 inhibitors",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7611040f0b60941ffefdb/Tamoxifen_reduced_effectiveness_when_used_with_CYP2D6_inhibitors.pdf",
+      "keywords": [
+        "tamoxifen",
+        "reduced",
+        "effectiveness",
+        "when",
+        "used",
+        "cyp2d6",
+        "inhibitors"
+      ]
+    },
+    {
+      "year": 2011,
+      "title": "Nicobrevin withdrawn from UK market as risks outweigh benefits",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ded915d09322e22cc/Nicobrevin_withdrawn_from_UK_market_as_risks_outweigh_benefits.pdf",
+      "keywords": [
+        "nicobrevin",
+        "withdrawn",
+        "from",
+        "market",
+        "risks",
+        "outweigh",
+        "benefits"
+      ]
+    },
+    {
+      "year": 2011,
+      "title": "Swine flu vaccines and antiviral medicines UK post-pandemic safety review",
+      "url": "https://assets.publishing.service.gov.uk/media/5df76110e5274a08e626bd82/Swine_flu_vaccines_and_antiviral_medicines_UK_post-pandemic_safety_review.pdf",
+      "keywords": [
+        "swine",
+        "flu",
+        "vaccines",
+        "antiviral",
+        "post-pandemic"
+      ]
+    },
+    {
+      "year": 2010,
+      "title": "Nicotine replacement therapy harm reduction in smokers",
+      "url": "https://assets.publishing.service.gov.uk/media/5dfb54baed915d1f0d52f74e/Nicotine_replacement_therapy_harm_reduction_in_smokers.pdf",
+      "keywords": [
+        "nicotine",
+        "replacement",
+        "therapy",
+        "harm",
+        "reduction",
+        "smokers"
+      ]
+    },
+    {
+      "year": 2010,
+      "title": "cardiovascular risks",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ee5274a08f518e911/Non-steroidal_anti-inflammatory_drugs__NSAIDs__cardiovascular_risks.pdf",
+      "keywords": [
+        "cardiovascular",
+        "risks"
+      ]
+    },
+    {
+      "year": 2009,
+      "title": "Warfarin changes to safety information",
+      "url": "https://assets.publishing.service.gov.uk/media/5df76110e5274a0910cb6d46/Warfarin_changes_to_safety_information.pdf",
+      "keywords": [
+        "warfarin",
+        "changes"
+      ]
+    },
+    {
+      "year": 2009,
+      "title": "Finasteride risk of male breast cancer",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610c40f0b60959adc737/Finasteride_risk_of_male_breast_cancer.pdf",
+      "keywords": [
+        "finasteride",
+        "male",
+        "breast",
+        "cancer"
+      ]
+    },
+    {
+      "year": 2009,
+      "title": "Statins update to product safety information",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610fed915d09360e547c/Statins_update_to_product_safety_information.pdf",
+      "keywords": [
+        "statins",
+        "product"
+      ]
+    },
+    {
+      "year": 2009,
+      "title": "Vigabatrin brain MRI abnormalities and movement disorders",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610fed915d093a15d217/Vigabatrin_brain_MRI_abnormalities_and_movement_disorders.pdf",
+      "keywords": [
+        "vigabatrin",
+        "brain",
+        "mri",
+        "abnormalities",
+        "movement",
+        "disorders"
+      ]
+    },
+    {
+      "year": 2009,
+      "title": "withdrawal from UK market after a risk-benefit analysis",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ee5274a08f518e912/Orciprenaline_sulphate__Alupent__withdrawal_from_UK_market_after_a_risk-benefit_analysis.pdf",
+      "keywords": [
+        "withdrawal",
+        "from",
+        "market",
+        "after",
+        "risk-benefit",
+        "analysis"
+      ]
+    },
+    {
+      "year": 2009,
+      "title": "Codeine and dihydrocodeine minimising the risk of addiction",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610c40f0b60956f5a2e4/Codeine_and_dihydrocodeine_minimising_the_risk_of_addiction.pdf",
+      "keywords": [
+        "codeine",
+        "dihydrocodeine",
+        "minimising",
+        "addiction"
+      ]
+    },
+    {
+      "year": 2009,
+      "title": "Pseudoephedrine and ephedrine managing the risk of misuse - 2009 update",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610e40f0b609455bc0da/Pseudoephedrine_and_ephedrine_managing_the_risk_of_misuse_-_2009_update.pdf",
+      "keywords": [
+        "pseudoephedrine",
+        "ephedrine",
+        "managing",
+        "misuse",
+        "2009"
+      ]
+    },
+    {
+      "year": 2009,
+      "title": "Risk of venous thromboembolism associated with antipsychotics",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610fed915d093724a2db/Risk_of_venous_thromboembolism_associated_with_antipsychotics.pdf",
+      "keywords": [
+        "venous",
+        "thromboembolism",
+        "antipsychotics"
+      ]
+    },
+    {
+      "year": 2008,
+      "title": "safety update",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ded915d093cec0914/Hormone_replacement_therapy__HRT__safety_update.pdf",
+      "keywords": []
+    },
+    {
+      "year": 2008,
+      "title": "Gadolinium-containing MRI contrast agents nephrogenic systemic fibrosis",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610d40f0b60946e5ac92/Gadolinium-containing_MRI_contrast_agents_nephrogenic_systemic_fibrosis.pdf",
+      "keywords": [
+        "gadolinium-containing",
+        "mri",
+        "contrast",
+        "agents",
+        "nephrogenic",
+        "systemic",
+        "fibrosis"
+      ]
+    },
+    {
+      "year": 2008,
+      "title": "Dopamine agonists pathological gambling and increased libido",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ced915d093931ae93/Dopamine_agonists_pathological_gambling_and_increased_libido.pdf",
+      "keywords": [
+        "dopamine",
+        "agonists",
+        "pathological",
+        "gambling",
+        "increased",
+        "libido"
+      ]
+    },
+    {
+      "year": 2008,
+      "title": "Neuroleptics and cardiac safety",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ded915d0931d7475e/Neuroleptics_and_cardiac_safety.pdf",
+      "keywords": [
+        "neuroleptics",
+        "cardiac"
+      ]
+    },
+    {
+      "year": 2008,
+      "title": "Black cohosh and liver injury",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ce5274a08f78bca34/Black_cohosh_and_liver_injury.pdf",
+      "keywords": [
+        "black",
+        "cohosh",
+        "liver",
+        "injury"
+      ]
+    }
+  ]
+}
