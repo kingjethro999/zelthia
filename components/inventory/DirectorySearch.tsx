@@ -15,20 +15,30 @@ import {
   Pill,
   ScanLine,
   Search,
+  ShieldCheck,
   Store,
 } from "lucide-react";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Choice";
-import { ButtonLink, Button } from "@/components/ui/Button";
-import { DirectoryMatches, WebSources } from "@/components/chat/ResultCards";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import {
+  DirectoryMatches,
+  RegulatoryChecks,
+  WebSources,
+} from "@/components/chat/ResultCards";
+import { ImageGallery } from "@/components/chat/ImageGallery";
 import {
   PRODUCT_CATEGORIES,
   type DirectoryMatch,
+  type RegulatoryReport,
   type WebImage,
   type WebPlace,
 } from "@/lib/inventory-types";
-import { ImageGallery } from "@/components/chat/ImageGallery";
 import { cn } from "@/lib/utils";
+import {
+  ScanToStockSheet,
+  type PublicVerifyResult,
+} from "./ScanToStockSheet";
 
 const SUGGESTIONS = [
   { icon: Pill, text: "Paracetamol" },
@@ -48,17 +58,19 @@ export function DirectorySearch() {
   const [cities, setCities] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
   const [web, setWeb] = useState<{
     status: "idle" | "loading" | "done" | "error";
     places: WebPlace[];
     images?: WebImage[];
+    report?: RegulatoryReport | null;
     error?: string;
-  }>({ status: "idle", places: [] });
+  }>({ status: "idle", places: [], report: null });
 
   const run = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setWeb({ status: "idle", places: [] });
+    setWeb({ status: "idle", places: [], report: null });
     const qs = new URLSearchParams({ q, inStock: inStock ? "1" : "0" });
     if (city !== "ALL") qs.set("city", city);
     if (category !== "ALL") qs.set("category", category);
@@ -81,26 +93,45 @@ export function DirectorySearch() {
     return () => clearTimeout(t);
   }, [run, q]);
 
-  const searchWeb = async () => {
-    setWeb({ status: "loading", places: [] });
-    const qs = new URLSearchParams({ q });
+  const verifyAndSearchWeb = async (refresh = false) => {
+    const cleanQ = q.trim();
+    if (cleanQ.length < 2) return;
+    setWeb({ status: "loading", places: [], report: null });
+    const qs = new URLSearchParams({ q: cleanQ });
     if (city !== "ALL") qs.set("city", city);
+    if (category !== "ALL") qs.set("category", category);
+    if (refresh) qs.set("refresh", "1");
     try {
-      const res = await fetch(`/api/directory/web?${qs}`);
+      const res = await fetch(`/api/directory/verify?${qs}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setWeb({
         status: "done",
-        places: data.places,
+        places: data.places ?? [],
         images: data.images ?? [],
+        report: data.report ?? null,
       });
     } catch (err) {
       setWeb({
         status: "error",
         places: [],
-        error: (err as Error).message || "Web search failed.",
+        report: null,
+        error:
+          (err as Error).message ||
+          "Registry & web verification failed right now.",
       });
     }
+  };
+
+  const handleVerifiedFromScanner = (res: PublicVerifyResult) => {
+    if (res.extractedQuery) setQ(res.extractedQuery);
+    if (res.matches?.length) setMatches(res.matches);
+    setWeb({
+      status: "done",
+      places: res.places ?? [],
+      images: res.images ?? [],
+      report: res.report,
+    });
   };
 
   const searching = q.trim().length > 0;
@@ -113,12 +144,12 @@ export function DirectorySearch() {
             searching ? "text-2xl" : "text-3xl sm:text-4xl",
           )}
         >
-          {searching ? "Find medicine" : "What do you need today?"}
+          {searching ? "Find & verify health products" : "What do you need today?"}
         </h1>
         {!searching && (
           <p className="mx-auto mt-3 max-w-xl text-center text-muted">
-            Search stock and services listed by pharmacies, clinics, hospitals
-            and stores on Zelthia. Nothing here is guessed.
+            Search live pharmacy stock, scan a barcode or carton photo, and check
+            NAFDAC, US FDA & global public safety registries.
           </p>
         )}
 
@@ -130,16 +161,25 @@ export function DirectorySearch() {
             );
             void run();
           }}
-          className="mt-6 flex items-center gap-2 rounded-3xl border border-line bg-surface p-2 shadow-[0_8px_30px_-18px_rgba(13,59,53,0.35)] transition-shadow focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20"
+          className="mt-6 flex items-center gap-1.5 rounded-3xl border border-line bg-surface p-2 shadow-[0_8px_30px_-18px_rgba(13,59,53,0.35)] transition-shadow focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20"
         >
           <Search className="ml-2.5 h-5 w-5 shrink-0 text-muted" aria-hidden />
           <input
-            aria-label="Search for a medicine, product or service"
+            aria-label="Search for a medicine, NAFDAC number, barcode or service"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="e.g. paracetamol, Deep Heat, ultrasound scan"
+            placeholder="Name, NAFDAC no., barcode, or scan"
             className="h-11 min-w-0 flex-1 bg-transparent text-[15px] text-ink placeholder:text-muted focus:outline-none"
           />
+          <button
+            type="button"
+            onClick={() => setScanOpen(true)}
+            className="press flex h-10 shrink-0 items-center gap-1.5 rounded-2xl border border-line bg-mist/70 px-3 text-xs font-semibold text-ink hover:border-brand/50"
+            aria-label="Scan barcode or snap pack to verify"
+          >
+            <ScanLine className="h-4 w-4 text-brand" aria-hidden />
+            <span className="hidden sm:inline">Scan pack</span>
+          </button>
           <Button type="submit" className="shrink-0 rounded-2xl">
             Search
           </Button>
@@ -198,6 +238,45 @@ export function DirectorySearch() {
       </div>
 
       <div className="mt-8" aria-live="polite">
+        {searching && q.trim().length >= 2 && (
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink">
+                Live authenticity & wider web search
+              </p>
+              <p className="text-xs text-muted">
+                Cross-check &ldquo;{q.trim()}&rdquo; across NAFDAC, FDA Orange
+                Book, Health Canada & the wider web.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              loading={web.status === "loading"}
+              onClick={() => verifyAndSearchWeb(false)}
+            >
+              <ShieldCheck className="h-4 w-4 text-brand" aria-hidden />
+              Verify & search web
+            </Button>
+          </div>
+        )}
+
+        {web.status === "error" && (
+          <p
+            role="alert"
+            className="mb-5 flex items-center gap-2 rounded-xl border border-alert/25 bg-alert-soft p-3 text-sm text-alert"
+          >
+            <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+            {web.error}
+          </p>
+        )}
+
+        {web.status === "done" && web.report && (
+          <div className="mb-6">
+            <RegulatoryChecks reports={[web.report]} />
+          </div>
+        )}
+
         {error ? (
           <p
             role="alert"
@@ -218,6 +297,13 @@ export function DirectorySearch() {
               Zelthia
             </p>
             <DirectoryMatches matches={matches} />
+            {web.status === "done" &&
+              (web.places.length > 0 || (web.images?.length ?? 0) > 0) && (
+                <div className="mt-6">
+                  <ImageGallery images={web.images ?? []} />
+                  <WebSources places={web.places} />
+                </div>
+              )}
           </>
         ) : (
           <div className="rounded-3xl border border-dashed border-line p-6 sm:p-8">
@@ -231,13 +317,16 @@ export function DirectorySearch() {
               Zelthia only shows what facilities have listed themselves, so
               nothing here is guessed.
               {q &&
-                " You can search the web for places that mention it, or ask the health chat."}
+                " Run a live registry & web check, scan the pack, or ask the health chat."}
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               {q && (
-                <Button onClick={searchWeb} loading={web.status === "loading"}>
+                <Button
+                  onClick={() => verifyAndSearchWeb(false)}
+                  loading={web.status === "loading"}
+                >
                   <Globe className="h-4 w-4" aria-hidden />
-                  Search the web{city !== "ALL" ? ` near ${city}` : ""}
+                  Verify & search web{city !== "ALL" ? ` near ${city}` : ""}
                 </Button>
               )}
               {q && (
@@ -254,11 +343,6 @@ export function DirectorySearch() {
                 Own a pharmacy? List your stock
               </ButtonLink>
             </div>
-            {web.status === "error" && (
-              <p role="alert" className="mt-4 text-sm text-alert">
-                {web.error}
-              </p>
-            )}
             {web.status === "done" &&
               (web.places.length || web.images?.length ? (
                 <>
@@ -267,8 +351,8 @@ export function DirectorySearch() {
                 </>
               ) : (
                 <p className="mt-4 text-sm text-muted">
-                  The web search didn&apos;t find useful pages either. Try a
-                  different spelling.
+                  The web search didn&apos;t find extra pages either. Consult a
+                  licensed pharmacy, clinic, or hospital nearby.
                 </p>
               ))}
           </div>
@@ -284,6 +368,14 @@ export function DirectorySearch() {
           List your stock and services
         </Link>
       </p>
+
+      <ScanToStockSheet
+        open={scanOpen}
+        onClose={() => setScanOpen(false)}
+        mode="verify"
+        city={city === "ALL" ? null : city}
+        onVerified={handleVerifiedFromScanner}
+      />
     </div>
   );
 }

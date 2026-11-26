@@ -14,7 +14,10 @@ import {
   PackagePlus,
   Pencil,
   Plus,
+  ScanLine,
   Search,
+  ShieldAlert,
+  ShieldCheck,
   Stethoscope,
   Trash2,
   TriangleAlert,
@@ -38,6 +41,7 @@ import { FacilityForm, type FacilityDraft } from "./FacilityForm";
 import { FacilityWizard } from "./FacilityWizard";
 import { useLastDefined } from "@/lib/motion";
 import { ProductDialog, type ProductDraft } from "./ProductDialog";
+import { ScanToStockSheet } from "./ScanToStockSheet";
 import { VerificationBadge, verificationMessage } from "./VerificationBadge";
 
 type Tab = "stock" | "services" | "details";
@@ -367,10 +371,11 @@ function StockTab({ facility }: { facility: Facility }) {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("ALL");
-  const [filter, setFilter] = useState<"all" | "low" | "out" | "expiring">(
-    "all",
-  );
+  const [filter, setFilter] = useState<
+    "all" | "low" | "out" | "expiring" | "flagged"
+  >("all");
   const [editing, setEditing] = useState<Product | "new" | null>(null);
+  const [scanOpen, setScanOpen] = useState(false);
   const [confirm, setConfirm] = useState<Product | null>(null);
   const shownConfirm = useLastDefined(confirm);
   const [busy, setBusy] = useState<string | null>(null);
@@ -391,6 +396,10 @@ function StockTab({ facility }: { facility: Facility }) {
       out: list.filter((p) => stockStatus(p) === "out").length,
       expiring: list.filter((p) => p.expiresOn && daysUntil(p.expiresOn) <= 90)
         .length,
+      flagged: list.filter(
+        (p) =>
+          p.regulatoryStatus === "danger" || p.regulatoryStatus === "caution",
+      ).length,
     };
   }, [products]);
 
@@ -405,11 +414,23 @@ function StockTab({ facility }: { facility: Facility }) {
         !(p.expiresOn && daysUntil(p.expiresOn) <= 90)
       )
         return false;
+      if (
+        filter === "flagged" &&
+        p.regulatoryStatus !== "danger" &&
+        p.regulatoryStatus !== "caution"
+      )
+        return false;
       return (
         !needle ||
-        [p.name, p.genericName, p.batch, p.category].some((s) =>
-          s.toLowerCase().includes(needle),
-        )
+        [
+          p.name,
+          p.genericName,
+          p.batch,
+          p.category,
+          p.nafdacNumber,
+          p.barcode,
+          p.manufacturer,
+        ].some((s) => s.toLowerCase().includes(needle))
       );
     });
   }, [products, q, category, filter]);
@@ -494,11 +515,27 @@ function StockTab({ facility }: { facility: Facility }) {
       icon: CalendarClock,
       tone: "text-sky",
     },
+    ...(stats.flagged > 0
+      ? ([
+          {
+            key: "flagged",
+            label: "Safety alerts",
+            value: stats.flagged,
+            icon: ShieldAlert,
+            tone: "text-alert",
+          },
+        ] as const)
+      : []),
   ] as const;
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-4">
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line",
+          STAT.length > 4 ? "lg:grid-cols-5" : "lg:grid-cols-4",
+        )}
+      >
         {STAT.map((s) => (
           <button
             key={s.key}
@@ -521,22 +558,28 @@ function StockTab({ facility }: { facility: Facility }) {
 
       {products.length === 0 ? (
         <div className="mt-6 rounded-3xl border border-dashed border-line p-8 text-center">
-          <PackagePlus className="mx-auto h-8 w-8 text-muted" aria-hidden />
+          <ScanLine className="mx-auto h-9 w-9 text-brand" aria-hidden />
           <h2 className="mt-3 font-display text-xl font-semibold text-ink">
-            No products yet
+            Stock & verify supplier cartons in seconds
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted">
-            Add the first item you stock. It appears in patient searches as soon
-            as you save it.
+            Scan a barcode or snap a pack photo to check NAFDAC, FDA & recalls
+            live before shelving—or add an item manually.
           </p>
-          <Button className="mt-5" onClick={() => setEditing("new")}>
-            <Plus className="h-4 w-4" aria-hidden />
-            Add a product
-          </Button>
+          <div className="mt-5 flex flex-wrap justify-center gap-2.5">
+            <Button onClick={() => setScanOpen(true)}>
+              <ScanLine className="h-4 w-4" aria-hidden />
+              Scan to stock
+            </Button>
+            <Button variant="secondary" onClick={() => setEditing("new")}>
+              <Plus className="h-4 w-4" aria-hidden />
+              Add manually
+            </Button>
+          </div>
         </div>
       ) : (
         <>
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="mt-6 flex flex-col gap-2 lg:flex-row lg:items-end">
             <div className="relative flex-1">
               <Search
                 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
@@ -546,26 +589,32 @@ function StockTab({ facility }: { facility: Facility }) {
                 aria-label="Search your stock"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search name, ingredient or batch"
+                placeholder="Search name, NAFDAC no., barcode, or batch"
                 className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-3 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
-            <Select
-              label="Category"
-              hideLabel
-              className="sm:w-60"
-              value={category}
-              onChange={setCategory}
-              options={[
-                { value: "ALL", label: "All categories" },
-                ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c })),
-              ]}
-              align="right"
-            />
-            <Button onClick={() => setEditing("new")}>
-              <Plus className="h-4 w-4" aria-hidden />
-              Add product
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Select
+                label="Category"
+                hideLabel
+                className="min-w-44 flex-1 sm:w-56 sm:flex-none"
+                value={category}
+                onChange={setCategory}
+                options={[
+                  { value: "ALL", label: "All categories" },
+                  ...PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c })),
+                ]}
+                align="right"
+              />
+              <Button onClick={() => setScanOpen(true)}>
+                <ScanLine className="h-4 w-4" aria-hidden />
+                Scan to stock
+              </Button>
+              <Button variant="secondary" onClick={() => setEditing("new")}>
+                <Plus className="h-4 w-4" aria-hidden />
+                Add manually
+              </Button>
+            </div>
           </div>
 
           {error && (
@@ -646,6 +695,28 @@ function StockTab({ facility }: { facility: Facility }) {
                             Prescription
                           </span>
                         )}
+                        {p.nafdacNumber && (
+                          <span className="rounded-full bg-mist px-2 py-0.5 text-ink">
+                            NAFDAC {p.nafdacNumber}
+                          </span>
+                        )}
+                        {p.regulatoryStatus === "verified" && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-brand-strong">
+                            <ShieldCheck className="h-3 w-3" aria-hidden />
+                            Registry verified
+                          </span>
+                        )}
+                        {p.regulatoryStatus === "caution" && (
+                          <span className="rounded-full bg-caution-soft px-2 py-0.5 text-caution">
+                            Registry caution
+                          </span>
+                        )}
+                        {p.regulatoryStatus === "danger" && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-alert-soft px-2 py-0.5 text-alert">
+                            <ShieldAlert className="h-3 w-3" aria-hidden />
+                            Red flag
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -705,6 +776,13 @@ function StockTab({ facility }: { facility: Facility }) {
         initial={editing && editing !== "new" ? editing : null}
         onClose={() => setEditing(null)}
         onSave={save}
+        onOpenScanner={() => setScanOpen(true)}
+      />
+      <ScanToStockSheet
+        open={scanOpen}
+        onClose={() => setScanOpen(false)}
+        facilityId={facility.id}
+        onStocked={upsert}
       />
       <Dialog
         open={Boolean(confirm)}

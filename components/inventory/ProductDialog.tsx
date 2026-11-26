@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Barcode, Layers, Package } from "lucide-react";
+import {
+  AlertCircle,
+  Barcode,
+  Factory,
+  Globe,
+  Layers,
+  Package,
+  ScanLine,
+  ShieldCheck,
+} from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { usePresence } from "@/lib/motion";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +22,7 @@ import {
   PRODUCT_FORMS,
   type Product,
 } from "@/lib/inventory-types";
+import { RegulatoryReportCard } from "./RegulatoryReportCard";
 
 export type ProductDraft = Omit<Product, "id" | "facilityId" | "updatedAt">;
 
@@ -65,6 +75,7 @@ export function ProductDialog({
   initial,
   onClose,
   onSave,
+  onOpenScanner,
 }: {
   open: boolean;
   initial: ProductDraft | null;
@@ -72,6 +83,7 @@ export function ProductDialog({
   onSave: (
     draft: ProductDraft,
   ) => Promise<{ ok: boolean; error?: string; field?: string }>;
+  onOpenScanner?: () => void;
 }) {
   // Stay mounted through the exit so the sheet leaves the way it came; a
   // fresh open after that starts from a clean draft.
@@ -83,6 +95,7 @@ export function ProductDialog({
       initial={initial}
       onClose={onClose}
       onSave={onSave}
+      onOpenScanner={onOpenScanner}
     />
   );
 }
@@ -92,6 +105,7 @@ function ProductDialogInner({
   initial,
   onClose,
   onSave,
+  onOpenScanner,
 }: {
   open: boolean;
   initial: ProductDraft | null;
@@ -99,9 +113,11 @@ function ProductDialogInner({
   onSave: (
     draft: ProductDraft,
   ) => Promise<{ ok: boolean; error?: string; field?: string }>;
+  onOpenScanner?: () => void;
 }) {
   const [p, setP] = useState<ProductDraft>(initial ?? EMPTY_PRODUCT);
   const [saving, setSaving] = useState(false);
+  const [checkingReg, setCheckingReg] = useState(false);
   const [error, setError] = useState<{
     message: string;
     field?: string;
@@ -109,6 +125,50 @@ function ProductDialogInner({
   const set = <K extends keyof ProductDraft>(k: K, v: ProductDraft[K]) =>
     setP((d) => ({ ...d, [k]: v }));
   const fe = (k: string) => (error?.field === k ? error.message : undefined);
+
+  const verifyAuthenticity = async () => {
+    if (!p.name.trim() && !p.nafdacNumber.trim() && !p.barcode.trim()) {
+      setError({
+        message: "Enter a product name, NAFDAC code, or barcode first.",
+        field: "name",
+      });
+      return;
+    }
+    setCheckingReg(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/inventory/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: p.name,
+          code: p.nafdacNumber || undefined,
+          barcode: p.barcode || undefined,
+          category: p.category,
+          forceRefresh: true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Verification check failed.");
+      setP((prev) => ({
+        ...prev,
+        nafdacNumber: prev.nafdacNumber || data.report.nafdacCode || "",
+        barcode: prev.barcode || data.report.barcode || "",
+        manufacturer: prev.manufacturer || data.report.manufacturer || "",
+        countryOfOrigin:
+          prev.countryOfOrigin || data.report.countryOfOrigin || "",
+        regulatoryStatus: data.report.verdict,
+        regulatorySummary: data.report,
+        regulatoryCheckedAt: data.report.checkedAt,
+      }));
+    } catch (err) {
+      setError({
+        message: (err as Error).message || "Couldn't run registry check.",
+      });
+    } finally {
+      setCheckingReg(false);
+    }
+  };
 
   const thisYear = new Date().getFullYear();
   const [expYear, expMonth] = p.expiresOn
@@ -154,6 +214,29 @@ function ProductDialogInner({
       }
     >
       <div className="space-y-5">
+        {!initial && onOpenScanner && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/25 bg-brand-soft/45 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink">
+                Have the carton nearby?
+              </p>
+              <p className="text-xs text-muted">
+                Scan barcode or snap pack to autofill fields & verify NAFDAC/FDA.
+              </p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                onClose();
+                onOpenScanner();
+              }}
+            >
+              <ScanLine className="h-4 w-4" aria-hidden />
+              Scan to stock
+            </Button>
+          </div>
+        )}
         <TextField
           label="Product name"
           icon={Package}
@@ -162,6 +245,57 @@ function ProductDialogInner({
           error={fe("name")}
           placeholder="e.g. Deep Heat Rub 35 g"
         />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <TextField
+            label="NAFDAC Reg. No. (optional)"
+            value={p.nafdacNumber}
+            onChange={(e) =>
+              set("nafdacNumber", e.target.value.toUpperCase().replace(/\s+/g, ""))
+            }
+            placeholder="e.g. A4-9674"
+          />
+          <TextField
+            label="Barcode / GTIN (optional)"
+            icon={Barcode}
+            value={p.barcode}
+            onChange={(e) => set("barcode", e.target.value.trim())}
+            placeholder="EAN-13 / UPC-A"
+          />
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <TextField
+            label="Manufacturer (optional)"
+            icon={Factory}
+            value={p.manufacturer}
+            onChange={(e) => set("manufacturer", e.target.value)}
+            placeholder="e.g. Emzor Pharmaceutical"
+          />
+          <TextField
+            label="Country of origin (optional)"
+            icon={Globe}
+            value={p.countryOfOrigin}
+            onChange={(e) => set("countryOfOrigin", e.target.value)}
+            placeholder="e.g. Nigeria, UK, India"
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-mist/45 px-4 py-3">
+          <p className="text-xs text-muted">
+            Check public registries (NAFDAC, FDA Orange Book, Health Canada, MHRA, NMPA) before saving.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            loading={checkingReg}
+            onClick={verifyAuthenticity}
+          >
+            <ShieldCheck className="h-4 w-4" aria-hidden />
+            Verify authenticity
+          </Button>
+        </div>
+        {p.regulatorySummary && (
+          <RegulatoryReportCard report={p.regulatorySummary} compact />
+        )}
         <div className="grid gap-5 sm:grid-cols-2">
           <Select
             label="Category"
