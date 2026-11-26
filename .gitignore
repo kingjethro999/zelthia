@@ -41,10 +41,6 @@ yarn-error.log*
 next-env.d.ts
 .env.example
 
-# --- Not ready to commit (parked until acted on) ---
-# Raw video footage
-/vid/
-
 # Coming-soon research: regulator registers, reports, strategy notes
 /data/comingsoon-*.md
 /data/indexsites.md

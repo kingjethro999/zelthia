@@ -204,7 +204,9 @@ function AccountForm() {
       ) : user.role === "provider" ? (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-sky/25 bg-surface p-4 text-sm">
           <div>
-            <p className="font-semibold text-ink">Facility operator workspace</p>
+            <p className="font-semibold text-ink">
+              Facility operator workspace
+            </p>
             <p className="text-xs text-muted">
               Manage pharmacy stock, services, directions, and licence status.
             </p>
@@ -243,8 +245,8 @@ function AccountForm() {
                   Personal health profile (optional)
                 </h2>
                 <p className="mt-0.5 text-sm text-muted">
-                  Only used if you ask Zelthia&apos;s personal Health Chat. Leave
-                  blank if you only use Zelthia as{" "}
+                  Only used if you ask Zelthia&apos;s personal Health Chat.
+                  Leave blank if you only use Zelthia as{" "}
                   {user.isAdmin ? "an administrator" : "a facility operator"}.
                 </p>
               </div>

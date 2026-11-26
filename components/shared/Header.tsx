@@ -91,11 +91,16 @@ export function AccountControls({ stacked = false }: { stacked?: boolean }) {
   const [menu, setMenu] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const workspaceItem = user?.isAdmin && adminPath
-    ? { href: adminPath, label: "Admin Console", icon: ShieldCheck }
-    : user?.role === "provider"
-      ? { href: homeHref, label: "Facility workspace", icon: Boxes }
-      : { href: "/chat", label: "Open health chat", icon: MessageCircleHeart };
+  const workspaceItem =
+    user?.isAdmin && adminPath
+      ? { href: adminPath, label: "Admin Console", icon: ShieldCheck }
+      : user?.role === "provider"
+        ? { href: homeHref, label: "Facility workspace", icon: Boxes }
+        : {
+            href: "/chat",
+            label: "Open health chat",
+            icon: MessageCircleHeart,
+          };
 
   useEffect(() => {
     if (!menu) return;

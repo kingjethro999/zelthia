@@ -7,7 +7,9 @@ import { query } from "./db";
  * Validates that a `next` destination is a safe same-origin workspace path
  * (blocks open redirects, protocol-relative URLs, API paths, and auth loops).
  */
-export function safeRelativeNext(raw: string | null | undefined): string | null {
+export function safeRelativeNext(
+  raw: string | null | undefined,
+): string | null {
   if (!raw || typeof raw !== "string") return null;
   if (!raw.startsWith("/") || raw.startsWith("//")) return null;
   if (
@@ -26,7 +28,9 @@ export function safeRelativeNext(raw: string | null | undefined): string | null 
 }
 
 /** Resolves the authoritative workspace home path for an authenticated user. */
-export async function resolveServerHomePath(user: SessionUser): Promise<string> {
+export async function resolveServerHomePath(
+  user: SessionUser,
+): Promise<string> {
   if (user.isAdmin) {
     return getAdminBasePath() ?? "/account";
   }

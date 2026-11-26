@@ -10,10 +10,7 @@ let cachedDevEnv: {
   values: Record<string, string>;
 } | null = null;
 
-function parseEnvFileInto(
-  filePath: string,
-  out: Record<string, string>,
-): void {
+function parseEnvFileInto(filePath: string, out: Record<string, string>): void {
   if (!fs.existsSync(filePath)) return;
   const raw = fs.readFileSync(filePath, "utf8");
   for (const line of raw.split(/\r?\n/)) {

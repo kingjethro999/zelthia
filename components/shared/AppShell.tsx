@@ -297,7 +297,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
               Companion &amp; account
             </p>
-            <div className="space-y-0.5">{secondaryItems.map(renderNavLink)}</div>
+            <div className="space-y-0.5">
+              {secondaryItems.map(renderNavLink)}
+            </div>
           </div>
         )}
       </nav>
@@ -520,7 +522,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             ) : isProvider && !pathname.startsWith("/provider") ? (
               <Link
-                href={facilityCount === 0 ? "/provider/new?welcome=1" : "/provider"}
+                href={
+                  facilityCount === 0 ? "/provider/new?welcome=1" : "/provider"
+                }
                 className="press press-soft inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-xs font-semibold text-ink hover:border-brand/40"
               >
                 <Boxes className="h-3.5 w-3.5 text-brand" aria-hidden />

@@ -142,7 +142,9 @@ export function Sidebar({
             )}
           >
             <Boxes className="h-[18px] w-[18px] text-sky" aria-hidden />
-            {facilityCount === 0 ? "Set up your facility" : "Facility workspace"}
+            {facilityCount === 0
+              ? "Set up your facility"
+              : "Facility workspace"}
             {facilityCount === 0 && (
               <span
                 className="ml-auto h-2 w-2 rounded-full bg-brand"

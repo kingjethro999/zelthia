@@ -233,7 +233,9 @@ export function ChatApp() {
             </Link>
           ) : user?.role === "provider" ? (
             <Link
-              href={facilityCount === 0 ? "/provider/new?welcome=1" : "/provider"}
+              href={
+                facilityCount === 0 ? "/provider/new?welcome=1" : "/provider"
+              }
               className="press press-soft inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-xs font-semibold text-ink hover:border-brand/40"
             >
               <Boxes className="h-3.5 w-3.5 text-brand" aria-hidden />

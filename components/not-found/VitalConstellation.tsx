@@ -149,8 +149,7 @@ export function VitalConstellation({ pulseCount }: { pulseCount: number }) {
           if (d < linkDist) {
             const strength = 1 - d / linkDist;
             const boost = Math.max(a.boost, b.boost) * 0.22;
-            const alpha =
-              strength * (isDark ? 0.14 : 0.11) + boost * strength;
+            const alpha = strength * (isDark ? 0.14 : 0.11) + boost * strength;
             ctx.strokeStyle = `rgba(${lineRgb}, ${alpha.toFixed(3)})`;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);

@@ -1132,7 +1132,11 @@ p {
       transparent 66%
     );
   background-size: 160% 160%;
-  background-position: 0% 0%, 100% 0%, 50% 100%, 85% 85%;
+  background-position:
+    0% 0%,
+    100% 0%,
+    50% 100%,
+    85% 85%;
   animation: nf-mesh-drift 24s ease-in-out infinite;
 }
 
@@ -1165,10 +1169,18 @@ p {
 @keyframes nf-mesh-drift {
   0%,
   100% {
-    background-position: 0% 0%, 100% 0%, 50% 100%, 85% 85%;
+    background-position:
+      0% 0%,
+      100% 0%,
+      50% 100%,
+      85% 85%;
   }
   50% {
-    background-position: 36% 24%, 64% 32%, 44% 66%, 68% 58%;
+    background-position:
+      36% 24%,
+      64% 32%,
+      44% 66%,
+      68% 58%;
   }
 }
 
@@ -1405,7 +1417,8 @@ p {
     transform: translate3d(0, -3px, 0);
     border-color: color-mix(in oklab, var(--brand) 48%, var(--line));
     background: var(--surface);
-    box-shadow: 0 18px 36px -22px color-mix(in oklab, var(--brand) 40%, transparent);
+    box-shadow: 0 18px 36px -22px
+      color-mix(in oklab, var(--brand) 40%, transparent);
   }
 }
 
