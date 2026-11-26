@@ -16,8 +16,8 @@ const requiredFiles = [
   "app/robots.ts",
   "app/chat/page.tsx",
   "app/api/chat/route.ts",
-  "app/inventory/page.tsx",
-  "app/api/inventory/route.ts",
+  "app/(app)/inventory/page.tsx",
+  "app/api/directory/route.ts",
 ];
 
 console.log("Checking required file structures...");

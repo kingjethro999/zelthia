@@ -12,8 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Scraped openFDA reference pages, not application source.
+    // Scraped openFDA reference pages and local agent/media scratch dirs, not application source.
     "data/**",
+    ".agents/**",
+    ".claude/**",
+    ".periderm/**",
+    "vid/**",
   ]),
 ]);
 

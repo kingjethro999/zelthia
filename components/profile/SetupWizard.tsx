@@ -301,6 +301,7 @@ function Review({
 }) {
   const rows: { label: string; value: string; step: number }[] = [
     { label: "Age", value: profile.age ? `${profile.age} years` : "", step: 0 },
+    { label: "Location", value: profile.location ?? "", step: 0 },
     {
       label: "Sex",
       value: (profile.biologicalSex ?? "").replace(/-/g, " "),
@@ -332,6 +333,7 @@ function Review({
       value: (profile.currentMedications ?? []).join(", "),
       step: 2,
     },
+    { label: "Notes", value: profile.notes ?? "", step: 3 },
   ];
   return (
     <div>

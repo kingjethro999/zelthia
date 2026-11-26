@@ -63,4 +63,6 @@ next-env.d.ts
 # Local agent tooling
 /.agents/
 /.claude/skills/
+/.periderm/
 /skills-lock.json
+do.md

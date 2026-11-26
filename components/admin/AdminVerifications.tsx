@@ -58,10 +58,31 @@ export function AdminVerifications() {
   }, [filter]);
 
   useEffect(() => {
-    if (status === "ready" && user?.isAdmin) {
-      void load();
-    }
-  }, [status, user?.isAdmin, load]);
+    if (status !== "ready" || !user?.isAdmin) return;
+    let active = true;
+    fetch(`/api/admin/verifications?status=${filter}`, { cache: "no-store" })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error ?? "Failed to load queue.");
+        return (data.items ?? []) as AdminVerificationItem[];
+      })
+      .then((next) => {
+        if (active) {
+          setError(null);
+          setItems(next);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(
+            (err as Error).message || "Could not load verification queue.",
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [status, user?.isAdmin, filter]);
 
   if (status !== "ready") {
     return (

@@ -66,7 +66,7 @@ export function sanitizeProfile(input: unknown): BiometricProfile {
     currentMedications: list(p.currentMedications),
     notes: typeof p.notes === "string" ? p.notes.slice(0, 1000) : "",
     location:
-      typeof p.location === "string" ? p.location.trim().slice(0, 80) : "",
+      typeof p.location === "string" ? p.location.trim().slice(0, 160) : "",
   };
 }
 

@@ -131,6 +131,15 @@ export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
   );
 }
 
+const safeHttpUrl = (raw: string): string | null => {
+  try {
+    const u = new URL(raw);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+};
+
 const host = (url: string) => {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -141,7 +150,11 @@ const host = (url: string) => {
 
 /** Pages from the live web search, labelled as unverified. */
 export function WebSources({ places }: { places: WebPlace[] }) {
-  if (!places.length) return null;
+  const safePlaces = places.flatMap((p) => {
+    const href = safeHttpUrl(p.url);
+    return href ? [{ ...p, url: href }] : [];
+  });
+  if (!safePlaces.length) return null;
   return (
     <section className="mt-4">
       <h4 className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-ink">
@@ -152,7 +165,7 @@ export function WebSources({ places }: { places: WebPlace[] }) {
         Found by search, not checked by Zelthia. Call before you go.
       </p>
       <ul className="flex flex-wrap gap-1.5">
-        {places.map((p) => (
+        {safePlaces.map((p) => (
           <li key={p.url}>
             <a
               href={p.url}

@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 
 const INLINE =
-  /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:https?:\/\/|\/)[^)\s]+\)|https?:\/\/[^\s)<]+|`[^`]+`|\*[^*\s][^*]*\*)/g;
+  /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:https?:\/\/|\/(?!\/))[^)\s]+\)|https?:\/\/[^\s)<]+|`[^`]+`|\*[^*\s][^*]*\*)/g;
 
 function Inline({ text }: { text: string }) {
   const parts = text.split(INLINE);

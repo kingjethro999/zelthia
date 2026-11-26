@@ -62,6 +62,7 @@ export function hasActiveBiometrics(
   if (!profile) return false;
   return Boolean(
     (profile.age && String(profile.age).trim() !== "") ||
+    (Boolean(profile.location) && profile.location!.trim() !== "") ||
     (Boolean(profile.biologicalSex) &&
       profile.biologicalSex !== "prefer-not-to-say") ||
     (Boolean(profile.bloodGroup) && profile.bloodGroup !== "Unknown") ||

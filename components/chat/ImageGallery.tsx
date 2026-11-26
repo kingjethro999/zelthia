@@ -4,6 +4,15 @@ import { useState } from "react";
 import { ExternalLink, Images } from "lucide-react";
 import type { WebImage } from "@/lib/inventory-types";
 
+const safeHttpUrl = (raw: string): string | null => {
+  try {
+    const u = new URL(raw);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+};
+
 const host = (u: string) => {
   try {
     return new URL(u).hostname.replace(/^www\./, "");
@@ -18,7 +27,15 @@ const host = (u: string) => {
  */
 export function ImageGallery({ images }: { images: WebImage[] }) {
   const [broken, setBroken] = useState<Set<string>>(new Set());
-  const shown = images.filter((i) => !broken.has(i.imageUrl)).slice(0, 8);
+  const shown = images
+    .flatMap((i) => {
+      const imageUrl = safeHttpUrl(i.imageUrl);
+      const sourceUrl = safeHttpUrl(i.sourceUrl);
+      return imageUrl && sourceUrl && !broken.has(imageUrl)
+        ? [{ ...i, imageUrl, sourceUrl }]
+        : [];
+    })
+    .slice(0, 8);
   if (!shown.length) return null;
 
   return (

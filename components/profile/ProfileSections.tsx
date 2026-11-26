@@ -96,13 +96,13 @@ export function AboutFields({
         className="max-w-xs"
       />
       <TextField
-        label="Town or area"
+        label="Your location (be as precise as possible)"
         icon={MapPin}
         autoComplete="address-level2"
         value={profile.location ?? ""}
         onChange={(e) => patch({ location: e.target.value })}
-        placeholder="e.g. Wuse 2, Abuja"
-        hint="Used to find pharmacies, clinics and scan centres near you."
+        placeholder="e.g. 14 Admiralty Way, Lekki Phase 1, Lagos or Wuse 2, Abuja"
+        hint="Be as precise as possible (street, estate, neighbourhood, LGA and city). This helps Zelthia return accurate nearby pharmacies, clinics and scan centres for your enquiries."
         className="max-w-md"
       />
       <ChoiceGroup<BiologicalSex>
