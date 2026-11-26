@@ -1,13 +1,24 @@
 import "server-only";
 import type { AgentStep, ChatEvent, MessageMeta } from "@/lib/chat-types";
-import type { DirectoryMatch, WebImage, WebPlace } from "@/lib/inventory-types";
+import type {
+  DirectoryMatch,
+  RegulatoryReport,
+  WebImage,
+  WebPlace,
+} from "@/lib/inventory-types";
+import { extractRegulatoryCodes } from "@/lib/barcode";
 import type { BiometricProfile } from "./types";
 import { buildSystemPrompt } from "./prompts";
 import { parseAiResponse, stripTags } from "./parser";
 import { complete, readWithVision, stream, type Turn } from "./providers";
 import { generateClinicalFallback } from "./fallback";
 import { searchDirectory } from "@/lib/server/inventory";
-import { searchImages, searchPlaces } from "@/lib/server/web-search";
+import { verifyHealthProduct } from "@/lib/server/regulatory";
+import {
+  searchImages,
+  searchPlaces,
+  searchWebGeneral,
+} from "@/lib/server/web-search";
 
 export interface IncomingFile {
   name: string;
@@ -50,11 +61,12 @@ export class StepTracker {
 
 /* ---------- 1. read attachments ---------- */
 
-const READ_PROMPT = `You are reading a file a patient uploaded to a health assistant. It may be a doctor's handwritten note or referral card, a prescription, a lab or scan report, a medicine pack, or a photo of a body part.
+const READ_PROMPT = `You are reading a file a patient uploaded to a health assistant. It may be a doctor's handwritten note or referral card, a prescription, a lab or scan report, a medicine pack, skin cream, supplement, barcode, or a photo of a body part.
 Reply in exactly these sections:
 DOCUMENT TYPE: one short line.
 TRANSCRIPTION: every word you can read, exactly as written, including handwriting. Expand medical abbreviations in square brackets, e.g. "2D ECHO [two-dimensional echocardiogram]". Write [illegible] for anything you cannot read. If it is a photo with no text, describe what is visible.
-KEY POINTS: short bullet list of findings, diagnoses, tests or procedures requested, and medicines with doses.
+REGULATORY & PACK IDENTIFIERS: list any NAFDAC Reg. No., barcode digits, US NDC, China Guoyao Zhunzi (国药准字...), 20-digit Chinese traceability code, UK MHRA PL, DIN, batch/lot number, expiry date, manufacturer, and country of origin visible (or "None visible").
+KEY POINTS: short bullet list of findings, diagnoses, active ingredients, tests or procedures requested, and medicines with doses.
 Do not add advice.`;
 
 async function pdfText(base64: string) {
@@ -139,25 +151,45 @@ interface Need {
   kind: "product" | "service";
 }
 
+interface ProductCheck {
+  name: string;
+  genericName?: string;
+  category?: string;
+  nafdacCode?: string;
+  barcode?: string;
+  foreignCode?: string;
+}
+
 interface Plan {
   title: string;
   emergency: boolean;
   location: string | null;
   needs: Need[];
+  checks: ProductCheck[];
 }
 
-const PLAN_PROMPT = `You route requests for a health assistant in Nigeria. Read the conversation and decide whether the user needs to find a place for a medicine, health or beauty product, test, scan or procedure.
+const PLAN_PROMPT = `You route requests for a health assistant in Nigeria. Read the conversation and decide:
+1) Whether the user needs to find a place for a medicine, health/beauty product, test, scan or procedure ("needs").
+2) Whether the user mentioned, asked about the authenticity/safety/ingredients of, or uploaded a photo of a specific medicine, skincare cream, soap, herbal product, supplement, or regulatory code ("checks").
+
 Return only JSON:
 {"title": "3 to 6 word chat title",
  "emergency": boolean,
  "location": "city or area the user mentioned, else null",
  "needs": [{"what": "plain name, e.g. 2D echocardiogram", "kind": "product" | "service",
-            "terms": ["2-4 short search keywords and common spellings, e.g. echo, echocardiogram, echocardiography"]}]}
+            "terms": ["2-4 short search keywords and common spellings"]}],
+ "checks": [{"name": "Brand/product name, e.g. Tydineal Cream",
+             "genericName": "Active ingredient if known, else ''",
+             "category": "Medicine | Skin care and cosmetics | Vitamins and supplements | Pain relief and muscle care | Medical devices | Other health products",
+             "nafdacCode": "NAFDAC number if seen/mentioned, else ''",
+             "barcode": "Barcode/GTIN if seen/mentioned, else ''",
+             "foreignCode": "NDC, Guoyao Zhunzi, MHRA PL, or DIN if seen, else ''"}]}
 Rules:
-- If the user attached a photo of a product (a medicine pack, cream, device, carton or label), include that product as a need of kind "product", using the brand and product name read from the photo. The user wants to know where to get it.
-- If an attached document or the conversation says the user should get a test, scan, procedure or medicine (e.g. "Plan: MRI, 2D ECHO", "Rx: ..."), include each test or scan as a need: the user has to find where to do it. Prefer tests and scans over routine medicines.
-- "needs" is [] only when the user just wants advice or information and nothing has to be obtained.
-- At most 2 needs. Never invent a location.`;
+- If the user attached a photo of a product pack or asked whether a drug, cream, supplement, or regulatory number is real/safe/registered, include it in "checks" (and also in "needs" with kind "product" if they need to find where to get it).
+- If an attached document or conversation says the user should get a test, scan, procedure or medicine, include it in "needs". Prefer tests and scans over routine medicines when both exceed 2.
+- "needs" is [] only when nothing has to be physically obtained.
+- "checks" is [] for general symptom chat, greetings, or clinic/lab scans without a commercial product.
+- At most 2 items each for needs and checks. Never invent a location or registration code.`;
 
 function parsePlan(text: string, fallbackTitle: string): Plan {
   const json = text.match(/\{[\s\S]*\}/)?.[0];
@@ -176,6 +208,36 @@ function parsePlan(text: string, fallbackTitle: string): Plan {
             .slice(0, 4),
         }))
     : [];
+  const checks: ProductCheck[] = Array.isArray(raw.checks)
+    ? raw.checks
+        .filter(
+          (c: ProductCheck) => c && typeof c.name === "string" && c.name.trim(),
+        )
+        .slice(0, 2)
+        .map((c: ProductCheck) => ({
+          name: c.name.trim().slice(0, 120),
+          genericName:
+            typeof c.genericName === "string"
+              ? c.genericName.trim().slice(0, 120)
+              : undefined,
+          category:
+            typeof c.category === "string"
+              ? c.category.trim().slice(0, 80)
+              : undefined,
+          nafdacCode:
+            typeof c.nafdacCode === "string"
+              ? c.nafdacCode.trim().slice(0, 64)
+              : undefined,
+          barcode:
+            typeof c.barcode === "string"
+              ? c.barcode.trim().slice(0, 64)
+              : undefined,
+          foreignCode:
+            typeof c.foreignCode === "string"
+              ? c.foreignCode.trim().slice(0, 100)
+              : undefined,
+        }))
+    : [];
   return {
     title:
       typeof raw.title === "string" && raw.title.trim()
@@ -187,6 +249,7 @@ function parsePlan(text: string, fallbackTitle: string): Plan {
         ? raw.location.trim().slice(0, 60)
         : null,
     needs,
+    checks,
   };
 }
 
@@ -256,6 +319,7 @@ export async function runTurn({
     emergency: false,
     location: null,
     needs: [],
+    checks: [],
   };
   const smallTalk =
     !files.length &&
@@ -293,6 +357,73 @@ export async function runTurn({
   const matches: DirectoryMatch[] = [];
   const places: WebPlace[] = [];
   const images: WebImage[] = [];
+  const regulatory: RegulatoryReport[] = [];
+
+  // Ensure every product need or inline regulatory code triggers verification
+  const inlineCodes = extractRegulatoryCodes(userText);
+  const allChecks: ProductCheck[] = [...plan.checks];
+  for (const n of plan.needs) {
+    if (
+      n.kind === "product" &&
+      !allChecks.some((c) => c.name.toLowerCase() === n.what.toLowerCase())
+    ) {
+      allChecks.push({ name: n.what });
+    }
+  }
+  if (
+    !allChecks.length &&
+    (inlineCodes.nafdac || inlineCodes.barcode || inlineCodes.guoyaoZhunzi || inlineCodes.ndc)
+  ) {
+    allChecks.push({
+      name:
+        inlineCodes.nafdac ??
+        inlineCodes.guoyaoZhunzi ??
+        inlineCodes.ndc ??
+        inlineCodes.barcode ??
+        text.slice(0, 60),
+      nafdacCode: inlineCodes.nafdac,
+      barcode: inlineCodes.barcode,
+      foreignCode: inlineCodes.guoyaoZhunzi ?? inlineCodes.ndc,
+    });
+  }
+
+  const regulatoryPromise = Promise.all(
+    allChecks.slice(0, 2).map(async (chk) => {
+      const regStep = steps.start(
+        `Checking NAFDAC Greenbook, US FDA Orange Book & global registries for ${chk.name}`,
+      );
+      try {
+        const rep = await verifyHealthProduct({
+          name: chk.name,
+          genericName: chk.genericName,
+          category: chk.category,
+          nafdacCode: chk.nafdacCode || inlineCodes.nafdac,
+          barcode: chk.barcode || inlineCodes.barcode,
+          foreignCode:
+            chk.foreignCode ||
+            inlineCodes.guoyaoZhunzi ||
+            inlineCodes.ndc ||
+            inlineCodes.mhraPl,
+        });
+        steps.finish(
+          regStep,
+          rep.staleFallback
+            ? `Live registry unavailable — showing cached record from ${rep.staleFromDate}`
+            : rep.headline,
+          rep.verdict === "danger" ? "failed" : "done",
+        );
+        return rep;
+      } catch (err) {
+        console.warn("Regulatory verification failed", (err as Error).message);
+        steps.finish(
+          regStep,
+          "Could not reach public registries right now",
+          "failed",
+        );
+        return null;
+      }
+    }),
+  );
 
   // 3-4. Directory first, then the web, for each need.
   for (const need of plan.needs) {
@@ -319,26 +450,39 @@ export async function runTurn({
       const webStep = steps.start(
         `Searching the web for ${need.what}${location ? ` near ${location}` : " in Nigeria"}`,
       );
-      const [{ places: web }, pics] = await Promise.all([
+      const [{ places: web }, wide, pics] = await Promise.all([
         searchPlaces(need.what, location, 6),
+        searchWebGeneral(
+          `${need.what}${location ? ` ${location}` : ""} Nigeria`,
+          { limit: 4, country: "NG", filterLowValue: true },
+        ).catch(() => ({ results: [] as WebPlace[] })),
         searchImages(need.what, location, 8),
       ]);
-      places.push(...web);
+      const combined = [...web];
+      for (const w of wide.results) {
+        if (!combined.some((x) => x.url === w.url)) combined.push(w);
+      }
+      places.push(...combined);
       images.push(
         ...pics.filter((p) => !images.some((x) => x.imageUrl === p.imageUrl)),
       );
-      const found = [
-        web.length ? `${web.length} pages` : "",
+      const counts = [
+        combined.length ? `${combined.length} pages` : "",
         pics.length ? `${pics.length} photos` : "",
       ].filter(Boolean);
       steps.finish(
         webStep,
-        found.length
-          ? `Found ${found.join(" and ")} to check (not verified by Zelthia)`
+        counts.length
+          ? `Found ${counts.join(" and ")} to check (not verified by Zelthia)`
           : "No useful pages found",
-        found.length ? "done" : "failed",
+        counts.length ? "done" : "failed",
       );
     }
+  }
+
+  const resolvedReg = await regulatoryPromise;
+  for (const r of resolvedReg) {
+    if (r) regulatory.push(r);
   }
 
   // 5. Answer, grounded only in what was actually found. Keep untrusted retrieved data
@@ -347,8 +491,38 @@ export async function runTurn({
     ? `USER LOCATION: ${cleanUntrusted(location, 160)}`
     : "USER LOCATION: unknown";
 
-  const retrievedData = plan.needs.length
-    ? `<untrusted_retrieved_data>\nZELTHIA DIRECTORY RESULTS:\n${
+  const hasContext = plan.needs.length > 0 || regulatory.length > 0;
+  const retrievedData = hasContext
+    ? `<untrusted_retrieved_data>\n${
+        regulatory.length
+          ? `REGULATORY VERIFICATION RESULTS:\n${JSON.stringify(
+              regulatory.map((r) => ({
+                query: cleanUntrusted(r.query, 120),
+                verdict: r.verdict,
+                headline: cleanUntrusted(r.headline, 180),
+                summary: cleanUntrusted(r.summary, 360),
+                nafdac_code: r.nafdacCode ?? null,
+                barcode: r.barcode ?? null,
+                stale_fallback: r.staleFallback,
+                stale_from_date: r.staleFromDate ?? null,
+                flags: r.flags.map((f) => ({
+                  code: f.code,
+                  severity: f.severity,
+                  title: cleanUntrusted(f.title, 120),
+                  detail: cleanUntrusted(f.detail, 260),
+                })),
+                findings: r.findings.slice(0, 6).map((f) => ({
+                  registry: f.registry,
+                  status: f.status,
+                  title: cleanUntrusted(f.title, 140),
+                  detail: cleanUntrusted(f.detail, 240),
+                  source: cleanUntrusted(f.sourceAttribution, 120),
+                })),
+                unlisted_warning: r.unlistedWarning ?? null,
+              })),
+            )}\n\n`
+          : ""
+      }ZELTHIA DIRECTORY RESULTS:\n${
         matches.length
           ? JSON.stringify(
               matches.slice(0, 12).map((m) => ({
@@ -370,6 +544,8 @@ export async function runTurn({
                       quantity: m.product.quantity,
                       price_ngn: m.product.priceNgn,
                       prescription_only: m.product.prescriptionOnly,
+                      nafdac_no: cleanUntrusted(m.product.nafdacNumber, 64),
+                      regulatory_status: m.product.regulatoryStatus,
                     }
                   : { service: cleanUntrusted(m.service ?? "", 100) }),
               })),
@@ -387,7 +563,7 @@ export async function runTurn({
       }\n</untrusted_retrieved_data>`
     : "";
 
-  const grounding = plan.needs.length
+  const grounding = hasContext
     ? `GROUNDING RULES (strict):
 - The only businesses you may name are those in ZELTHIA DIRECTORY RESULTS and WEB RESULTS inside <untrusted_retrieved_data>. Do not name any other pharmacy, hospital, clinic, store or brand of shop, not even as an example or "e.g.".
 - If you want to suggest looking locally, describe the type of place (e.g. "a community pharmacy" or "a teaching hospital's cardiology unit") without naming one.
@@ -395,7 +571,9 @@ export async function runTurn({
 - Call a facility "verified" only when licence_verified is true. If it has recorded directions, mention they can listen to them on the card below.
 - Facility cards with phone, directions and stock are shown under your answer, so keep your own summary short.
 - Photos from the web search are shown under your answer and link to their source pages; you may refer to them.
-- If ZELTHIA DIRECTORY RESULTS is "none", say clearly at the start that no facility on Zelthia has it in stock yet, then point to the web results.`
+- If REGULATORY VERIFICATION RESULTS shows verdict "unverified" or unlisted_warning is set, explicitly warn the user that no documented regulatory listing could be found across NAFDAC, US FDA, or international registries and advise consulting a licensed pharmacy, clinic, or hospital nearby. NEVER invent an explanation for why a product is unlisted.
+- If REGULATORY VERIFICATION RESULTS shows verdict "danger" or "caution", clearly highlight the exact flags (e.g. NAFDAC category mismatch, expired registration, active recall) and cite each source attribution shown.
+- If ZELTHIA DIRECTORY RESULTS is "none" and the user was looking for where to get something, say clearly that no facility on Zelthia has it in stock yet, then point to the web results.`
     : "";
   const system = [buildSystemPrompt(profile), locationLine, grounding]
     .filter(Boolean)
@@ -435,6 +613,7 @@ export async function runTurn({
           : steps.steps,
       triage: plan.emergency ? "urgent" : parsed.triageLevel,
       matches: matches.slice(0, 12),
+      regulatory,
       places: places.slice(0, 8),
       images: images.slice(0, 12),
       model,

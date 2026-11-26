@@ -23,7 +23,11 @@ import { stripTags } from "@/lib/ai/parser";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./Markdown";
 import { StepsPanel } from "./StepsPanel";
-import { DirectoryMatches, WebSources } from "./ResultCards";
+import {
+  DirectoryMatches,
+  RegulatoryChecks,
+  WebSources,
+} from "./ResultCards";
 import { ImageGallery } from "./ImageGallery";
 
 const TRIAGE: Record<
@@ -234,6 +238,7 @@ export function AssistantMessage({
         ) : null}
         {!live && message && (
           <>
+            <RegulatoryChecks reports={message.meta?.regulatory ?? []} />
             <DirectoryMatches matches={message.meta?.matches ?? []} />
             <ImageGallery images={message.meta?.images ?? []} />
             <WebSources places={message.meta?.places ?? []} />

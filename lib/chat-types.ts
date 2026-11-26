@@ -1,5 +1,10 @@
 import type { TriageLevel } from "@/lib/ai/types";
-import type { DirectoryMatch, WebImage, WebPlace } from "@/lib/inventory-types";
+import type {
+  DirectoryMatch,
+  RegulatoryReport,
+  WebImage,
+  WebPlace,
+} from "@/lib/inventory-types";
 
 export type StepStatus = "running" | "done" | "failed";
 
@@ -26,6 +31,7 @@ export interface MessageMeta {
   steps?: AgentStep[];
   triage?: TriageLevel;
   matches?: DirectoryMatch[];
+  regulatory?: RegulatoryReport[];
   places?: WebPlace[];
   images?: WebImage[];
   model?: string;

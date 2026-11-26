@@ -6,17 +6,39 @@ import {
   MapPinned,
   PackageCheck,
   Phone,
+  ShieldCheck,
   Stethoscope,
 } from "lucide-react";
 import { AudioPlayer } from "@/components/ui/AudioPlayer";
+import { RegulatoryReportCard } from "@/components/inventory/RegulatoryReportCard";
 import {
   FACILITY_KIND_LABEL,
   formatNaira,
   stockStatus,
   type DirectoryMatch,
+  type RegulatoryReport,
   type WebPlace,
 } from "@/lib/inventory-types";
 import { cn } from "@/lib/utils";
+
+/** Public-registry verification cards attached to a chat answer. */
+export function RegulatoryChecks({
+  reports,
+}: {
+  reports: RegulatoryReport[];
+}) {
+  if (!reports.length) return null;
+  return (
+    <div className="mt-4 space-y-3">
+      {reports.map((report, i) => (
+        <RegulatoryReportCard
+          key={`${report.query}-${report.nafdacCode ?? i}`}
+          report={report}
+        />
+      ))}
+    </div>
+  );
+}
 
 /** Real listings from the Zelthia directory. Renders nothing when empty. */
 export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
@@ -47,6 +69,22 @@ export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
                       ]
                         .filter(Boolean)
                         .join(", ")}
+                    </p>
+                  )}
+                  {(m.product?.nafdacNumber ||
+                    m.product?.regulatoryStatus === "verified") && (
+                    <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+                      {m.product.nafdacNumber && (
+                        <span className="rounded-full bg-mist px-2 py-0.5 font-medium text-ink">
+                          NAFDAC {m.product.nafdacNumber}
+                        </span>
+                      )}
+                      {m.product.regulatoryStatus === "verified" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 font-medium text-brand-strong">
+                          <ShieldCheck className="h-3 w-3" aria-hidden />
+                          Registry checked
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>
