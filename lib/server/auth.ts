@@ -117,7 +117,9 @@ export async function startSession(userId: string, dek: Buffer) {
   });
 }
 
-function parseSessionCookie(raw: string | undefined): { token: string; dek: Buffer } | null {
+function parseSessionCookie(
+  raw: string | undefined,
+): { token: string; dek: Buffer } | null {
   if (!raw) return null;
   const dot = raw.indexOf(".");
   if (dot <= 0) return null;
@@ -139,7 +141,9 @@ export async function endSession() {
   const parsed = parseSessionCookie(raw);
   const token = parsed?.token ?? raw;
   if (token) {
-    await query("delete from sessions where token_hash = $1", [sha256Hex(token)]);
+    await query("delete from sessions where token_hash = $1", [
+      sha256Hex(token),
+    ]);
   }
   jar.delete(SESSION_COOKIE);
 }
@@ -163,7 +167,10 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   return ctx?.user ?? null;
 }
 
-export async function revokeOtherSessions(userId: string, currentTokenHash: string) {
+export async function revokeOtherSessions(
+  userId: string,
+  currentTokenHash: string,
+) {
   const rows = await query<{ n: string }>(
     `with deleted as (
        delete from sessions where user_id = $1 and token_hash <> $2 returning 1
@@ -179,13 +186,20 @@ export async function revokeOtherSessions(userId: string, currentTokenHash: stri
  * attachment transcripts for `userId` on first sign-in after encryption rollout,
  * then wipes the plaintext columns.
  */
-export async function migrateUserPlaintextData(userId: string, dek: Buffer): Promise<void> {
+export async function migrateUserPlaintextData(
+  userId: string,
+  dek: Buffer,
+): Promise<void> {
   const profiles = await query<{ data: unknown }>(
     "select data from health_profiles where user_id = $1 and data_enc is null",
     [userId],
   );
   if (profiles[0]) {
-    const enc = encryptText(JSON.stringify(profiles[0].data ?? {}), dek, aadProfile(userId));
+    const enc = encryptText(
+      JSON.stringify(profiles[0].data ?? {}),
+      dek,
+      aadProfile(userId),
+    );
     await query(
       "update health_profiles set data_enc = $2, data = '{}'::jsonb, updated_at = now() where user_id = $1",
       [userId, enc],
@@ -204,7 +218,12 @@ export async function migrateUserPlaintextData(userId: string, dek: Buffer): Pro
     );
   }
 
-  const msgs = await query<{ id: string; conversation_id: string; content: string; meta: unknown }>(
+  const msgs = await query<{
+    id: string;
+    conversation_id: string;
+    content: string;
+    meta: unknown;
+  }>(
     `select m.id, m.conversation_id, m.content, m.meta
        from messages m join conversations c on c.id = m.conversation_id
       where c.user_id = $1 and m.payload_enc is null`,
@@ -227,7 +246,11 @@ export async function migrateUserPlaintextData(userId: string, dek: Buffer): Pro
     [userId],
   );
   for (const a of atts) {
-    const extractedEnc = encryptText(a.extracted_text ?? "", dek, aadAttachmentText(userId, a.id));
+    const extractedEnc = encryptText(
+      a.extracted_text ?? "",
+      dek,
+      aadAttachmentText(userId, a.id),
+    );
     await query(
       "update attachments set extracted_enc = $2, extracted_text = '' where id = $1 and user_id = $3",
       [a.id, extractedEnc, userId],

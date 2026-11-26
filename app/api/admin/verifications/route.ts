@@ -3,7 +3,12 @@ import { handle, json, requireAdminRead } from "@/lib/server/api";
 import { listVerificationsForAdmin } from "@/lib/server/inventory";
 import type { VerificationStatus } from "@/lib/inventory-types";
 
-const ALLOWED_FILTERS = new Set<string>(["pending", "verified", "rejected", "all"]);
+const ALLOWED_FILTERS = new Set<string>([
+  "pending",
+  "verified",
+  "rejected",
+  "all",
+]);
 
 export async function GET(req: Request) {
   await connection();

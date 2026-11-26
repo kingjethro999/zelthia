@@ -49,7 +49,9 @@ export function GlassHero({
   className?: string;
 }) {
   return (
-    <section className={cn("adm-glass-hero rounded-[28px] p-6 sm:p-7", className)}>
+    <section
+      className={cn("adm-glass-hero rounded-[28px] p-6 sm:p-7", className)}
+    >
       <svg
         width="0"
         height="0"

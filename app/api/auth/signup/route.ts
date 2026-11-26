@@ -6,7 +6,11 @@ import {
   startSession,
   toSessionUser,
 } from "@/lib/server/auth";
-import { CURRENT_TERMS_VERSION, generateDek, wrapDek } from "@/lib/server/crypto";
+import {
+  CURRENT_TERMS_VERSION,
+  generateDek,
+  wrapDek,
+} from "@/lib/server/crypto";
 import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 import type { UserRole } from "@/lib/auth-types";

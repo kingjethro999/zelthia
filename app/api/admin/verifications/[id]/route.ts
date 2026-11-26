@@ -45,8 +45,10 @@ export async function POST(req: Request, { params }: Ctx) {
       return json({ facility: updated, evidence: result.evidence });
     }
 
-    const note = typeof body.note === "string" ? body.note.trim().slice(0, 300) : "";
-    const rawUrl = typeof body.url === "string" ? body.url.trim().slice(0, 300) : "";
+    const note =
+      typeof body.note === "string" ? body.note.trim().slice(0, 300) : "";
+    const rawUrl =
+      typeof body.url === "string" ? body.url.trim().slice(0, 300) : "";
     if (action === "reject" && note.length < 4) {
       throw new HttpError(
         "Provide a brief reason when declining verification.",
@@ -62,7 +64,10 @@ export async function POST(req: Request, { params }: Ctx) {
         throw new HttpError("Enter a valid https:// proof URL.", 400);
       }
       if (parsed.protocol !== "https:") {
-        throw new HttpError("Verification proof URL must start with https://.", 400);
+        throw new HttpError(
+          "Verification proof URL must start with https://.",
+          400,
+        );
       }
       url = parsed.toString();
     }

@@ -611,7 +611,9 @@ export async function setVerificationEvidence(
   return rows[0] ? toFacility(rows[0]) : null;
 }
 
-export async function getFacilityForAdmin(id: string): Promise<Facility | null> {
+export async function getFacilityForAdmin(
+  id: string,
+): Promise<Facility | null> {
   if (!isUuid(id)) return null;
   const rows = await query<FacilityRow>(
     "select * from facilities where id = $1 limit 1",
@@ -650,7 +652,9 @@ export async function listVerificationsForAdmin(
       name: r.owner_name,
       email: r.owner_email,
     },
-    evidence: Array.isArray(r.verification_evidence) ? r.verification_evidence : [],
+    evidence: Array.isArray(r.verification_evidence)
+      ? r.verification_evidence
+      : [],
     verifiedAt: r.verified_at ? new Date(r.verified_at).toISOString() : null,
     updatedAt: new Date(r.updated_at).toISOString(),
   }));

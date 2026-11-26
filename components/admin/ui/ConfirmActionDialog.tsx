@@ -70,7 +70,11 @@ export function ConfirmActionDialog({
       description={description}
       footer={
         <>
-          <Button variant="secondary" onClick={resetAndClose} disabled={loading}>
+          <Button
+            variant="secondary"
+            onClick={resetAndClose}
+            disabled={loading}
+          >
             Cancel
           </Button>
           <Button variant="danger" loading={loading} onClick={handleConfirm}>

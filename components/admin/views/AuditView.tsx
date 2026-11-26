@@ -5,6 +5,7 @@ import {
   AlertCircle,
   ChevronDown,
   Download,
+  LoaderCircle,
   RefreshCw,
   ScrollText,
   Search,
@@ -24,37 +25,47 @@ import { GlassBadge, GlassCard, GlassInset } from "../ui/GlassPanel";
 import { SegmentedControl } from "../ui/SegmentedControl";
 
 type ActionFilter =
-  | ""
-  | "verification."
-  | "facility."
-  | "product."
-  | "user."
-  | "system.";
+  "" | "verification." | "facility." | "product." | "user." | "system.";
 
 function actionTone(action: string) {
   if (action.includes("approve") || action.includes("prune")) return "brand";
-  if (action.includes("reject") || action.includes("delete") || action.includes("revoke"))
+  if (
+    action.includes("reject") ||
+    action.includes("delete") ||
+    action.includes("revoke")
+  )
     return "alert";
   return "sky";
 }
 
 export function AuditView() {
   const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
   const [actionFilter, setActionFilter] = useState<ActionFilter>("");
   const [items, setItems] = useState<AdminAuditEntry[] | null>(null);
+  const [fetching, setFetching] = useState(false);
   const [total, setTotal] = useState(0);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setError(null);
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQ(q), 140);
+    return () => window.clearTimeout(t);
+  }, [q]);
+
+  const buildParams = useCallback(() => {
     const params = new URLSearchParams();
-    if (q.trim()) params.set("q", q.trim());
+    if (debouncedQ.trim()) params.set("q", debouncedQ.trim());
     if (actionFilter) params.set("action", actionFilter);
     params.set("limit", "100");
+    return params;
+  }, [debouncedQ, actionFilter]);
 
+  const load = useCallback(async () => {
+    setError(null);
+    setFetching(true);
     try {
-      const res = await fetch(`/api/admin/audit?${params}`, {
+      const res = await fetch(`/api/admin/audit?${buildParams()}`, {
         cache: "no-store",
       });
       const body = await res.json().catch(() => ({}));
@@ -63,19 +74,51 @@ export function AuditView() {
       setTotal(body.total ?? 0);
     } catch (err) {
       setError((err as Error).message || "Could not load audit trail.");
+    } finally {
+      setFetching(false);
     }
-  }, [q, actionFilter]);
+  }, [buildParams]);
 
   useEffect(() => {
-    const t = window.setTimeout(() => void load(), 180);
-    return () => window.clearTimeout(t);
-  }, [load]);
+    const ac = new AbortController();
+    fetch(`/api/admin/audit?${buildParams()}`, {
+      cache: "no-store",
+      signal: ac.signal,
+    })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error ?? "Failed to load audit log.");
+        return body;
+      })
+      .then((body) => {
+        setError(null);
+        setItems(body.items ?? []);
+        setTotal(body.total ?? 0);
+        setFetching(false);
+      })
+      .catch((err) => {
+        if ((err as Error).name === "AbortError") return;
+        setError((err as Error).message || "Could not load audit trail.");
+        setFetching(false);
+      });
+    return () => ac.abort();
+  }, [buildParams]);
+
+  const hasFilters = Boolean(q.trim()) || Boolean(actionFilter);
 
   const handleExportCsv = () => {
     if (!items?.length) return;
     exportCsv(
       `zelthia-audit-${new Date().toISOString().slice(0, 10)}.csv`,
-      ["Timestamp", "Action", "Admin Name", "Admin Email", "Target Type", "Target ID", "Details"],
+      [
+        "Timestamp",
+        "Action",
+        "Admin Name",
+        "Admin Email",
+        "Target Type",
+        "Target ID",
+        "Details",
+      ],
       items.map((e) => [
         e.createdAt,
         e.action,
@@ -103,14 +146,35 @@ export function AuditView() {
           <h1 className="title font-display text-3xl font-semibold text-ink">
             Administrator audit trail
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Immutable record of verification decisions, moderations, role
-            changes, and maintenance runs.{" "}
-            <span className="tabular font-semibold text-ink">{total}</span>{" "}
-            matching event{total === 1 ? "" : "s"}.
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span>
+              Immutable record of verification decisions, moderations, role
+              changes, and maintenance runs.{" "}
+              <span className="tabular font-semibold text-ink">{total}</span>{" "}
+              matching event{total === 1 ? "" : "s"}.
+            </span>
+            {fetching && (
+              <LoaderCircle
+                className="h-3.5 w-3.5 animate-spin text-brand"
+                aria-label="Updating"
+              />
+            )}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {hasFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setQ("");
+                setDebouncedQ("");
+                setActionFilter("");
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
           <Button
             variant="secondary"
             size="sm"
@@ -129,7 +193,12 @@ export function AuditView() {
             <Download className="h-4 w-4" aria-hidden />
             JSON
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => void load()}>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={fetching}
+            onClick={() => void load()}
+          >
             <RefreshCw className="h-4 w-4" aria-hidden />
             Refresh
           </Button>

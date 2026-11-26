@@ -53,7 +53,9 @@ export async function POST(req: Request) {
   if (!ipLimit.ok || !emailLimit.ok) {
     const retryAfter = Math.max(ipLimit.retryAfter, emailLimit.retryAfter);
     return NextResponse.json(
-      { error: `Too many sign-in attempts. Try again in ${retryAfter} seconds.` },
+      {
+        error: `Too many sign-in attempts. Try again in ${retryAfter} seconds.`,
+      },
       { status: 429 },
     );
   }

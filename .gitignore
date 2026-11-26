@@ -39,7 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-!.env.example
+.env.example
 
 # --- Not ready to commit (parked until acted on) ---
 # Raw video footage

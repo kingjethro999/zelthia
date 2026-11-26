@@ -23,6 +23,7 @@ import {
   FACILITY_KIND_LABEL,
   type AdminVerificationItem,
 } from "@/lib/inventory-types";
+import { triggerHaptic } from "@/lib/spring";
 import { useAdminShell } from "../AdminShell";
 import { AdminEmptyState, AdminSkeletonList } from "../ui/AdminStates";
 import { useAdminToast } from "../ui/AdminToast";
@@ -81,7 +82,9 @@ export function VerificationsView() {
       })
       .catch((err) => {
         if (!active) return;
-        setError((err as Error).message || "Could not load verification queue.");
+        setError(
+          (err as Error).message || "Could not load verification queue.",
+        );
       });
     return () => {
       active = false;
@@ -138,11 +141,19 @@ export function VerificationsView() {
       if (!res.ok) throw new Error(data.error ?? "Action failed.");
 
       if (action === "approve") {
-        toast.success("Facility verified", `${facilityName} now shows a verified badge.`);
+        toast.success(
+          "Facility verified",
+          `${facilityName} now shows a verified badge.`,
+        );
       } else if (action === "reject") {
-        toast.info("Verification declined", `${facilityName} has been updated.`);
+        toast.info(
+          "Verification declined",
+          `${facilityName} has been updated.`,
+        );
       } else {
-        const hitCount = Array.isArray(data.evidence) ? data.evidence.length : 0;
+        const hitCount = Array.isArray(data.evidence)
+          ? data.evidence.length
+          : 0;
         toast.info(
           "Registry portals checked",
           `Found ${hitCount} .gov.ng matching result${hitCount === 1 ? "" : "s"}.`,
@@ -241,6 +252,15 @@ export function VerificationsView() {
           {filtered.map(({ facility: f, owner, evidence, updatedAt }) => {
             const noteVal = notes[f.id] ?? f.verification.note;
             const urlVal = urls[f.id] ?? f.verification.url;
+            const trimmedUrl = urlVal.trim();
+            const urlError =
+              trimmedUrl && !/^https:\/\//i.test(trimmedUrl)
+                ? "Proof URL must begin with https://"
+                : undefined;
+            const noteHint =
+              noteVal.trim().length < 4
+                ? "At least 4 characters required when declining."
+                : undefined;
             return (
               <li key={f.id}>
                 <GlassCard padding="lg">
@@ -348,13 +368,14 @@ export function VerificationsView() {
                                     safeHref.startsWith("https://") && (
                                       <button
                                         type="button"
-                                        onClick={() =>
+                                        onClick={() => {
+                                          triggerHaptic("tick");
                                           setUrls((u) => ({
                                             ...u,
                                             [f.id]: safeHref,
-                                          }))
-                                        }
-                                        className="inline-flex items-center gap-1 rounded-full border border-line bg-paper px-2 py-0.5 text-xs font-semibold text-ink transition-colors hover:border-brand hover:text-brand"
+                                          }));
+                                        }}
+                                        className="press-soft inline-flex items-center gap-1 rounded-full border border-line bg-paper px-2 py-0.5 text-xs font-semibold text-ink transition-colors hover:border-brand hover:text-brand"
                                       >
                                         {isSelectedProof ? (
                                           <>
@@ -396,6 +417,7 @@ export function VerificationsView() {
                       onChange={(e) =>
                         setNotes((n) => ({ ...n, [f.id]: e.target.value }))
                       }
+                      hint={noteHint}
                       placeholder="Reason for approval or decline"
                     />
                     <TextField
@@ -404,22 +426,24 @@ export function VerificationsView() {
                       onChange={(e) =>
                         setUrls((u) => ({ ...u, [f.id]: e.target.value }))
                       }
+                      error={urlError}
                       placeholder="https://pcn.gov.ng/..."
                     />
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] font-medium text-muted">
+                    <span className="adm-caption text-[11px] font-medium text-muted">
                       Quick decline notes:
                     </span>
                     {DECLINE_TEMPLATES.map((tpl) => (
                       <button
                         key={tpl}
                         type="button"
-                        onClick={() =>
-                          setNotes((n) => ({ ...n, [f.id]: tpl }))
-                        }
-                        className="rounded-full border border-line bg-surface/80 px-2.5 py-1 text-[11px] text-muted transition-colors hover:border-brand/50 hover:text-ink"
+                        onClick={() => {
+                          triggerHaptic("tick");
+                          setNotes((n) => ({ ...n, [f.id]: tpl }));
+                        }}
+                        className="press-soft rounded-full border border-line bg-surface/80 px-2.5 py-1 text-[11px] text-muted transition-colors hover:border-brand/50 hover:text-ink"
                       >
                         {tpl.slice(0, 44)}…
                       </button>

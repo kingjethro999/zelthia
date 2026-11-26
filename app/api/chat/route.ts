@@ -75,7 +75,9 @@ export async function POST(req: NextRequest) {
       return bad(`${name} is larger than 3 MB.`);
     const verifiedMime = sniffChatAttachment(rawBuf, mime);
     if (!verifiedMime)
-      return bad(`${name} does not match a supported image, PDF, or text file.`);
+      return bad(
+        `${name} does not match a supported image, PDF, or text file.`,
+      );
     files.push({ name, mime: verifiedMime, size: rawBuf.length, base64 });
   }
 
@@ -102,7 +104,11 @@ export async function POST(req: NextRequest) {
   let conversationId: string | null = null;
   let isNew = false;
   if (saved && ctx && typeof body.conversationId === "string") {
-    const conv = await getConversation(body.conversationId, ctx.user.id, ctx.dek);
+    const conv = await getConversation(
+      body.conversationId,
+      ctx.user.id,
+      ctx.dek,
+    );
     if (!conv) return bad("That conversation doesn't exist.", 404);
     conversationId = conv.id;
   }
@@ -122,7 +128,11 @@ export async function POST(req: NextRequest) {
           );
         }
         if (saved && ctx && !conversationId) {
-          const conv = await createConversation(ctx.user.id, "New chat", ctx.dek);
+          const conv = await createConversation(
+            ctx.user.id,
+            "New chat",
+            ctx.dek,
+          );
           conversationId = conv.id;
           isNew = true;
           emit({ type: "conversation", id: conv.id, title: conv.title });

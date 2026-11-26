@@ -354,7 +354,8 @@ export async function runTurn({
               matches.slice(0, 12).map((m) => ({
                 facility: cleanUntrusted(m.facility.name, 120),
                 kind: m.facility.kind,
-                licence_verified: m.facility.verification?.status === "verified",
+                licence_verified:
+                  m.facility.verification?.status === "verified",
                 has_recorded_directions: Boolean(m.facility.directionsAudioUrl),
                 address: cleanUntrusted(
                   `${m.facility.address}, ${m.facility.city}`,

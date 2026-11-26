@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -33,14 +34,30 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { SessionUser } from "@/lib/auth-types";
-import { useDragDismiss, usePresence } from "@/lib/motion";
+import {
+  SPRING_DEFAULT,
+  SPRING_SHEET,
+  createSpring,
+  project,
+  rubberband,
+  triggerHaptic,
+  type SpringDriver,
+} from "@/lib/spring";
 import { useSession } from "@/lib/store/session";
 import { cn } from "@/lib/utils";
 import { CommandPalette } from "./CommandPalette";
 import { AdminToastProvider } from "./ui/AdminToast";
+import { OverlayProvider, useOverlayRecessed } from "./ui/OverlayContext";
 
 export interface AdminNavItem {
-  segment: "" | "verifications" | "facilities" | "inventory" | "users" | "audit" | "system";
+  segment:
+    | ""
+    | "verifications"
+    | "facilities"
+    | "inventory"
+    | "users"
+    | "audit"
+    | "system";
   label: string;
   section: "Operations" | "Governance";
   icon: LucideIcon;
@@ -131,7 +148,162 @@ const readRailCollapsed = () => {
   }
 };
 
-export function AdminShell({
+function MobileSpringDrawer({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  const [mounted, setMounted] = useState(open);
+  const [lastOpen, setLastOpen] = useState(open);
+  if (open !== lastOpen) {
+    setLastOpen(open);
+    if (open) setMounted(true);
+  }
+
+  const asideRef = useRef<HTMLElement>(null);
+  const scrimRef = useRef<HTMLButtonElement>(null);
+  const springRef = useRef<SpringDriver | null>(null);
+  const widthRef = useRef(288);
+  const dragRef = useRef<{
+    id: number;
+    startX: number;
+    startOffset: number;
+    engaged: boolean;
+    samples: { t: number; x: number }[];
+  } | null>(null);
+
+  const applyOffset = useCallback((offsetPx: number) => {
+    const aside = asideRef.current;
+    const scrim = scrimRef.current;
+    if (aside) {
+      aside.style.transform = `translate3d(${-offsetPx}px, 0, 0)`;
+    }
+    if (scrim) {
+      const w = Math.max(1, widthRef.current);
+      scrim.style.opacity = String(Math.max(0, Math.min(1, 1 - offsetPx / w)));
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!mounted) {
+      springRef.current?.stop();
+      springRef.current = null;
+      return;
+    }
+    const w = asideRef.current?.offsetWidth || 288;
+    widthRef.current = w;
+    const initial = open ? w : 0;
+    if (!springRef.current) {
+      springRef.current = createSpring(initial, applyOffset);
+      applyOffset(initial);
+    }
+    if (open) {
+      springRef.current.setTarget(0, SPRING_DEFAULT);
+    } else {
+      springRef.current.setTarget(w, {
+        ...SPRING_DEFAULT,
+        onComplete: () => setMounted(false),
+      });
+    }
+  }, [mounted, open, applyOffset]);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    if (!springRef.current) return;
+    dragRef.current = {
+      id: e.pointerId,
+      startX: e.clientX,
+      startOffset: springRef.current.getState().value,
+      engaged: false,
+      samples: [],
+    };
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    const spring = springRef.current;
+    if (!d || !spring || e.pointerId !== d.id) return;
+    const dx = d.startX - e.clientX;
+    if (!d.engaged) {
+      if (Math.abs(dx) < 8) return;
+      d.engaged = true;
+      d.startX = e.clientX;
+      d.startOffset = spring.getState().value;
+      spring.stop();
+      try {
+        asideRef.current?.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+    }
+    const raw = d.startOffset + (d.startX - e.clientX);
+    const offset = raw >= 0 ? raw : rubberband(raw, widthRef.current);
+    spring.jump(offset);
+    d.samples.push({ t: e.timeStamp, x: offset });
+    if (d.samples.length > 6) d.samples.shift();
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    const spring = springRef.current;
+    if (!d || !d.engaged || !spring) return;
+
+    const first = d.samples[0];
+    const last = d.samples[d.samples.length - 1];
+    const dt = last && first ? last.t - first.t : 0;
+    const velocity = dt > 0 ? ((last.x - first.x) / dt) * 1000 : 0;
+    const current = spring.getState().value;
+    const w = widthRef.current;
+    const dismiss =
+      e.type !== "pointercancel" && current + project(velocity, 0.998) > w / 2;
+
+    if (dismiss) {
+      spring.setTarget(w, {
+        ...SPRING_SHEET,
+        velocity,
+        onComplete: () => {
+          setMounted(false);
+          onClose();
+        },
+      });
+    } else {
+      spring.setTarget(0, { ...SPRING_SHEET, velocity });
+    }
+  };
+
+  if (!mounted) return null;
+
+  return (
+    <div inert={!open || undefined} className="fixed inset-0 z-50 lg:hidden">
+      <button
+        ref={scrimRef}
+        type="button"
+        className="scrim absolute inset-0"
+        style={{ opacity: 0 }}
+        aria-label="Close sidebar"
+        onClick={onClose}
+      />
+      <aside
+        ref={asideRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className="absolute inset-y-0 left-0 touch-pan-y shadow-2xl will-change-transform"
+        aria-label="Admin sidebar"
+      >
+        {children}
+      </aside>
+    </div>
+  );
+}
+
+function AdminShellInner({
   basePath,
   initialUser,
   children,
@@ -145,19 +317,19 @@ export function AdminShell({
   const sessionUser = useSession((s) => s.user);
   const signOut = useSession((s) => s.signOut);
   const user = sessionUser ?? initialUser;
+  const recessed = useOverlayRecessed();
 
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [lastPath, setLastPath] = useState(pathname);
-
-  const drawer = usePresence(mobileOpen);
-  const drawerRef = useRef<HTMLElement>(null);
-  const swipe = useDragDismiss(drawerRef, "left", () => setMobileOpen(false));
+  const mainRef = useRef<HTMLElement>(null);
 
   if (pathname !== lastPath) {
     setLastPath(pathname);
     setMobileOpen(false);
+    setScrolled(false);
   }
 
   const collapsed = useSyncExternalStore(
@@ -166,6 +338,7 @@ export function AdminShell({
     () => false,
   );
   const toggleRail = () => {
+    triggerHaptic("tick");
     try {
       localStorage.setItem(RAIL_KEY, collapsed ? "0" : "1");
     } catch {
@@ -210,12 +383,24 @@ export function AdminShell({
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
+        triggerHaptic("tick");
         setPaletteOpen((v) => !v);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const next = el.scrollTop > 8;
+      setScrolled((prev) => (prev === next ? prev : next));
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [pathname]);
 
   const currentNav = useMemo(() => {
     const clean = pathname.replace(/\/+$/, "");
@@ -240,7 +425,7 @@ export function AdminShell({
 
   const renderNavSection = (section: "Operations" | "Governance") => (
     <div className="space-y-1">
-      <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
+      <p className="adm-micro px-3 pb-1 text-[11px] font-semibold uppercase text-muted">
         {section}
       </p>
       {ADMIN_NAV_ITEMS.filter((i) => i.section === section).map((item) => {
@@ -285,7 +470,7 @@ export function AdminShell({
       <div className="flex h-16 items-center justify-between px-4">
         <Link
           href={basePath}
-          className="flex items-center gap-2.5 rounded-xl px-1 py-1"
+          className="press-soft flex items-center gap-2.5 rounded-xl px-1 py-1"
           aria-label="Zelthia Console home"
         >
           <Image
@@ -308,7 +493,10 @@ export function AdminShell({
       <div className="px-3 pb-3">
         <button
           type="button"
-          onClick={() => setPaletteOpen(true)}
+          onClick={() => {
+            triggerHaptic("tick");
+            setPaletteOpen(true);
+          }}
           className="press-soft flex h-10 w-full items-center gap-2.5 rounded-2xl border border-line/80 bg-surface/65 px-3 text-left text-xs text-muted transition-colors hover:border-brand/40 hover:text-ink"
         >
           <Search className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -336,7 +524,9 @@ export function AdminShell({
             <p className="truncate text-xs font-semibold text-ink">
               {user.name}
             </p>
-            <p className="truncate text-[11px] text-muted">{user.email}</p>
+            <p className="adm-caption truncate text-[11px] text-muted">
+              {user.email}
+            </p>
           </div>
           <span
             title="Zero-knowledge encrypted accounts"
@@ -378,80 +568,78 @@ export function AdminShell({
   );
 
   return (
-    <AdminToastProvider>
-      <AdminShellCtx.Provider value={ctxValue}>
-        <div className="relative isolate flex h-dvh overflow-hidden bg-paper">
-          {/* Ambient color fields behind the translucent workspace */}
-          <div
-            aria-hidden
-            className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
-          >
-            <div className="adm-orb adm-orb-a" />
-            <div className="adm-orb adm-orb-b" />
-            <div className="adm-orb adm-orb-c" />
-          </div>
+    <AdminShellCtx.Provider value={ctxValue}>
+      <div className="relative isolate flex h-dvh overflow-hidden bg-paper">
+        {/* Ambient color fields behind the translucent workspace */}
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        >
+          <div className="adm-orb adm-orb-a" />
+          <div className="adm-orb adm-orb-b" />
+          <div className="adm-orb adm-orb-c" />
+        </div>
 
-          {/* Collapsible desktop frosted rail */}
-          <aside
-            className={cn(
-              "hidden shrink-0 overflow-hidden transition-[width] duration-300 ease-[var(--ease-out)] motion-reduce:transition-none lg:block",
-              collapsed ? "w-0" : "w-72",
-            )}
-            aria-label="Admin sidebar"
-            inert={collapsed || undefined}
-          >
-            {railContent(
-              <button
-                type="button"
-                onClick={toggleRail}
-                className="press flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-surface/70 hover:text-ink"
-                aria-label="Collapse sidebar"
-              >
-                <PanelLeftClose className="h-5 w-5" aria-hidden />
-              </button>,
-            )}
-          </aside>
-
-          {/* Mobile swipe-to-dismiss drawer */}
-          {drawer.mounted && (
-            <div
-              data-closing={drawer.closing || undefined}
-              inert={drawer.closing || undefined}
-              className="fixed inset-0 z-50 lg:hidden"
-            >
-              <button
-                type="button"
-                className="scrim animate-fade absolute inset-0"
-                aria-label="Close sidebar"
-                onClick={() => setMobileOpen(false)}
-              />
-              <aside
-                ref={drawerRef}
-                {...swipe}
-                className="animate-sheet-left absolute inset-y-0 left-0 touch-pan-y shadow-2xl"
-                aria-label="Admin sidebar"
-              >
-                {railContent(
-                  <button
-                    type="button"
-                    onClick={() => setMobileOpen(false)}
-                    className="press flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-surface/70 hover:text-ink"
-                    aria-label="Close sidebar"
-                  >
-                    <X className="h-5 w-5" aria-hidden />
-                  </button>,
-                )}
-              </aside>
-            </div>
+        {/* Collapsible desktop frosted rail */}
+        <aside
+          className={cn(
+            "hidden shrink-0 overflow-hidden transition-[width] duration-300 ease-[var(--ease-out)] motion-reduce:transition-none lg:block",
+            collapsed ? "w-0" : "w-72",
           )}
+          aria-label="Admin sidebar"
+          inert={collapsed || undefined}
+        >
+          {railContent(
+            <button
+              type="button"
+              onClick={toggleRail}
+              className="press flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-surface/70 hover:text-ink"
+              aria-label="Collapse sidebar"
+            >
+              <PanelLeftClose className="h-5 w-5" aria-hidden />
+            </button>,
+          )}
+        </aside>
 
-          {/* Main scrollable glass stage */}
-          <div className="relative flex min-w-0 flex-1 flex-col">
-            <header className="adm-glass-topbar sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line/60 px-4 sm:px-6">
+        {/* Mobile interruptible spring drawer */}
+        <MobileSpringDrawer
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+        >
+          {railContent(
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="press flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-surface/70 hover:text-ink"
+              aria-label="Close sidebar"
+            >
+              <X className="h-5 w-5" aria-hidden />
+            </button>,
+          )}
+        </MobileSpringDrawer>
+
+        {/* Main scrollable glass stage with background recession */}
+        <div
+          data-recessed={recessed ? "true" : undefined}
+          className="adm-stage relative flex min-w-0 flex-1 flex-col overflow-hidden"
+        >
+          <main
+            ref={mainRef}
+            id="main"
+            key={pathname}
+            className="flex-1 overflow-y-auto"
+          >
+            <header
+              data-scrolled={scrolled ? "true" : "false"}
+              className="adm-glass-topbar sticky top-0 z-30 flex h-16 items-center justify-between gap-3 px-4 sm:px-6"
+            >
               <div className="flex min-w-0 items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setMobileOpen(true)}
+                  onClick={() => {
+                    triggerHaptic("tick");
+                    setMobileOpen(true);
+                  }}
                   className="press flex h-9 w-9 items-center justify-center rounded-xl text-ink hover:bg-surface/70 lg:hidden"
                   aria-label="Open menu"
                 >
@@ -490,7 +678,10 @@ export function AdminShell({
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setPaletteOpen(true)}
+                  onClick={() => {
+                    triggerHaptic("tick");
+                    setPaletteOpen(true);
+                  }}
                   className="press-soft hidden h-9 items-center gap-2 rounded-full border border-line/80 bg-surface/75 px-3 text-xs font-medium text-muted hover:border-brand/40 hover:text-ink sm:inline-flex"
                 >
                   <Search className="h-3.5 w-3.5" aria-hidden />
@@ -521,21 +712,43 @@ export function AdminShell({
               </div>
             </header>
 
-            <main
-              id="main"
-              key={pathname}
-              className="animate-rise flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8"
-            >
-              <div className="mx-auto w-full max-w-7xl">{children}</div>
-            </main>
-          </div>
+            <div
+              aria-hidden
+              data-visible={scrolled ? "true" : "false"}
+              className="adm-scroll-fade"
+            />
 
-          <CommandPalette
-            open={paletteOpen}
-            onClose={() => setPaletteOpen(false)}
-          />
+            <div className="animate-rise mx-auto w-full max-w-7xl px-4 pb-12 pt-5 sm:px-6 lg:px-8">
+              {children}
+            </div>
+          </main>
         </div>
-      </AdminShellCtx.Provider>
-    </AdminToastProvider>
+
+        <CommandPalette
+          open={paletteOpen}
+          onClose={() => setPaletteOpen(false)}
+        />
+      </div>
+    </AdminShellCtx.Provider>
+  );
+}
+
+export function AdminShell({
+  basePath,
+  initialUser,
+  children,
+}: {
+  basePath: string;
+  initialUser: SessionUser;
+  children: React.ReactNode;
+}) {
+  return (
+    <OverlayProvider>
+      <AdminToastProvider>
+        <AdminShellInner basePath={basePath} initialUser={initialUser}>
+          {children}
+        </AdminShellInner>
+      </AdminToastProvider>
+    </OverlayProvider>
   );
 }

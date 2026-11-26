@@ -12,7 +12,12 @@ const HEIF_BRANDS = new Set([
 ]);
 
 function sniffImage(buf: Buffer): string | null {
-  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+  if (
+    buf.length >= 3 &&
+    buf[0] === 0xff &&
+    buf[1] === 0xd8 &&
+    buf[2] === 0xff
+  ) {
     return "image/jpeg";
   }
   if (
@@ -67,7 +72,10 @@ function isPlainText(buf: Buffer): boolean {
  * Verifies real magic bytes / content for chat uploads so spoofed MIME types
  * (e.g. HTML, SVG, or executables labelled as PNG/PDF) are rejected.
  */
-export function sniffChatAttachment(buf: Buffer, declaredMime: string): string | null {
+export function sniffChatAttachment(
+  buf: Buffer,
+  declaredMime: string,
+): string | null {
   const clean = declaredMime.split(";")[0].trim().toLowerCase();
   if (clean.startsWith("image/")) {
     return sniffImage(buf);
@@ -90,7 +98,12 @@ export function sniffAudio(buf: Buffer, declaredMime: string): string | null {
   const clean = declaredMime.split(";")[0].trim().toLowerCase();
   if (!clean.startsWith("audio/") || buf.length < 12) return null;
 
-  if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) {
+  if (
+    buf[0] === 0x1a &&
+    buf[1] === 0x45 &&
+    buf[2] === 0xdf &&
+    buf[3] === 0xa3
+  ) {
     return "audio/webm";
   }
   if (buf.subarray(0, 4).toString("ascii") === "OggS") {
@@ -108,7 +121,10 @@ export function sniffAudio(buf: Buffer, declaredMime: string): string | null {
   if (
     buf.subarray(0, 3).toString("ascii") === "ID3" ||
     (buf[0] === 0xff &&
-      (buf[1] === 0xfb || buf[1] === 0xf3 || buf[1] === 0xf2 || buf[1] === 0xe3))
+      (buf[1] === 0xfb ||
+        buf[1] === 0xf3 ||
+        buf[1] === 0xf2 ||
+        buf[1] === 0xe3))
   ) {
     return "audio/mpeg";
   }

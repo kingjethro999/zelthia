@@ -85,10 +85,7 @@ export function OverviewView() {
                 Zero-Knowledge Protected
               </GlassBadge>
               {data && (
-                <GlassBadge
-                  tone={pendingCount > 0 ? "caution" : "brand"}
-                  dot
-                >
+                <GlassBadge tone={pendingCount > 0 ? "caution" : "brand"} dot>
                   {pendingCount > 0
                     ? `${pendingCount} licence${pendingCount === 1 ? "" : "s"} awaiting review`
                     : "Verification queue clear"}
@@ -199,7 +196,10 @@ export function OverviewView() {
               <ActivityAreaChart series={data.series14d} />
             </GlassCard>
 
-            <GlassCard padding="lg" className="flex flex-col justify-between gap-6">
+            <GlassCard
+              padding="lg"
+              className="flex flex-col justify-between gap-6"
+            >
               <PipelineBarChart
                 title="Facility verification pipeline"
                 segments={[
@@ -295,32 +295,34 @@ export function OverviewView() {
                     </p>
                   </GlassInset>
                 ) : (
-                  data.pendingPreview.map(({ facility: f, owner, evidence }) => (
-                    <Link
-                      key={f.id}
-                      href={`${basePath}/verifications`}
-                      className="adm-inner-well press-soft flex items-center justify-between gap-3 rounded-2xl p-3.5 transition-colors hover:border-brand/45"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-ink">
-                          {f.name}
-                        </p>
-                        <p className="truncate text-xs text-muted">
-                          {FACILITY_KIND_LABEL[f.kind]} · {f.city} ·{" "}
-                          {owner.name}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        <span className="rounded-full bg-mist px-2.5 py-0.5 text-[11px] font-semibold text-ink">
-                          {f.licenseNumber}
-                        </span>
-                        <span className="text-[11px] text-muted">
-                          {evidence.length} .gov.ng hit
-                          {evidence.length === 1 ? "" : "s"}
-                        </span>
-                      </div>
-                    </Link>
-                  ))
+                  data.pendingPreview.map(
+                    ({ facility: f, owner, evidence }) => (
+                      <Link
+                        key={f.id}
+                        href={`${basePath}/verifications`}
+                        className="adm-inner-well press-soft flex items-center justify-between gap-3 rounded-2xl p-3.5 transition-colors hover:border-brand/45"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-ink">
+                            {f.name}
+                          </p>
+                          <p className="truncate text-xs text-muted">
+                            {FACILITY_KIND_LABEL[f.kind]} · {f.city} ·{" "}
+                            {owner.name}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <span className="rounded-full bg-mist px-2.5 py-0.5 text-[11px] font-semibold text-ink">
+                            {f.licenseNumber}
+                          </span>
+                          <span className="text-[11px] text-muted">
+                            {evidence.length} .gov.ng hit
+                            {evidence.length === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                      </Link>
+                    ),
+                  )
                 )}
               </div>
             </GlassCard>

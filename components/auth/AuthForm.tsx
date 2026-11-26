@@ -194,9 +194,9 @@ export function AuthForm({
             </p>
             <p className="mt-1 text-muted">
               We never sell or mine your personal data. Your health profile,
-              saved chats and uploaded notes are encrypted before storage — never
-              saved as plain text in our database and unreadable to Zelthia
-              staff.
+              saved chats and uploaded notes are encrypted before storage —
+              never saved as plain text in our database and unreadable to
+              Zelthia staff.
             </p>
           </div>
 

@@ -135,7 +135,9 @@ async function main() {
   ).trim();
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    throw new Error("Provide a valid admin email via ADMIN_SEED_EMAIL or --email.");
+    throw new Error(
+      "Provide a valid admin email via ADMIN_SEED_EMAIL or --email.",
+    );
   }
   if (!password || password.length < 8) {
     throw new Error(
@@ -152,7 +154,9 @@ async function main() {
   const ca = process.env.DATABASE_CA_CERT?.replace(/\\n/g, "\n");
   const pool = new pg.Pool({
     connectionString,
-    ssl: local ? undefined : { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
+    ssl: local
+      ? undefined
+      : { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
     max: 2,
   });
 

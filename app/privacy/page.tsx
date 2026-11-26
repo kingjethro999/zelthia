@@ -34,8 +34,8 @@ export default function PrivacyPage() {
             if you are signed in and not using a temporary chat, your
             conversation titles, messages, extracted note text and uploaded
             files (photos or PDFs) are encrypted and saved to your account so
-            you can return to them. If you use Zelthia as a guest or switch on
-            a temporary chat, messages are kept only in your browser tab and are
+            you can return to them. If you use Zelthia as a guest or switch on a
+            temporary chat, messages are kept only in your browser tab and are
             never saved to our database.
           </li>
           <li>

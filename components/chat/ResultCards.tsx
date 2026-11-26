@@ -134,7 +134,9 @@ export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
 const safeHttpUrl = (raw: string): string | null => {
   try {
     const u = new URL(raw);
-    return u.protocol === "https:" || u.protocol === "http:" ? u.toString() : null;
+    return u.protocol === "https:" || u.protocol === "http:"
+      ? u.toString()
+      : null;
   } catch {
     return null;
   }

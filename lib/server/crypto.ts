@@ -84,7 +84,10 @@ export async function wrapDek(dek: Buffer, password: string): Promise<string> {
   ].join("$");
 }
 
-export async function unwrapDek(wrapped: string, password: string): Promise<Buffer> {
+export async function unwrapDek(
+  wrapped: string,
+  password: string,
+): Promise<Buffer> {
   const [version, saltB64, ivB64, tagB64, ctB64] = wrapped.split("$");
   if (version !== "v1" || !saltB64 || !ivB64 || !tagB64 || !ctB64) {
     throw new Error("Invalid wrapped DEK format");
@@ -106,7 +109,11 @@ export async function unwrapDek(wrapped: string, password: string): Promise<Buff
 
 /* ---------- AEAD field & binary encryption ---------- */
 
-export function encryptText(plaintext: string, dek: Buffer, aad: string): string {
+export function encryptText(
+  plaintext: string,
+  dek: Buffer,
+  aad: string,
+): string {
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv("aes-256-gcm", dek, iv);
   cipher.setAAD(Buffer.from(aad, "utf8"));
@@ -126,11 +133,16 @@ export function decryptText(encoded: string, dek: Buffer, aad: string): string {
   const decipher = createDecipheriv("aes-256-gcm", dek, iv);
   decipher.setAAD(Buffer.from(aad, "utf8"));
   decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(ct), decipher.final()]).toString("utf8");
+  return Buffer.concat([decipher.update(ct), decipher.final()]).toString(
+    "utf8",
+  );
 }
 
 export function isEncryptedBytes(blob: Buffer): boolean {
-  return blob.length >= FILE_MAGIC.length + IV_BYTES + TAG_BYTES && blob.subarray(0, FILE_MAGIC.length).equals(FILE_MAGIC);
+  return (
+    blob.length >= FILE_MAGIC.length + IV_BYTES + TAG_BYTES &&
+    blob.subarray(0, FILE_MAGIC.length).equals(FILE_MAGIC)
+  );
 }
 
 export function encryptBytes(data: Buffer, dek: Buffer, aad: string): Buffer {
@@ -160,7 +172,8 @@ export function decryptBytes(blob: Buffer, dek: Buffer, aad: string): Buffer {
 
 /* ---------- Deterministic AAD context builders ---------- */
 
-export const aadProfile = (userId: string) => `zelthia:v1:user:${userId}:profile`;
+export const aadProfile = (userId: string) =>
+  `zelthia:v1:user:${userId}:profile`;
 export const aadConvTitle = (userId: string, convId: string) =>
   `zelthia:v1:user:${userId}:conv:${convId}:title`;
 export const aadMessage = (userId: string, convId: string, msgId: string) =>

@@ -137,14 +137,14 @@ export function ActivityAreaChart({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+          <p className="adm-micro text-[11px] font-semibold uppercase text-muted">
             14-day velocity
           </p>
           <div className="mt-1 flex items-baseline gap-2.5">
-            <span className="tabular font-display text-2xl font-semibold text-ink">
+            <span className="adm-kpi font-display text-2xl font-semibold text-ink">
               {total14d.toLocaleString("en-NG")}
             </span>
-            <span className="text-xs text-muted">
+            <span className="adm-caption text-xs text-muted">
               {meta.noun} in last 14 days
             </span>
           </div>

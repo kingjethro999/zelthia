@@ -61,7 +61,9 @@ async function post(url: string, body?: unknown, method = "POST") {
   } catch {
     return {
       res: null,
-      data: { error: "You appear to be offline. Check your connection and try again." },
+      data: {
+        error: "You appear to be offline. Check your connection and try again.",
+      },
     };
   }
 }
@@ -98,8 +100,12 @@ export const useSession = create<SessionState>()(
       },
 
       signIn: async (email, password) => {
-        const { res, data } = await post("/api/auth/signin", { email, password });
-        if (!res?.ok) return { ok: false, error: data.error, field: data.field };
+        const { res, data } = await post("/api/auth/signin", {
+          email,
+          password,
+        });
+        if (!res?.ok)
+          return { ok: false, error: data.error, field: data.field };
         const adminPath =
           data.user?.isAdmin && typeof data.adminPath === "string"
             ? data.adminPath
@@ -120,7 +126,8 @@ export const useSession = create<SessionState>()(
 
       signUp: async (input) => {
         const { res, data } = await post("/api/auth/signup", input);
-        if (!res?.ok) return { ok: false, error: data.error, field: data.field };
+        if (!res?.ok)
+          return { ok: false, error: data.error, field: data.field };
         set({
           user: data.user,
           adminPath: null,

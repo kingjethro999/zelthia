@@ -25,7 +25,10 @@ export async function GET(_req: Request, { params }: Ctx) {
     if (!conv)
       return NextResponse.json({ error: "Chat not found." }, { status: 404 });
     return NextResponse.json(
-      { conversation: conv, messages: await getMessages(conv.id, ctx.user.id, ctx.dek) },
+      {
+        conversation: conv,
+        messages: await getMessages(conv.id, ctx.user.id, ctx.dek),
+      },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (err) {

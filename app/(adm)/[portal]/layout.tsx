@@ -6,6 +6,8 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { isValidAdminSlug } from "@/lib/server/admin-route";
 import { getSessionUser } from "@/lib/server/auth";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: {
     default: "Console",

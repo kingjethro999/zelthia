@@ -25,10 +25,7 @@ export async function POST(req: Request) {
       body.action !== "prune_sessions" &&
       body.action !== "prune_rate_limits"
     ) {
-      throw new HttpError(
-        "Choose prune_sessions or prune_rate_limits.",
-        400,
-      );
+      throw new HttpError("Choose prune_sessions or prune_rate_limits.", 400);
     }
     const res = await runAdminMaintenance(body.action, admin.id);
     return json(res);

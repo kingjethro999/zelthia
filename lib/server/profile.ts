@@ -82,7 +82,9 @@ export async function getProfile(
   if (!row) return null;
   if (row.data_enc) {
     try {
-      const parsed = JSON.parse(decryptText(row.data_enc, dek, aadProfile(userId)));
+      const parsed = JSON.parse(
+        decryptText(row.data_enc, dek, aadProfile(userId)),
+      );
       return sanitizeProfile(parsed);
     } catch (err) {
       console.error("Failed to decrypt health profile", userId, err);

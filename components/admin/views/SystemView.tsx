@@ -61,7 +61,8 @@ export function SystemView() {
     try {
       const res = await fetch("/api/admin/system", { cache: "no-store" });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error ?? "Failed to load system health.");
+      if (!res.ok)
+        throw new Error(body.error ?? "Failed to load system health.");
       setData(body as AdminSystemHealth);
     } catch (err) {
       setError((err as Error).message || "Could not load system health.");
@@ -73,7 +74,8 @@ export function SystemView() {
     fetch("/api/admin/system", { cache: "no-store" })
       .then(async (res) => {
         const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error ?? "Failed to load system health.");
+        if (!res.ok)
+          throw new Error(body.error ?? "Failed to load system health.");
         return body as AdminSystemHealth;
       })
       .then((body) => {
@@ -110,10 +112,7 @@ export function SystemView() {
       );
       await load();
     } catch (err) {
-      toast.error(
-        "Maintenance failed",
-        (err as Error).message || "Try again.",
-      );
+      toast.error("Maintenance failed", (err as Error).message || "Try again.");
     } finally {
       setBusy(null);
     }
@@ -186,10 +185,10 @@ export function SystemView() {
               <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                 {data.tables.map((t) => (
                   <GlassInset key={t.name} className="p-3">
-                    <p className="truncate text-[11px] font-medium text-muted">
+                    <p className="adm-caption truncate text-[11px] font-medium text-muted">
                       {t.name}
                     </p>
-                    <p className="tabular mt-0.5 font-display text-xl font-semibold text-ink">
+                    <p className="adm-kpi mt-0.5 font-display text-xl font-semibold text-ink">
                       {t.count.toLocaleString("en-NG")}
                     </p>
                   </GlassInset>
@@ -288,7 +287,10 @@ export function SystemView() {
             </GlassCard>
 
             {/* Rate-limit telemetry & housekeeping */}
-            <GlassCard padding="lg" className="flex flex-col justify-between gap-5">
+            <GlassCard
+              padding="lg"
+              className="flex flex-col justify-between gap-5"
+            >
               <div>
                 <div className="flex items-center gap-2.5">
                   <Activity className="h-5 w-5 text-sky" aria-hidden />

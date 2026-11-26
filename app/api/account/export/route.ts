@@ -9,7 +9,10 @@ export async function GET() {
   try {
     const ctx = await getSessionContext();
     if (!ctx) {
-      return NextResponse.json({ error: "Sign in to export your data." }, { status: 401 });
+      return NextResponse.json(
+        { error: "Sign in to export your data." },
+        { status: 401 },
+      );
     }
     const [profile, conversations] = await Promise.all([
       getProfile(ctx.user.id, ctx.dek),

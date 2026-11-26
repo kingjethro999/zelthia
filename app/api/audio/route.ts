@@ -49,7 +49,10 @@ export async function POST(req: Request) {
 
     const verifiedMime = sniffAudio(audio, mime);
     if (!verifiedMime) {
-      throw new HttpError("That file does not appear to be a valid audio recording.", 400);
+      throw new HttpError(
+        "That file does not appear to be a valid audio recording.",
+        400,
+      );
     }
 
     const [stored, transcript] = await Promise.all([

@@ -48,17 +48,28 @@ export async function rateLimit(
     if (count >= max) {
       const oldest = rows[0]?.oldest;
       const retryAfter = oldest
-        ? Math.max(1, Math.ceil((oldest.getTime() + windowMs - Date.now()) / 1000))
+        ? Math.max(
+            1,
+            Math.ceil((oldest.getTime() + windowMs - Date.now()) / 1000),
+          )
         : Math.max(1, Math.ceil(windowMs / 1000));
       return { ok: false, retryAfter };
     }
-    await query("insert into rate_limits (bucket_key, hit_at) values ($1, now())", [key]);
+    await query(
+      "insert into rate_limits (bucket_key, hit_at) values ($1, now())",
+      [key],
+    );
     if (Math.random() < 0.02) {
-      void query("delete from rate_limits where hit_at < now() - interval '2 hours'").catch(() => {});
+      void query(
+        "delete from rate_limits where hit_at < now() - interval '2 hours'",
+      ).catch(() => {});
     }
     return { ok: true, retryAfter: 0 };
   } catch (err) {
-    console.warn("Postgres rate limiter unavailable; using memory fallback", (err as Error).message);
+    console.warn(
+      "Postgres rate limiter unavailable; using memory fallback",
+      (err as Error).message,
+    );
     return memoryRateLimit(key, max, windowMs);
   }
 }

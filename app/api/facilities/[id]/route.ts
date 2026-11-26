@@ -48,7 +48,11 @@ export async function PUT(req: Request, { params }: Ctx) {
     let facility = updated.facility;
     // A new or changed licence number resets status to "none"; queue preliminary evidence for admin review.
     if (facility.licenseNumber && facility.verification.status === "none") {
-      const checkLimit = await rateLimit(`fac:verify:${user.id}`, 5, 60 * 60_000);
+      const checkLimit = await rateLimit(
+        `fac:verify:${user.id}`,
+        5,
+        60 * 60_000,
+      );
       if (checkLimit.ok) {
         facility =
           (await setVerificationEvidence(

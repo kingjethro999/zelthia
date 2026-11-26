@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { FacilitiesView } from "@/components/admin/views/FacilitiesView";
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "Facilities",
   robots: { index: false, follow: false },

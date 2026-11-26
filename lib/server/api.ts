@@ -95,7 +95,11 @@ export function assertSameOrigin(req: Request): void {
     return;
   }
   const secFetchSite = req.headers.get("sec-fetch-site");
-  if (secFetchSite && secFetchSite !== "same-origin" && secFetchSite !== "none") {
+  if (
+    secFetchSite &&
+    secFetchSite !== "same-origin" &&
+    secFetchSite !== "none"
+  ) {
     throw new HttpError("Cross-origin request rejected.", 403);
   }
   const referer = req.headers.get("referer");

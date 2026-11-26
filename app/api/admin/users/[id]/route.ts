@@ -6,10 +6,7 @@ import {
   readJson,
   requireAdmin,
 } from "@/lib/server/api";
-import {
-  adminRevokeUserSessions,
-  adminSetUserRole,
-} from "@/lib/server/admin";
+import { adminRevokeUserSessions, adminSetUserRole } from "@/lib/server/admin";
 import { isUuid } from "@/lib/server/inventory";
 import { rateLimit } from "@/lib/server/rate-limit";
 

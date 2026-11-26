@@ -15,7 +15,9 @@ function createPool() {
   const ca = process.env.DATABASE_CA_CERT?.replace(/\\n/g, "\n");
   const pool = new Pool({
     connectionString,
-    ssl: local ? undefined : { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
+    ssl: local
+      ? undefined
+      : { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
     max: 5,
     idleTimeoutMillis: 30_000,
   });

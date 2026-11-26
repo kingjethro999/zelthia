@@ -1,7 +1,11 @@
 import { NextResponse, connection } from "next/server";
 import { getSessionContext } from "@/lib/server/auth";
 import { getOwnedAttachment } from "@/lib/server/conversations";
-import { aadAttachmentFile, decryptBytes, isEncryptedBytes } from "@/lib/server/crypto";
+import {
+  aadAttachmentFile,
+  decryptBytes,
+  isEncryptedBytes,
+} from "@/lib/server/crypto";
 import { downloadPrivate } from "@/lib/server/storage";
 
 const INLINE_IMAGE_RE = /^image\/(jpeg|png|webp|heic|heif)$/i;

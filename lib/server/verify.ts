@@ -26,7 +26,8 @@ interface Hit {
 function isAuthoritativeUrl(rawUrl: string): string | null {
   try {
     const parsed = new URL(rawUrl);
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:")
+      return null;
     const host = parsed.hostname.toLowerCase();
     const match =
       AUTHORITATIVE_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`)) ||
@@ -40,12 +41,19 @@ function isAuthoritativeUrl(rawUrl: string): string | null {
 async function searchOfficial(q: string): Promise<Hit[]> {
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) return [];
-  const res = await fetchService("Firecrawl", "https://api.firecrawl.dev/v2/search", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ query: q, limit: 8, country: "NG" }),
-    signal: AbortSignal.timeout(15000),
-  });
+  const res = await fetchService(
+    "Firecrawl",
+    "https://api.firecrawl.dev/v2/search",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: q, limit: 8, country: "NG" }),
+      signal: AbortSignal.timeout(15000),
+    },
+  );
   if (!res.ok) throw new Error(`Firecrawl responded ${res.status}`);
   const data = await res.json().catch(() => ({}));
   return ((data?.data?.web ?? []) as Hit[]).filter((h) => Boolean(h.url));
@@ -57,7 +65,20 @@ function nameTokensMatch(facilityName: string, haystack: string): boolean {
   const tokens = facilityName
     .toLowerCase()
     .split(/[^a-z0-9]+/)
-    .filter((t) => t.length >= 3 && !["pharmacy", "clinic", "hospital", "centre", "center", "store", "ltd", "limited"].includes(t));
+    .filter(
+      (t) =>
+        t.length >= 3 &&
+        ![
+          "pharmacy",
+          "clinic",
+          "hospital",
+          "centre",
+          "center",
+          "store",
+          "ltd",
+          "limited",
+        ].includes(t),
+    );
   if (!tokens.length) return false;
   const lower = haystack.toLowerCase();
   return tokens.some((t) => lower.includes(t));
@@ -110,7 +131,8 @@ export async function gatherVerificationEvidence(f: Facility): Promise<{
           title: String(hit.title ?? domain).slice(0, 180),
           snippet: String(hit.description ?? "").slice(0, 320),
           licenceMatch:
-            licenceSquashed.length >= 5 && squash(combined).includes(licenceSquashed),
+            licenceSquashed.length >= 5 &&
+            squash(combined).includes(licenceSquashed),
           nameMatch: nameTokensMatch(f.name, combined),
           checkedAt,
         });

@@ -1,13 +1,31 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { X } from "lucide-react";
-import { useDragDismiss, usePresence } from "@/lib/motion";
+import {
+  SPRING_DEFAULT,
+  SPRING_SHEET,
+  createSpring,
+  project,
+  rubberband,
+  type SpringDriver,
+} from "@/lib/spring";
 import { cn } from "@/lib/utils";
+import { useRegisterOverlay } from "./OverlayContext";
 
 /**
- * Frosted glass right-hand Inspector Sheet on desktop / swipe-down bottom sheet
- * on mobile. Shares Zelthia's 1:1 pointer tracking and momentum dismissal.
+ * Interruptible, velocity-aware Inspector Sheet.
+ * - Mobile (<640px): bottom sheet, drag down 1:1 with momentum projection.
+ * - Desktop (>=640px): right-hand inspector sheet, drag right 1:1 from header or left grip.
+ * - Mid-flight open/close can be grabbed and reversed with zero jump.
+ * - Continuously synchronizes scrim opacity and recedes the workspace behind it.
  */
 export function AdminSheet({
   open,
@@ -27,10 +45,83 @@ export function AdminSheet({
   className?: string;
 }) {
   const id = useId();
+  const [mounted, setMounted] = useState(open);
+  const [lastOpen, setLastOpen] = useState(open);
+  if (open !== lastOpen) {
+    setLastOpen(open);
+    if (open) setMounted(true);
+  }
+
+  useRegisterOverlay(open);
+
   const panelRef = useRef<HTMLDivElement>(null);
+  const scrimRef = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
-  const { mounted, closing } = usePresence(open);
-  const drag = useDragDismiss(panelRef, "down", onClose);
+  const springRef = useRef<SpringDriver | null>(null);
+  const sizeRef = useRef(560);
+  const axisRef = useRef<"x" | "y">("x");
+  const dragRef = useRef<{
+    id: number;
+    startPointer: number;
+    startCross: number;
+    startOffset: number;
+    engaged: boolean;
+    samples: { t: number; v: number }[];
+  } | null>(null);
+
+  const applyOffset = useCallback((offsetPx: number) => {
+    const panel = panelRef.current;
+    const scrim = scrimRef.current;
+    if (panel) {
+      panel.style.transform =
+        axisRef.current === "y"
+          ? `translate3d(0, ${offsetPx}px, 0)`
+          : `translate3d(${offsetPx}px, 0, 0)`;
+    }
+    if (scrim) {
+      const size = Math.max(1, sizeRef.current);
+      const progress = Math.max(0, Math.min(1, 1 - offsetPx / size));
+      scrim.style.opacity = String(progress);
+    }
+  }, []);
+
+  const measureGeometry = useCallback(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    const isDesktop =
+      typeof window !== "undefined" &&
+      window.matchMedia("(min-width: 640px)").matches;
+    axisRef.current = isDesktop ? "x" : "y";
+    sizeRef.current = Math.max(
+      280,
+      isDesktop ? panel.offsetWidth : panel.offsetHeight,
+    );
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!mounted) {
+      springRef.current?.stop();
+      springRef.current = null;
+      return;
+    }
+
+    measureGeometry();
+    const initialOffset = open ? sizeRef.current : 0;
+
+    if (!springRef.current) {
+      springRef.current = createSpring(initialOffset, applyOffset);
+      applyOffset(initialOffset);
+    }
+
+    if (open) {
+      springRef.current.setTarget(0, SPRING_DEFAULT);
+    } else {
+      springRef.current.setTarget(sizeRef.current, {
+        ...SPRING_DEFAULT,
+        onComplete: () => setMounted(false),
+      });
+    }
+  }, [mounted, open, measureGeometry, applyOffset]);
 
   useEffect(() => {
     if (!open) return;
@@ -67,20 +158,110 @@ export function AdminSheet({
     };
   }, [open, onClose]);
 
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    if ((e.target as HTMLElement).closest("button, a, input, textarea")) return;
+    const panel = panelRef.current;
+    if (!panel || !springRef.current) return;
+
+    measureGeometry();
+    const axis = axisRef.current;
+    const pointerPos = axis === "y" ? e.clientY : e.clientX;
+    const crossPos = axis === "y" ? e.clientX : e.clientY;
+    const liveOffset = springRef.current.getState().value;
+
+    dragRef.current = {
+      id: e.pointerId,
+      startPointer: pointerPos,
+      startCross: crossPos,
+      startOffset: liveOffset,
+      engaged: false,
+      samples: [],
+    };
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    const panel = panelRef.current;
+    const spring = springRef.current;
+    if (!d || !panel || !spring || e.pointerId !== d.id) return;
+
+    const axis = axisRef.current;
+    const pointerPos = axis === "y" ? e.clientY : e.clientX;
+    const crossPos = axis === "y" ? e.clientX : e.clientY;
+    const delta = pointerPos - d.startPointer;
+
+    if (!d.engaged) {
+      if (Math.abs(delta) < 8) return;
+      if (Math.abs(crossPos - d.startCross) > Math.abs(delta)) {
+        dragRef.current = null;
+        return;
+      }
+      d.engaged = true;
+      d.startPointer = pointerPos;
+      d.startOffset = spring.getState().value;
+      spring.stop();
+      try {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    const raw = d.startOffset + (pointerPos - d.startPointer);
+    const bounded = raw >= 0 ? raw : rubberband(raw, sizeRef.current);
+    spring.jump(bounded);
+    d.samples.push({ t: e.timeStamp, v: bounded });
+    if (d.samples.length > 6) d.samples.shift();
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    const spring = springRef.current;
+    if (!d || !d.engaged || !spring) return;
+
+    const first = d.samples[0];
+    const last = d.samples[d.samples.length - 1];
+    const dt = last && first ? last.t - first.t : 0;
+    const velocity = dt > 0 ? ((last.v - first.v) / dt) * 1000 : 0;
+    const current = spring.getState().value;
+    const size = sizeRef.current;
+    const projected = current + project(velocity, 0.998);
+    const shouldDismiss = e.type !== "pointercancel" && projected > size * 0.42;
+
+    if (shouldDismiss) {
+      spring.setTarget(size, {
+        ...SPRING_SHEET,
+        velocity,
+        onComplete: () => {
+          setMounted(false);
+          onClose();
+        },
+      });
+    } else {
+      spring.setTarget(0, {
+        ...SPRING_SHEET,
+        velocity,
+      });
+    }
+  };
+
   if (!mounted) return null;
 
   return (
     <div
-      data-closing={closing || undefined}
-      inert={closing || undefined}
+      inert={!open || undefined}
       className="fixed inset-0 z-[65] flex items-end justify-end sm:items-stretch"
     >
       <button
+        ref={scrimRef}
         type="button"
         data-close
         aria-label="Close inspector"
         tabIndex={-1}
-        className="scrim animate-fade absolute inset-0 cursor-default"
+        style={{ opacity: 0 }}
+        className="scrim absolute inset-0 cursor-default"
         onClick={onClose}
       />
       <div
@@ -91,13 +272,26 @@ export function AdminSheet({
         aria-describedby={subtitle ? `${id}-d` : undefined}
         tabIndex={-1}
         className={cn(
-          "adm-glass-sheet animate-side-sheet relative flex max-h-[92dvh] w-full flex-col rounded-t-3xl border outline-none sm:h-full sm:max-h-none sm:max-w-xl sm:rounded-none sm:rounded-l-3xl",
+          "adm-glass-sheet relative flex max-h-[92dvh] w-full flex-col rounded-t-3xl border outline-none will-change-transform sm:h-full sm:max-h-none sm:max-w-xl sm:rounded-none sm:rounded-l-3xl",
           className,
         )}
       >
+        {/* Subtle left-edge drag rail on desktop */}
         <div
-          {...drag}
-          className="relative flex touch-none items-start justify-between gap-4 border-b border-line/70 px-5 pb-4 pt-5 sm:touch-auto sm:px-6 sm:py-4"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          aria-hidden
+          className="hidden sm:block sm:absolute sm:inset-y-0 sm:left-0 sm:w-4 sm:cursor-grab sm:active:cursor-grabbing"
+        />
+
+        <div
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          className="relative flex touch-none select-none items-start justify-between gap-4 border-b border-line/70 px-5 pb-4 pt-5 sm:cursor-grab sm:px-6 sm:py-4 sm:active:cursor-grabbing"
         >
           <span
             aria-hidden
@@ -111,7 +305,10 @@ export function AdminSheet({
               {title}
             </h2>
             {subtitle && (
-              <p id={`${id}-d`} className="mt-0.5 truncate text-xs text-muted">
+              <p
+                id={`${id}-d`}
+                className="adm-caption mt-0.5 truncate text-xs text-muted"
+              >
                 {subtitle}
               </p>
             )}

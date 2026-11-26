@@ -63,8 +63,8 @@ function getServiceStatusList() {
       category: "Storage",
       configured: Boolean(
         process.env.CLOUDINARY_CLOUD_NAME?.trim() &&
-          process.env.CLOUDINARY_API_KEY?.trim() &&
-          process.env.CLOUDINARY_SECRET?.trim(),
+        process.env.CLOUDINARY_API_KEY?.trim() &&
+        process.env.CLOUDINARY_SECRET?.trim(),
       ),
     },
     {
@@ -332,7 +332,11 @@ export async function listFacilitiesForAdmin(opts: {
   city?: string;
   limit?: number;
   offset?: number;
-}): Promise<{ items: AdminFacilityListItem[]; total: number; cities: string[] }> {
+}): Promise<{
+  items: AdminFacilityListItem[];
+  total: number;
+  cities: string[];
+}> {
   const q = opts.q?.trim() ? `%${escapeLike(opts.q.trim())}%` : null;
   const kind =
     opts.kind && (FACILITY_KINDS as readonly string[]).includes(opts.kind)
@@ -885,8 +889,7 @@ export async function listAuditLogsForAdmin(opts: {
       action: r.action,
       targetType: r.target_type,
       targetId: r.target_id,
-      details:
-        r.details && typeof r.details === "object" ? r.details : {},
+      details: r.details && typeof r.details === "object" ? r.details : {},
       createdAt: new Date(r.created_at).toISOString(),
     })),
     total: countRows[0]?.total ?? 0,

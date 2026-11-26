@@ -44,7 +44,11 @@ export async function POST(req: Request) {
       parseFacilityInput(await readJson(req)),
     );
     if (facility.licenseNumber) {
-      const checkLimit = await rateLimit(`fac:verify:${user.id}`, 5, 60 * 60_000);
+      const checkLimit = await rateLimit(
+        `fac:verify:${user.id}`,
+        5,
+        60 * 60_000,
+      );
       if (checkLimit.ok) {
         facility =
           (await setVerificationEvidence(

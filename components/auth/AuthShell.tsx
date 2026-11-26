@@ -2,12 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  CircleCheck,
-  LoaderCircle,
-  ScanText,
-} from "lucide-react";
+import { ArrowLeft, CircleCheck, LoaderCircle, ScanText } from "lucide-react";
 import { FacilityDemo } from "@/components/marketing/Motion";
 import type { UserRole } from "@/lib/auth-types";
 

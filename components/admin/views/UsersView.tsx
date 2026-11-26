@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Building2,
   KeyRound,
+  LoaderCircle,
   Lock,
   MessageSquare,
   RefreshCw,
@@ -31,8 +32,10 @@ export function UsersView() {
   const { user: currentAdmin } = useAdminShell();
   const toast = useAdminToast();
   const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
   const [role, setRole] = useState<RoleFilter>("all");
   const [items, setItems] = useState<AdminUserItem[] | null>(null);
+  const [fetching, setFetching] = useState(false);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,15 +44,24 @@ export function UsersView() {
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [revoking, setRevoking] = useState(false);
 
-  const load = useCallback(async () => {
-    setError(null);
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQ(q), 140);
+    return () => window.clearTimeout(t);
+  }, [q]);
+
+  const buildParams = useCallback(() => {
     const params = new URLSearchParams();
-    if (q.trim()) params.set("q", q.trim());
+    if (debouncedQ.trim()) params.set("q", debouncedQ.trim());
     if (role !== "all") params.set("role", role);
     params.set("limit", "60");
+    return params;
+  }, [debouncedQ, role]);
 
+  const load = useCallback(async () => {
+    setError(null);
+    setFetching(true);
     try {
-      const res = await fetch(`/api/admin/users?${params}`, {
+      const res = await fetch(`/api/admin/users?${buildParams()}`, {
         cache: "no-store",
       });
       const body = await res.json().catch(() => ({}));
@@ -58,23 +70,55 @@ export function UsersView() {
       setItems(nextItems);
       setTotal(body.total ?? 0);
       setSelected((prev) =>
-        prev ? nextItems.find((u) => u.id === prev.id) ?? null : null,
+        prev ? (nextItems.find((u) => u.id === prev.id) ?? null) : null,
       );
     } catch (err) {
       setError((err as Error).message || "Could not load accounts.");
+    } finally {
+      setFetching(false);
     }
-  }, [q, role]);
+  }, [buildParams]);
 
   useEffect(() => {
-    const t = window.setTimeout(() => void load(), 180);
-    return () => window.clearTimeout(t);
-  }, [load]);
+    const ac = new AbortController();
+    fetch(`/api/admin/users?${buildParams()}`, {
+      cache: "no-store",
+      signal: ac.signal,
+    })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error ?? "Failed to load accounts.");
+        return body;
+      })
+      .then((body) => {
+        const nextItems: AdminUserItem[] = body.items ?? [];
+        setError(null);
+        setItems(nextItems);
+        setTotal(body.total ?? 0);
+        setSelected((prev) =>
+          prev ? (nextItems.find((u) => u.id === prev.id) ?? null) : null,
+        );
+        setFetching(false);
+      })
+      .catch((err) => {
+        if ((err as Error).name === "AbortError") return;
+        setError((err as Error).message || "Could not load accounts.");
+        setFetching(false);
+      });
+    return () => ac.abort();
+  }, [buildParams]);
 
-  const changeRole = async (newRole: UserRole) => {
-    if (!selected || selected.role === newRole) return;
+  const hasFilters = Boolean(q.trim()) || role !== "all";
+
+  const changeRole = async (
+    targetId: string,
+    newRole: UserRole,
+    targetName: string,
+    previousRole?: UserRole,
+  ) => {
     setRoleBusy(true);
     try {
-      const res = await fetch(`/api/admin/users/${selected.id}`, {
+      const res = await fetch(`/api/admin/users/${targetId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "set_role", role: newRole }),
@@ -83,7 +127,13 @@ export function UsersView() {
       if (!res.ok) throw new Error(body.error ?? "Could not update role.");
       toast.success(
         "Account role updated",
-        `${selected.name} is now a ${newRole} account.`,
+        `${targetName} is now a ${newRole} account.`,
+        previousRole
+          ? {
+              label: "Undo",
+              onClick: () => changeRole(targetId, previousRole, targetName),
+            }
+          : undefined,
       );
       await load();
     } catch (err) {
@@ -124,16 +174,43 @@ export function UsersView() {
           <h1 className="title font-display text-3xl font-semibold text-ink">
             Accounts & governance
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Manage account roles and session security.{" "}
-            <span className="tabular font-semibold text-ink">{total}</span>{" "}
-            account{total === 1 ? "" : "s"} in view.
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span>
+              Manage account roles and session security.{" "}
+              <span className="tabular font-semibold text-ink">{total}</span>{" "}
+              account{total === 1 ? "" : "s"} in view.
+            </span>
+            {fetching && (
+              <LoaderCircle
+                className="h-3.5 w-3.5 animate-spin text-brand"
+                aria-label="Updating"
+              />
+            )}
           </p>
         </div>
-        <Button variant="secondary" onClick={() => void load()}>
-          <RefreshCw className="h-4 w-4" aria-hidden />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setQ("");
+                setDebouncedQ("");
+                setRole("all");
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
+          <Button
+            variant="secondary"
+            loading={fetching}
+            onClick={() => void load()}
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Zero-Knowledge Privacy Shield */}
@@ -288,15 +365,22 @@ export function UsersView() {
         {selected && (
           <div className="space-y-5 text-sm">
             <div className="flex flex-wrap gap-2">
-              <GlassBadge tone={selected.role === "provider" ? "sky" : "neutral"}>
-                {selected.role === "provider" ? "Facility account" : "Patient account"}
+              <GlassBadge
+                tone={selected.role === "provider" ? "sky" : "neutral"}
+              >
+                {selected.role === "provider"
+                  ? "Facility account"
+                  : "Patient account"}
               </GlassBadge>
               {selected.isAdmin && (
                 <GlassBadge tone="brand" icon={ShieldCheck}>
                   Admin allowlisted
                 </GlassBadge>
               )}
-              <GlassBadge tone={selected.encrypted ? "brand" : "caution"} icon={Lock}>
+              <GlassBadge
+                tone={selected.encrypted ? "brand" : "caution"}
+                icon={Lock}
+              >
                 {selected.encrypted ? "DEK wrapped" : "Legacy unmigrated"}
               </GlassBadge>
             </div>
@@ -352,7 +436,16 @@ export function UsersView() {
               <SegmentedControl<UserRole>
                 ariaLabel="Account role"
                 value={selected.role}
-                onChange={(r) => void changeRole(r)}
+                onChange={(r) => {
+                  if (r !== selected.role) {
+                    void changeRole(
+                      selected.id,
+                      r,
+                      selected.name,
+                      selected.role,
+                    );
+                  }
+                }}
                 options={[
                   { value: "patient", label: "Patient" },
                   { value: "provider", label: "Facility provider" },

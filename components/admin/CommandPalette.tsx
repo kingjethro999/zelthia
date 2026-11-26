@@ -10,8 +10,10 @@ import {
   Search,
 } from "lucide-react";
 import { usePresence } from "@/lib/motion";
+import { triggerHaptic } from "@/lib/spring";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAV_ITEMS, useAdminShell } from "./AdminShell";
+import { useRegisterOverlay } from "./ui/OverlayContext";
 
 interface PaletteItem {
   id: string;
@@ -36,6 +38,7 @@ export function CommandPalette({
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const { mounted, closing } = usePresence(open);
+  useRegisterOverlay(open);
 
   const allItems = useMemo<PaletteItem[]>(() => {
     const adminItems: PaletteItem[] = ADMIN_NAV_ITEMS.map((n) => ({
@@ -90,7 +93,9 @@ export function CommandPalette({
     );
   }, [allItems, query]);
 
-  const safeIdx = filtered.length ? Math.min(activeIdx, filtered.length - 1) : 0;
+  const safeIdx = filtered.length
+    ? Math.min(activeIdx, filtered.length - 1)
+    : 0;
 
   useEffect(() => {
     if (!open) return;
@@ -99,6 +104,7 @@ export function CommandPalette({
   }, [open]);
 
   const go = (href: string) => {
+    triggerHaptic("tick");
     setQuery("");
     onClose();
     router.push(href);
@@ -146,7 +152,7 @@ export function CommandPalette({
         aria-modal="true"
         aria-label="Quick navigation"
         onKeyDown={onKeyDown}
-        className="adm-glass-sheet animate-dialog-in relative w-full max-w-lg overflow-hidden rounded-3xl border"
+        className="adm-glass-sheet adm-materialize animate-dialog-in relative w-full max-w-lg overflow-hidden rounded-3xl border"
       >
         <div className="flex items-center gap-3 border-b border-line/70 px-4 py-3.5">
           <Search className="h-4 w-4 shrink-0 text-muted" aria-hidden />
@@ -182,7 +188,7 @@ export function CommandPalette({
                       onPointerEnter={() => setActiveIdx(idx)}
                       onClick={() => go(item.href)}
                       className={cn(
-                        "flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors",
+                        "press-soft flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors",
                         active ? "bg-surface shadow-sm" : "hover:bg-surface/60",
                       )}
                     >

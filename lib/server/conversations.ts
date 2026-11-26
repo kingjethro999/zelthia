@@ -24,8 +24,7 @@ interface MessageRow {
   payload_enc: string | null;
   created_at: Date;
   attachments:
-    | { id: string; name: string; mime: string; size: number }[]
-    | null;
+    { id: string; name: string; mime: string; size: number }[] | null;
 }
 
 function decryptConvTitle(
@@ -89,14 +88,24 @@ export async function listConversations(
 
 export async function getConversation(id: string, userId: string, dek: Buffer) {
   if (!isUuid(id)) return null;
-  const rows = await query<{ id: string; title: string; title_enc: string | null }>(
+  const rows = await query<{
+    id: string;
+    title: string;
+    title_enc: string | null;
+  }>(
     "select id, title, title_enc from conversations where id = $1 and user_id = $2",
     [id, userId],
   );
   if (!rows[0]) return null;
   return {
     id: rows[0].id,
-    title: decryptConvTitle(rows[0].id, userId, rows[0].title, rows[0].title_enc, dek),
+    title: decryptConvTitle(
+      rows[0].id,
+      userId,
+      rows[0].title,
+      rows[0].title_enc,
+      dek,
+    ),
   };
 }
 
@@ -132,7 +141,9 @@ export async function renameConversation(
 }
 
 export async function touchConversation(id: string) {
-  await query("update conversations set updated_at = now() where id = $1", [id]);
+  await query("update conversations set updated_at = now() where id = $1", [
+    id,
+  ]);
 }
 
 export async function deleteConversation(id: string, userId: string) {
@@ -184,15 +195,13 @@ export async function getMessages(
       content: payload.content,
       createdAt: r.created_at.toISOString(),
       meta: payload.meta,
-      attachments: (r.attachments ?? []).map(
-        (a): AttachmentView => ({
-          id: a.id,
-          name: a.name,
-          mime: a.mime,
-          size: a.size,
-          url: `/api/attachments/${a.id}`,
-        }),
-      ),
+      attachments: (r.attachments ?? []).map((a): AttachmentView => ({
+        id: a.id,
+        name: a.name,
+        mime: a.mime,
+        size: a.size,
+        url: `/api/attachments/${a.id}`,
+      })),
     };
   });
 }
@@ -210,7 +219,12 @@ export async function getHistoryTurns(
     content: string;
     payload_enc: string | null;
     atts:
-      | { id: string; name: string; extracted_text: string | null; extracted_enc: string | null }[]
+      | {
+          id: string;
+          name: string;
+          extracted_text: string | null;
+          extracted_enc: string | null;
+        }[]
       | null;
   }>(
     `select * from (
@@ -243,7 +257,11 @@ export async function getHistoryTurns(
         let text = a.extracted_text ?? "";
         if (a.extracted_enc) {
           try {
-            text = decryptText(a.extracted_enc, dek, aadAttachmentText(userId, a.id));
+            text = decryptText(
+              a.extracted_enc,
+              dek,
+              aadAttachmentText(userId, a.id),
+            );
           } catch {
             text = "";
           }
@@ -253,7 +271,9 @@ export async function getHistoryTurns(
       .join("\n\n");
     return {
       role: r.role,
-      content: notes ? `${payload.content}\n\n${notes.slice(0, 6000)}` : payload.content,
+      content: notes
+        ? `${payload.content}\n\n${notes.slice(0, 6000)}`
+        : payload.content,
     };
   });
 }

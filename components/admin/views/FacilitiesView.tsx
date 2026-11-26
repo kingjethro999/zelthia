@@ -46,10 +46,12 @@ export function FacilitiesView() {
   const { basePath, refreshPendingCount } = useAdminShell();
   const toast = useAdminToast();
   const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
   const [kind, setKind] = useState("all");
   const [verification, setVerification] = useState<VerFilter>("all");
   const [city, setCity] = useState("all");
   const [items, setItems] = useState<AdminFacilityListItem[] | null>(null);
+  const [fetching, setFetching] = useState(false);
   const [total, setTotal] = useState(0);
   const [cities, setCities] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -60,17 +62,26 @@ export function FacilitiesView() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const load = useCallback(async () => {
-    setError(null);
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQ(q), 140);
+    return () => window.clearTimeout(t);
+  }, [q]);
+
+  const buildParams = useCallback(() => {
     const params = new URLSearchParams();
-    if (q.trim()) params.set("q", q.trim());
+    if (debouncedQ.trim()) params.set("q", debouncedQ.trim());
     if (kind !== "all") params.set("kind", kind);
     if (verification !== "all") params.set("verification", verification);
     if (city !== "all") params.set("city", city);
     params.set("limit", "60");
+    return params;
+  }, [debouncedQ, kind, verification, city]);
 
+  const load = useCallback(async () => {
+    setError(null);
+    setFetching(true);
     try {
-      const res = await fetch(`/api/admin/facilities?${params}`, {
+      const res = await fetch(`/api/admin/facilities?${buildParams()}`, {
         cache: "no-store",
       });
       const body = await res.json().catch(() => ({}));
@@ -80,13 +91,51 @@ export function FacilitiesView() {
       setCities(body.cities ?? []);
     } catch (err) {
       setError((err as Error).message || "Could not load facilities.");
+    } finally {
+      setFetching(false);
     }
-  }, [q, kind, verification, city]);
+  }, [buildParams]);
 
   useEffect(() => {
-    const t = window.setTimeout(() => void load(), 180);
-    return () => window.clearTimeout(t);
-  }, [load]);
+    const ac = new AbortController();
+    fetch(`/api/admin/facilities?${buildParams()}`, {
+      cache: "no-store",
+      signal: ac.signal,
+    })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok)
+          throw new Error(body.error ?? "Failed to load facilities.");
+        return body;
+      })
+      .then((body) => {
+        setError(null);
+        setItems(body.items ?? []);
+        setTotal(body.total ?? 0);
+        setCities(body.cities ?? []);
+        setFetching(false);
+      })
+      .catch((err) => {
+        if ((err as Error).name === "AbortError") return;
+        setError((err as Error).message || "Could not load facilities.");
+        setFetching(false);
+      });
+    return () => ac.abort();
+  }, [buildParams]);
+
+  const hasFilters =
+    Boolean(q.trim()) ||
+    kind !== "all" ||
+    verification !== "all" ||
+    city !== "all";
+
+  const clearFilters = () => {
+    setQ("");
+    setDebouncedQ("");
+    setKind("all");
+    setVerification("all");
+    setCity("all");
+  };
 
   const openInspector = async (id: string) => {
     setSelectedId(id);
@@ -147,17 +196,36 @@ export function FacilitiesView() {
           <h1 className="title font-display text-3xl font-semibold text-ink">
             Facilities directory
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Inspect listed pharmacies, clinics, hospitals, and diagnostic
-            centres across Nigeria.{" "}
-            <span className="tabular font-semibold text-ink">{total}</span>{" "}
-            matching listing{total === 1 ? "" : "s"}.
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span>
+              Inspect listed pharmacies, clinics, hospitals, and diagnostic
+              centres across Nigeria.{" "}
+              <span className="tabular font-semibold text-ink">{total}</span>{" "}
+              matching listing{total === 1 ? "" : "s"}.
+            </span>
+            {fetching && (
+              <LoaderCircle
+                className="h-3.5 w-3.5 animate-spin text-brand"
+                aria-label="Updating"
+              />
+            )}
           </p>
         </div>
-        <Button variant="secondary" onClick={() => void load()}>
-          <RefreshCw className="h-4 w-4" aria-hidden />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          )}
+          <Button
+            variant="secondary"
+            loading={fetching}
+            onClick={() => void load()}
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <GlassCard padding="sm">

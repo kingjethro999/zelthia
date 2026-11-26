@@ -64,13 +64,13 @@ export function StatCard({
         </div>
       </div>
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+        <p className="adm-micro text-[11px] font-semibold uppercase text-muted">
           {label}
         </p>
-        <p className="tabular mt-1 font-display text-3xl font-semibold tracking-tight text-ink">
+        <p className="adm-kpi mt-1.5 font-display text-3xl font-semibold text-ink">
           {typeof value === "number" ? value.toLocaleString("en-NG") : value}
         </p>
-        <p className="mt-1.5 text-xs text-muted">{detail}</p>
+        <p className="adm-caption mt-1.5 text-xs text-muted">{detail}</p>
       </div>
     </div>
   );

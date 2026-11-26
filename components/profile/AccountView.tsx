@@ -168,7 +168,10 @@ function AccountForm() {
       </div>
 
       <div className="mt-6 flex items-start gap-3 rounded-2xl border border-brand/25 bg-brand-soft/45 p-4 text-sm">
-        <Lock className="mt-0.5 h-4 w-4 shrink-0 text-brand-strong" aria-hidden />
+        <Lock
+          className="mt-0.5 h-4 w-4 shrink-0 text-brand-strong"
+          aria-hidden
+        />
         <div>
           <p className="font-semibold text-ink">
             Protected with password-locked encryption
