@@ -2,6 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import type { SessionUser, UserRole } from "@/lib/auth-types";
+import { readServerEnv } from "./admin-route";
 import {
   CURRENT_TERMS_VERSION,
   aadAttachmentText,
@@ -21,7 +22,7 @@ export const SESSION_COOKIE = "zelthia_session";
 const SESSION_DAYS = 30;
 
 function adminEmails(): Set<string> {
-  const raw = process.env.ADMIN_EMAIL ?? "";
+  const raw = readServerEnv("ADMIN_EMAIL");
   return new Set(
     raw
       .split(",")
@@ -80,14 +81,15 @@ export async function createUser(input: {
 }) {
   const passwordHash = await hashPassword(input.password);
   const rows = await query<UserRow>(
-    `insert into users (email, name, password_hash, role, wrapped_dek, terms_accepted_at, terms_version)
-     values ($1, $2, $3, $4, $5, now(), $6) returning *`,
+    `insert into users (email, name, password_hash, role, wrapped_dek, onboarded_at, terms_accepted_at, terms_version)
+     values ($1, $2, $3, $4, $5, $6, now(), $7) returning *`,
     [
       input.email.trim().toLowerCase(),
       input.name.trim(),
       passwordHash,
       input.role,
       input.wrappedDek,
+      input.role === "provider" ? new Date() : null,
       input.termsVersion ?? CURRENT_TERMS_VERSION,
     ],
   );

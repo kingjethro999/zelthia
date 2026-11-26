@@ -96,7 +96,7 @@ function PatientGate() {
           create a facility account.
         </p>
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-          <ButtonLink href="/signup?role=provider" size="lg">
+          <ButtonLink href="/signup?role=provider&switch=1" size="lg">
             <Building2 className="h-5 w-5" aria-hidden />
             Create a facility account
           </ButtonLink>
@@ -117,7 +117,16 @@ function FacilityDashboard() {
   const selectedId = params.get("facility") ?? facilities?.[0]?.id ?? null;
   const facility =
     facilities?.find((f) => f.id === selectedId) ?? facilities?.[0] ?? null;
-  const [tab, setTab] = useState<Tab>("stock");
+  const tabParam = params.get("tab");
+  const tab: Tab =
+    tabParam === "services" || tabParam === "details" ? tabParam : "stock";
+  const setTab = (next: Tab) => {
+    const p = new URLSearchParams(params.toString());
+    if (next === "stock") p.delete("tab");
+    else p.set("tab", next);
+    const qs = p.toString();
+    router.replace(qs ? `/provider?${qs}` : "/provider", { scroll: false });
+  };
   const [notice, setNotice] = useState<string | null>(null);
   const [seenCreated, setSeenCreated] = useState(false);
   if (!seenCreated && facility && params.get("created") === "1") {
@@ -194,7 +203,11 @@ function FacilityDashboard() {
               icon={Building2}
               className="w-64"
               value={facility.id}
-              onChange={(id) => router.replace(`/provider?facility=${id}`)}
+              onChange={(id) => {
+                const p = new URLSearchParams(params.toString());
+                p.set("facility", id);
+                router.replace(`/provider?${p.toString()}`);
+              }}
               options={facilities.map((f) => ({
                 value: f.id,
                 label: f.name,
@@ -900,7 +913,7 @@ export function NewFacility() {
       {welcome ? (
         <p className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-sm font-medium text-brand-strong">
           <CircleCheck className="h-4 w-4" aria-hidden />
-          Your profile is set up
+          Welcome to Zelthia for Facilities
         </p>
       ) : (
         <Link
@@ -911,7 +924,7 @@ export function NewFacility() {
         </Link>
       )}
       <h1 className="mt-3 title font-display text-3xl font-semibold text-ink sm:text-4xl">
-        {welcome ? "Now set up your facility" : "Register your facility"}
+        Register your facility
       </h1>
       <p className="mb-8 mt-2 text-muted">
         {welcome

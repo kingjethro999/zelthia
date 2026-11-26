@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Phone } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 
@@ -33,10 +32,6 @@ const COLUMNS = [
 ];
 
 export function Footer() {
-  const pathname = usePathname();
-  // The marketing footer belongs on the landing page only.
-  if (pathname !== "/") return null;
-
   return (
     <footer className="mt-auto border-t border-line bg-surface">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">

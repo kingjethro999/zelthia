@@ -1,19 +1,25 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useHomeHref } from "@/lib/store/session";
 import { cn } from "@/lib/utils";
 
 export function Logo({
   className,
+  href,
   size = 32,
   withWordmark = true,
 }: {
   className?: string;
+  href?: string;
   size?: number;
   withWordmark?: boolean;
 }) {
+  const homeHref = useHomeHref();
   return (
     <Link
-      href="/"
+      href={href ?? homeHref}
       className={cn("inline-flex items-center gap-2 rounded-lg", className)}
       aria-label="Zelthia home"
     >

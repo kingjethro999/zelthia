@@ -538,10 +538,10 @@ function AdminShellInner({
 
         <div className="grid grid-cols-2 gap-1.5">
           <Link
-            href="/chat"
+            href="/inventory"
             className="press-soft flex h-9 items-center justify-center rounded-xl border border-line/80 bg-surface/65 px-2 text-xs font-medium text-ink hover:bg-surface"
           >
-            Patient app
+            Public directory
           </Link>
           <button
             type="button"

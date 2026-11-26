@@ -39,7 +39,7 @@ interface SessionState {
     password: string;
     role: UserRole;
     acceptedTerms: boolean;
-  }) => Promise<ApiResult>;
+  }) => Promise<ApiResult & { redirectTo?: string }>;
   signOut: () => Promise<void>;
   revokeOtherSessions: () => Promise<ApiResult & { revoked?: number }>;
   saveProfile: (
@@ -128,13 +128,21 @@ export const useSession = create<SessionState>()(
         const { res, data } = await post("/api/auth/signup", input);
         if (!res?.ok)
           return { ok: false, error: data.error, field: data.field };
+        const adminPath =
+          data.user?.isAdmin && typeof data.adminPath === "string"
+            ? data.adminPath
+            : null;
+        const redirectTo =
+          data.user?.isAdmin && typeof data.redirectTo === "string"
+            ? data.redirectTo
+            : undefined;
         set({
           user: data.user,
-          adminPath: null,
+          adminPath,
           status: "ready",
           facilityCount: data.user.role === "provider" ? 0 : null,
         });
-        return { ok: true };
+        return { ok: true, redirectTo };
       },
 
       signOut: async () => {
@@ -206,3 +214,16 @@ export const useSession = create<SessionState>()(
     },
   ),
 );
+
+/** Resolves the appropriate home workspace URL for the current signed-in user. */
+export function useHomeHref(): string {
+  const user = useSession((s) => s.user);
+  const adminPath = useSession((s) => s.adminPath);
+  const facilityCount = useSession((s) => s.facilityCount);
+  if (user?.isAdmin && adminPath) return adminPath;
+  if (user?.role === "provider") {
+    return facilityCount === 0 ? "/provider/new?welcome=1" : "/provider";
+  }
+  if (user) return "/chat";
+  return "/";
+}

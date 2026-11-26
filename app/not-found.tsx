@@ -13,11 +13,14 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <div className="relative isolate flex min-h-dvh flex-1 flex-col overflow-hidden bg-paper">
+    <main
+      id="main"
+      className="relative isolate flex min-h-dvh flex-1 flex-col overflow-hidden bg-paper"
+    >
       <div className="nf-mesh" aria-hidden="true" />
       <div className="nf-grain" aria-hidden="true" />
       <div className="nf-vignette" aria-hidden="true" />
       <NotFoundExperience />
-    </div>
+    </main>
   );
 }

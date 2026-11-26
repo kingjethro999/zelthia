@@ -291,6 +291,10 @@ export async function createFacility(
       f.directionsAudioId,
     ],
   );
+  await query(
+    "update users set onboarded_at = coalesce(onboarded_at, now()) where id = $1",
+    [ownerId],
+  );
   return toFacility(rows[0]);
 }
 

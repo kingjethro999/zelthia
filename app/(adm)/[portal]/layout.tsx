@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { isValidAdminSlug } from "@/lib/server/admin-route";
@@ -39,7 +39,10 @@ async function AdminPortalGate({
     notFound();
   }
   const user = await getSessionUser();
-  if (!user?.isAdmin) {
+  if (!user) {
+    redirect(`/signin?next=${encodeURIComponent(`/${portal}`)}`);
+  }
+  if (!user.isAdmin) {
     notFound();
   }
   return (

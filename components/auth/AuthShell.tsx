@@ -115,10 +115,10 @@ export function AuthShell({
         </p>
       </aside>
 
-      <section className="flex min-h-0 flex-col overflow-y-auto">
+      <main id="main" className="flex min-h-0 flex-col overflow-y-auto">
         <div className="flex items-center justify-between px-4 pt-3 sm:px-8 sm:pt-6">
           <Link
-            href="/"
+            href="/?landing=1"
             className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-muted hover:bg-mist hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
@@ -152,7 +152,7 @@ export function AuthShell({
             {children}
           </div>
         </div>
-      </section>
+      </main>
     </div>
   );
 }

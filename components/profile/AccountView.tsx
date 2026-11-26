@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
+  Boxes,
   Check,
+  ChevronDown,
   Download,
   Lock,
   LogOut,
@@ -12,11 +14,11 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { Dialog } from "@/components/ui/Dialog";
 import { useSession } from "@/lib/store/session";
-import type { BiometricProfile } from "@/lib/ai/types";
+import { hasActiveBiometrics, type BiometricProfile } from "@/lib/ai/types";
 import {
   AboutFields,
   BodyFields,
@@ -47,6 +49,8 @@ function AccountForm() {
   const router = useRouter();
   const {
     user,
+    adminPath,
+    facilityCount,
     profile,
     saveProfile,
     signOut,
@@ -184,6 +188,39 @@ function AccountForm() {
         </div>
       </div>
 
+      {user.isAdmin && adminPath ? (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand/25 bg-surface p-4 text-sm">
+          <div>
+            <p className="font-semibold text-ink">Administrator workspace</p>
+            <p className="text-xs text-muted">
+              Review facility licences, directory health, and audit logs.
+            </p>
+          </div>
+          <ButtonLink href={adminPath} size="sm">
+            <ShieldCheck className="h-4 w-4" aria-hidden />
+            Open Admin Console
+          </ButtonLink>
+        </div>
+      ) : user.role === "provider" ? (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-sky/25 bg-surface p-4 text-sm">
+          <div>
+            <p className="font-semibold text-ink">Facility operator workspace</p>
+            <p className="text-xs text-muted">
+              Manage pharmacy stock, services, directions, and licence status.
+            </p>
+          </div>
+          <ButtonLink
+            href={facilityCount === 0 ? "/provider/new?welcome=1" : "/provider"}
+            size="sm"
+          >
+            <Boxes className="h-4 w-4" aria-hidden />
+            {facilityCount === 0
+              ? "Register facility"
+              : "Open Facility Workspace"}
+          </ButtonLink>
+        </div>
+      ) : null}
+
       <div className="mt-8 space-y-6">
         <section className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
           <TextField
@@ -195,17 +232,54 @@ function AccountForm() {
             className="max-w-md"
           />
         </section>
-        {sections.map((s) => (
-          <section
-            key={s.title}
-            className="rounded-3xl border border-line bg-surface p-5 sm:p-7"
+        {user.isAdmin || user.role === "provider" ? (
+          <details
+            open={hasActiveBiometrics(profile)}
+            className="group rounded-3xl border border-line bg-surface p-5 sm:p-7"
           >
-            <h2 className="mb-5 font-display text-xl font-semibold text-ink">
-              {s.title}
-            </h2>
-            {s.body}
-          </section>
-        ))}
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+              <div>
+                <h2 className="font-display text-xl font-semibold text-ink">
+                  Personal health profile (optional)
+                </h2>
+                <p className="mt-0.5 text-sm text-muted">
+                  Only used if you ask Zelthia&apos;s personal Health Chat. Leave
+                  blank if you only use Zelthia as{" "}
+                  {user.isAdmin ? "an administrator" : "a facility operator"}.
+                </p>
+              </div>
+              <ChevronDown
+                className="h-5 w-5 shrink-0 text-muted transition-transform group-open:rotate-180"
+                aria-hidden
+              />
+            </summary>
+            <div className="mt-6 space-y-6">
+              {sections.map((s) => (
+                <section
+                  key={s.title}
+                  className="rounded-2xl border border-line/75 bg-paper/60 p-4 sm:p-5"
+                >
+                  <h3 className="mb-4 font-display text-lg font-semibold text-ink">
+                    {s.title}
+                  </h3>
+                  {s.body}
+                </section>
+              ))}
+            </div>
+          </details>
+        ) : (
+          sections.map((s) => (
+            <section
+              key={s.title}
+              className="rounded-3xl border border-line bg-surface p-5 sm:p-7"
+            >
+              <h2 className="mb-5 font-display text-xl font-semibold text-ink">
+                {s.title}
+              </h2>
+              {s.body}
+            </section>
+          ))
+        )}
 
         <section className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
           <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-ink">

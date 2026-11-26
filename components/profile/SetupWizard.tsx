@@ -62,10 +62,27 @@ export function SetupWizard() {
   const router = useRouter();
   const status = useSession((s) => s.status);
   const user = useSession((s) => s.user);
+  const adminPath = useSession((s) => s.adminPath);
+  const facilityCount = useSession((s) => s.facilityCount);
+  const params = useSearchParams();
+  const allowPersonal = params.get("personal") === "1";
 
   useEffect(() => {
-    if (status === "ready" && !user) router.replace("/signin?next=/setup");
-  }, [status, user, router]);
+    if (status !== "ready") return;
+    if (!user) {
+      router.replace("/signin?next=/setup");
+      return;
+    }
+    if (user.isAdmin && adminPath) {
+      router.replace(adminPath);
+      return;
+    }
+    if (user.role === "provider" && !allowPersonal) {
+      router.replace(
+        facilityCount === 0 ? "/provider/new?welcome=1" : "/provider",
+      );
+    }
+  }, [status, user, adminPath, facilityCount, allowPersonal, router]);
 
   if (status !== "ready" || !user) {
     return (
@@ -147,7 +164,7 @@ function SetupForm() {
           Skip for now
         </Link>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <main id="main" className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12 lg:py-12">
           {/* Step rail: horizontal progress on mobile, vertical list on desktop */}
           <nav
@@ -287,7 +304,7 @@ function SetupForm() {
             </div>
           </section>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

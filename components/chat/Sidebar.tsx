@@ -20,7 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { useChat } from "@/lib/store/chat";
-import { useSession } from "@/lib/store/session";
+import { useHomeHref, useSession } from "@/lib/store/session";
 import type { ConversationSummary } from "@/lib/chat-types";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -69,6 +69,7 @@ export function Sidebar({
   const user = useSession((s) => s.user);
   const adminPath = useSession((s) => s.adminPath);
   const facilityCount = useSession((s) => s.facilityCount);
+  const homeHref = useHomeHref();
   const {
     conversations,
     listStatus,
@@ -91,9 +92,9 @@ export function Sidebar({
     <div className="flex h-full w-72 flex-col bg-surface">
       <div className="flex h-14 items-center justify-between px-3">
         <Link
-          href="/"
+          href={homeHref}
           className="flex items-center gap-2 rounded-lg px-1.5 py-1"
-          aria-label="Zelthia home"
+          aria-label="Zelthia workspace home"
         >
           <Image
             src="/icons/icon-96.png"
@@ -121,6 +122,35 @@ export function Sidebar({
       </div>
 
       <nav className="space-y-0.5 px-2" aria-label="Chat">
+        {user?.isAdmin && adminPath && (
+          <Link
+            href={adminPath}
+            className="mb-1 flex items-center gap-3 rounded-xl border border-brand/30 bg-brand-soft/80 px-3 py-2 text-sm font-semibold text-brand-strong hover:bg-brand-soft"
+          >
+            <ShieldCheck className="h-[18px] w-[18px]" aria-hidden />
+            Back to Admin Console
+          </Link>
+        )}
+        {user?.role === "provider" && (
+          <Link
+            href={facilityCount === 0 ? "/provider/new?welcome=1" : "/provider"}
+            className={cn(
+              "mb-1 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium",
+              facilityCount === 0
+                ? "bg-brand-soft text-brand-strong hover:bg-brand-soft/70"
+                : "border border-sky/25 bg-sky-soft/60 text-ink hover:bg-sky-soft",
+            )}
+          >
+            <Boxes className="h-[18px] w-[18px] text-sky" aria-hidden />
+            {facilityCount === 0 ? "Set up your facility" : "Facility workspace"}
+            {facilityCount === 0 && (
+              <span
+                className="ml-auto h-2 w-2 rounded-full bg-brand"
+                aria-hidden
+              />
+            )}
+          </Link>
+        )}
         <button
           type="button"
           onClick={() => {
@@ -139,37 +169,6 @@ export function Sidebar({
           <Pill className="h-[18px] w-[18px] text-muted" aria-hidden />
           Find medicine
         </Link>
-        {user?.role === "provider" &&
-          (facilityCount === 0 ? (
-            <Link
-              href="/provider/new?welcome=1"
-              className="flex items-center gap-3 rounded-xl bg-brand-soft px-3 py-2 text-sm font-medium text-brand-strong hover:bg-brand-soft/70"
-            >
-              <Boxes className="h-[18px] w-[18px]" aria-hidden />
-              Set up your facility
-              <span
-                className="ml-auto h-2 w-2 rounded-full bg-brand"
-                aria-hidden
-              />
-            </Link>
-          ) : (
-            <Link
-              href="/provider"
-              className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist"
-            >
-              <Boxes className="h-[18px] w-[18px] text-muted" aria-hidden />
-              Manage stock
-            </Link>
-          ))}
-        {user?.isAdmin && adminPath && (
-          <Link
-            href={adminPath}
-            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist"
-          >
-            <ShieldCheck className="h-[18px] w-[18px] text-muted" aria-hidden />
-            Console
-          </Link>
-        )}
       </nav>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-2 pb-3">
@@ -505,7 +504,11 @@ export function AccountFooter() {
             {user.name}
           </span>
           <span className="block text-xs text-muted">
-            {user.role === "provider" ? "Facility account" : "Personal account"}
+            {user.isAdmin
+              ? "Administrator"
+              : user.role === "provider"
+                ? "Facility operator"
+                : "Personal account"}
           </span>
         </span>
         <ChevronUp

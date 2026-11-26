@@ -73,30 +73,38 @@ export function AuthForm({
       return;
     }
     const adminDest =
-      mode === "signin" &&
-      "redirectTo" in result &&
-      typeof result.redirectTo === "string"
+      "redirectTo" in result && typeof result.redirectTo === "string"
         ? safeNext(result.redirectTo)
         : null;
     if (adminDest) {
       router.replace(adminDest);
       return;
     }
-    const user = useSession.getState().user;
+    const state = useSession.getState();
+    const user = state.user;
+    if (user?.role === "provider") {
+      if (mode === "signup") {
+        router.replace(
+          next && next.startsWith("/provider")
+            ? next
+            : "/provider/new?welcome=1",
+        );
+      } else {
+        router.replace(
+          next ??
+            (state.facilityCount === 0
+              ? "/provider/new?welcome=1"
+              : "/provider"),
+        );
+      }
+      return;
+    }
     if (user && !user.onboarded) {
-      const dest =
-        next && next !== "/provider"
-          ? next
-          : role === "provider"
-            ? "/provider/new?welcome=1"
-            : next;
       router.replace(
-        `/setup${dest ? `?next=${encodeURIComponent(dest)}` : ""}`,
+        `/setup${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       );
     } else {
-      router.replace(
-        next ?? (user?.role === "provider" ? "/provider" : "/chat"),
-      );
+      router.replace(next ?? "/chat");
     }
   };
 

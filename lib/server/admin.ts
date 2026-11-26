@@ -17,6 +17,7 @@ import {
   type VerificationStatus,
 } from "@/lib/inventory-types";
 import { isAdminEmail } from "./auth";
+import { readServerEnv } from "./admin-route";
 import { query } from "./db";
 import {
   isUuid,
@@ -29,7 +30,7 @@ import { deletePrivate } from "./storage";
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 function getAdminEmailList(): string[] {
-  return (process.env.ADMIN_EMAIL ?? "")
+  return readServerEnv("ADMIN_EMAIL")
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
@@ -54,7 +55,7 @@ function getServiceStatusList() {
       label: "Stealth Admin Portal Slug",
       category: "Security",
       configured: /^[A-Za-z0-9_-]{16,128}$/.test(
-        process.env.ADMIN_ROUTE_SLUG?.trim() ?? "",
+        readServerEnv("ADMIN_ROUTE_SLUG"),
       ),
     },
     {

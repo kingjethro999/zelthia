@@ -4,30 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Boxes,
   Building2,
   ChevronDown,
   CircleUserRound,
   LogOut,
+  MessageCircleHeart,
   Settings2,
+  ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { ButtonLink } from "@/components/ui/Button";
-import { useSession } from "@/lib/store/session";
+import { useHomeHref, useSession } from "@/lib/store/session";
 import { cn } from "@/lib/utils";
 
-/** Only public marketing & informational routes show the global marketing header. */
-const MARKETING_PATHS = new Set([
-  "/",
-  "/for-facilities",
-  "/doctors-note-reader",
-  "/about",
-  "/privacy",
-  "/terms",
-]);
-
 const AUDIENCES = [
-  { href: "/", label: "For people", icon: UserRound },
+  { href: "/?landing=1", label: "For people", icon: UserRound },
   { href: "/for-facilities", label: "For facilities", icon: Building2 },
 ] as const;
 
@@ -73,9 +66,6 @@ export function AudienceSwitch({ className }: { className?: string }) {
 }
 
 export function Header() {
-  const pathname = usePathname();
-  if (!MARKETING_PATHS.has(pathname)) return null;
-
   return (
     <header className="material-bar sticky top-0 z-40 border-b border-line/60">
       <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto] items-center gap-4 px-4 sm:px-6 md:grid-cols-[1fr_auto_1fr]">
@@ -94,10 +84,18 @@ export function Header() {
 
 export function AccountControls({ stacked = false }: { stacked?: boolean }) {
   const user = useSession((s) => s.user);
+  const adminPath = useSession((s) => s.adminPath);
+  const homeHref = useHomeHref();
   const signOut = useSession((s) => s.signOut);
   const router = useRouter();
   const [menu, setMenu] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const workspaceItem = user?.isAdmin && adminPath
+    ? { href: adminPath, label: "Admin Console", icon: ShieldCheck }
+    : user?.role === "provider"
+      ? { href: homeHref, label: "Facility workspace", icon: Boxes }
+      : { href: "/chat", label: "Open health chat", icon: MessageCircleHeart };
 
   useEffect(() => {
     if (!menu) return;
@@ -139,10 +137,18 @@ export function AccountControls({ stacked = false }: { stacked?: boolean }) {
     .join("");
 
   if (stacked) {
+    const WorkspaceIcon = workspaceItem.icon;
     return (
       <div className="flex flex-col">
         <p className="px-2 pb-2 text-sm text-muted">Signed in as {user.name}</p>
-        {!user.onboarded && (
+        <Link
+          href={workspaceItem.href}
+          className="flex items-center gap-3 rounded-xl px-2 py-3 font-medium text-brand hover:bg-mist"
+        >
+          <WorkspaceIcon className="h-5 w-5" aria-hidden />
+          {workspaceItem.label}
+        </Link>
+        {!user.onboarded && user.role !== "provider" && !user.isAdmin && (
           <Link
             href="/setup"
             className="flex items-center gap-3 rounded-xl px-2 py-3 font-medium text-brand hover:bg-mist"
@@ -199,7 +205,16 @@ export function AccountControls({ stacked = false }: { stacked?: boolean }) {
             <p className="truncate text-xs text-muted">{user.email}</p>
           </div>
           <div className="my-1 h-px bg-line" />
-          {!user.onboarded && (
+          <Link
+            role="menuitem"
+            href={workspaceItem.href}
+            onClick={() => setMenu(false)}
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-brand hover:bg-mist"
+          >
+            <workspaceItem.icon className="h-4 w-4" aria-hidden />
+            {workspaceItem.label}
+          </Link>
+          {!user.onboarded && user.role !== "provider" && !user.isAdmin && (
             <Link
               role="menuitem"
               href="/setup"

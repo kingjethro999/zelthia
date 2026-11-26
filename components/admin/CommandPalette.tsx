@@ -73,8 +73,8 @@ export function CommandPalette({
       {
         id: "pub-home",
         label: "Open Zelthia Home",
-        subtitle: "Landing page",
-        href: "/",
+        subtitle: "Landing page preview",
+        href: "/?landing=1",
         group: "Public app",
         icon: Compass,
         keywords: "landing home",

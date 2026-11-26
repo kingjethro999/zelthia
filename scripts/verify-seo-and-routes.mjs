@@ -11,12 +11,12 @@ let warnings = [];
 // 1. Check Route Files
 const requiredFiles = [
   "app/layout.tsx",
-  "app/page.tsx",
+  "app/(marketing)/page.tsx",
   "app/sitemap.ts",
   "app/robots.ts",
   "app/chat/page.tsx",
   "app/api/chat/route.ts",
-  "app/(app)/inventory/page.tsx",
+  "app/(workspace)/inventory/page.tsx",
   "app/api/directory/route.ts",
 ];
 
@@ -51,7 +51,7 @@ if (fs.existsSync(layoutPath)) {
 console.log(
   "\nChecking JSON-LD Structured Data in app/page.tsx or components...",
 );
-const pagePath = path.join(projectRoot, "app/page.tsx");
+const pagePath = path.join(projectRoot, "app/(marketing)/page.tsx");
 if (fs.existsSync(pagePath)) {
   const pageContent = fs.readFileSync(pagePath, "utf8");
   if (pageContent.includes("application/ld+json")) {

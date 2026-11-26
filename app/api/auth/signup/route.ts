@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAdminBasePath } from "@/lib/server/admin-route";
 import {
   EMAIL_RE,
   createUser,
@@ -101,8 +102,14 @@ export async function POST(req: Request) {
       termsVersion: CURRENT_TERMS_VERSION,
     });
     await startSession(row.id, dek);
+    const sessionUser = toSessionUser(row);
+    const adminPath = sessionUser.isAdmin ? getAdminBasePath() : null;
     return NextResponse.json(
-      { user: toSessionUser(row) },
+      {
+        user: sessionUser,
+        facilityCount: role === "provider" ? 0 : null,
+        ...(adminPath ? { redirectTo: adminPath, adminPath } : {}),
+      },
       { status: 201, headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (err) {

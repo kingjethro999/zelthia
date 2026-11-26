@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Boxes,
   FileText,
   Lock,
   MessageCircleDashed,
@@ -45,6 +46,7 @@ const STARTERS = [
 export function ChatApp() {
   const pathname = usePathname();
   const user = useSession((s) => s.user);
+  const adminPath = useSession((s) => s.adminPath);
   const sessionStatus = useSession((s) => s.status);
   const profile = useSession((s) => s.profile);
   const facilityCount = useSession((s) => s.facilityCount);
@@ -187,7 +189,7 @@ export function ChatApp() {
         onCloseMobile={() => setMobileNav(false)}
       />
 
-      <div className="relative flex min-w-0 flex-1 flex-col">
+      <main id="main" className="relative flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 shrink-0 items-center gap-1.5 px-2 sm:px-4">
           <button
             type="button"
@@ -220,6 +222,25 @@ export function ChatApp() {
           <h1 className="min-w-0 flex-1 truncate px-1 text-sm font-medium text-ink">
             {chat.temporary ? "Temporary chat" : (title ?? "")}
           </h1>
+          {user?.isAdmin && adminPath ? (
+            <Link
+              href={adminPath}
+              className="press press-soft inline-flex h-9 items-center gap-1.5 rounded-full border border-brand/30 bg-brand-soft px-3 text-xs font-semibold text-brand-strong hover:bg-brand-soft/80"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+              <span className="hidden sm:inline">Admin Console</span>
+              <span className="sm:hidden">Admin</span>
+            </Link>
+          ) : user?.role === "provider" ? (
+            <Link
+              href={facilityCount === 0 ? "/provider/new?welcome=1" : "/provider"}
+              className="press press-soft inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-xs font-semibold text-ink hover:border-brand/40"
+            >
+              <Boxes className="h-3.5 w-3.5 text-brand" aria-hidden />
+              <span className="hidden sm:inline">Facility workspace</span>
+              <span className="sm:hidden">Stock</span>
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={() => setSheet(true)}
@@ -314,6 +335,7 @@ export function ChatApp() {
                   </>
                 )}
                 {user?.role === "provider" &&
+                  !user.isAdmin &&
                   facilityCount === 0 &&
                   !chat.temporary && (
                     <Link
@@ -404,7 +426,7 @@ export function ChatApp() {
             </p>
           </div>
         )}
-      </div>
+      </main>
 
       <ProfileSheet open={sheet} onClose={() => setSheet(false)} />
     </div>

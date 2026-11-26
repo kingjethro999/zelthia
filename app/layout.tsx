@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/shared/Header";
-import { Footer } from "@/components/shared/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { SITE_URL } from "@/lib/utils";
 
@@ -106,15 +103,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <SessionProvider />
-        <Suspense>
-          <Header />
-        </Suspense>
-        <main id="main" className="flex flex-1 flex-col">
-          {children}
-        </main>
-        <Suspense>
-          <Footer />
-        </Suspense>
+        {children}
       </body>
     </html>
   );

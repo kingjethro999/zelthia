@@ -3,9 +3,13 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
+  ArrowLeft,
+  BadgeCheck,
   Boxes,
+  Building2,
+  CircleUserRound,
   History,
   Menu,
   MessageCircleHeart,
@@ -14,12 +18,14 @@ import {
   Pill,
   PlusCircle,
   ShieldCheck,
+  Stethoscope,
   Store,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { AccountFooter } from "@/components/chat/Sidebar";
 import { ButtonLink } from "@/components/ui/Button";
-import { useSession } from "@/lib/store/session";
+import { useHomeHref, useSession } from "@/lib/store/session";
 import { useChat } from "@/lib/store/chat";
 import { useDragDismiss, usePresence } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -38,13 +44,24 @@ const readCollapsed = () => {
   }
 };
 
+interface NavEntry {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  highlight?: boolean;
+}
+
 /**
- * The persistent frame for every signed-in surface. It lives in a route-group
- * layout, so moving between search, stock and account swaps only the page:
- * the sidebar stays mounted and the content area animates around it.
+ * The persistent frame for non-chat workspace routes (/provider, /inventory, /account).
+ * Renders a role-oriented navigation rail so Facility Operators see stock, services,
+ * and licence tools first, Admins see a prominent Console return path, and Personal users
+ * transition smoothly between directory lookup, chat, and account settings.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const homeHref = useHomeHref();
   const user = useSession((s) => s.user);
   const adminPath = useSession((s) => s.adminPath);
   const facilityCount = useSession((s) => s.facilityCount);
@@ -71,38 +88,163 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (user && listStatus === "idle")
+    if (user && listStatus === "idle") {
       void useChat.getState().loadConversations();
+    }
   }, [user, listStatus]);
 
+  const isAdmin = Boolean(user?.isAdmin && adminPath);
   const isProvider = user?.role === "provider";
-  const items = [
-    { href: "/chat", label: "Health chat", icon: MessageCircleHeart },
-    { href: "/inventory", label: "Find medicine", icon: Pill },
-    ...(isProvider
-      ? !facilityCount
-        ? [
-            {
-              href: "/provider/new?welcome=1",
-              label: "Set up your facility",
-              icon: PlusCircle,
-              highlight: true,
-            },
-          ]
-        : [{ href: "/provider", label: "Manage stock", icon: Boxes }]
-      : []),
-    ...(user?.isAdmin && adminPath
-      ? [{ href: adminPath, label: "Console", icon: ShieldCheck }]
-      : []),
-  ];
+  const activeTab = searchParams.get("tab") ?? "stock";
+  const facilityId = searchParams.get("facility");
+  const providerQuery = (tab?: string) => {
+    const p = new URLSearchParams();
+    if (facilityId) p.set("facility", facilityId);
+    if (tab && tab !== "stock") p.set("tab", tab);
+    const qs = p.toString();
+    return qs ? `/provider?${qs}` : "/provider";
+  };
+
+  const primaryItems: NavEntry[] = isProvider
+    ? facilityCount === 0
+      ? [
+          {
+            href: "/provider/new?welcome=1",
+            label: "Register your facility",
+            icon: PlusCircle,
+            active: pathname === "/provider/new",
+            highlight: true,
+          },
+          {
+            href: "/inventory",
+            label: "Public directory",
+            icon: Pill,
+            active: pathname.startsWith("/inventory"),
+          },
+        ]
+      : [
+          {
+            href: providerQuery("stock"),
+            label: "Stock & pricing",
+            icon: Boxes,
+            active:
+              pathname === "/provider" &&
+              activeTab !== "services" &&
+              activeTab !== "details",
+          },
+          {
+            href: providerQuery("services"),
+            label: "Services & scans",
+            icon: Stethoscope,
+            active: pathname === "/provider" && activeTab === "services",
+          },
+          {
+            href: providerQuery("details"),
+            label: "Details & licence",
+            icon: Building2,
+            active: pathname === "/provider" && activeTab === "details",
+          },
+          {
+            href: "/provider/new",
+            label: "Add a facility",
+            icon: PlusCircle,
+            active: pathname === "/provider/new",
+          },
+          {
+            href: "/inventory",
+            label: "Public directory",
+            icon: Pill,
+            active: pathname.startsWith("/inventory"),
+          },
+        ]
+    : [
+        {
+          href: "/chat",
+          label: "Health chat",
+          icon: MessageCircleHeart,
+          active: pathname.startsWith("/chat"),
+        },
+        {
+          href: "/inventory",
+          label: "Find medicine",
+          icon: Pill,
+          active: pathname.startsWith("/inventory"),
+        },
+        {
+          href: "/account",
+          label: "Account & profile",
+          icon: CircleUserRound,
+          active: pathname.startsWith("/account"),
+        },
+      ];
+
+  const secondaryItems: NavEntry[] = isProvider
+    ? [
+        {
+          href: "/chat",
+          label: "Health chat & note reader",
+          icon: MessageCircleHeart,
+          active: pathname.startsWith("/chat"),
+        },
+        {
+          href: "/account",
+          label: "Account & security",
+          icon: CircleUserRound,
+          active: pathname.startsWith("/account"),
+        },
+      ]
+    : [];
+
+  const surfaceTitle = pathname.startsWith("/provider/new")
+    ? "Register facility"
+    : pathname.startsWith("/provider")
+      ? "Facility workspace"
+      : pathname.startsWith("/inventory")
+        ? "Public directory"
+        : pathname.startsWith("/account")
+          ? isProvider || isAdmin
+            ? "Account & security"
+            : "Account & health profile"
+          : "Workspace";
+
+  const renderNavLink = (item: NavEntry) => {
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.label}
+        href={item.href}
+        aria-current={item.active ? "page" : undefined}
+        className={cn(
+          "press press-soft flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors",
+          item.highlight
+            ? "bg-brand-soft font-medium text-brand-strong hover:bg-brand-soft/70"
+            : item.active
+              ? "bg-mist font-medium text-ink"
+              : "text-ink hover:bg-mist",
+        )}
+      >
+        <Icon
+          className={cn(
+            "h-[18px] w-[18px] shrink-0",
+            item.active || item.highlight ? "text-brand" : "text-muted",
+          )}
+          aria-hidden
+        />
+        <span className="truncate">{item.label}</span>
+        {item.highlight && (
+          <span className="ml-auto h-2 w-2 rounded-full bg-brand" aria-hidden />
+        )}
+      </Link>
+    );
+  };
 
   const panel = (closeButton: React.ReactNode) => (
     <div className="flex h-full w-72 flex-col bg-surface">
       <div className="flex h-14 items-center justify-between px-3">
         <Link
-          href="/"
+          href={homeHref}
           className="flex items-center gap-2 rounded-lg px-1.5 py-1"
-          aria-label="Zelthia home"
+          aria-label="Zelthia workspace home"
         >
           <Image
             src="/icons/icon-96.png"
@@ -114,58 +256,49 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-display text-lg font-semibold text-ink">
             Zelthia
           </span>
+          {isAdmin ? (
+            <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-strong">
+              Admin
+            </span>
+          ) : isProvider ? (
+            <span className="rounded-full bg-sky-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky">
+              Facility
+            </span>
+          ) : null}
         </Link>
         {closeButton}
       </div>
 
-      <nav className="space-y-0.5 px-2" aria-label="Zelthia">
-        {items.map(({ href, label, icon: Icon, ...rest }) => {
-          const path = href.split("?")[0];
-          const active =
-            path === "/provider"
-              ? pathname.startsWith("/provider")
-              : pathname === path || pathname.startsWith(`${path}/`);
-          const highlight = "highlight" in rest && rest.highlight;
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "press press-soft flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors",
-                highlight
-                  ? "bg-brand-soft font-medium text-brand-strong hover:bg-brand-soft/70"
-                  : active
-                    ? "bg-mist font-medium text-ink"
-                    : "text-ink hover:bg-mist",
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-[18px] w-[18px]",
-                  active || highlight ? "text-brand" : "text-muted",
-                )}
-                aria-hidden
-              />
-              {label}
-              {highlight && (
-                <span
-                  className="ml-auto h-2 w-2 rounded-full bg-brand"
-                  aria-hidden
-                />
-              )}
-            </Link>
-          );
-        })}
-        {isProvider && (facilityCount ?? 0) > 0 && (
+      {isAdmin && adminPath && (
+        <div className="px-3 pb-3">
           <Link
-            href="/provider/new"
-            aria-current={pathname === "/provider/new" ? "page" : undefined}
-            className="press press-soft flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted hover:bg-mist hover:text-ink"
+            href={adminPath}
+            className="press press-soft flex items-center gap-2.5 rounded-2xl border border-brand/30 bg-brand-soft/75 px-3 py-2.5 text-sm font-semibold text-brand-strong hover:bg-brand-soft"
           >
-            <PlusCircle className="h-[18px] w-[18px]" aria-hidden />
-            Add a facility
+            <ShieldCheck className="h-[18px] w-[18px] shrink-0" aria-hidden />
+            <span className="flex-1 truncate">Back to Admin Console</span>
+            <ArrowLeft className="h-4 w-4 shrink-0 rotate-180" aria-hidden />
           </Link>
+        </div>
+      )}
+
+      <nav className="space-y-4 px-2" aria-label="Workspace">
+        <div>
+          {isProvider && (
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
+              Facility workspace
+            </p>
+          )}
+          <div className="space-y-0.5">{primaryItems.map(renderNavLink)}</div>
+        </div>
+
+        {secondaryItems.length > 0 && (
+          <div>
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
+              Companion &amp; account
+            </p>
+            <div className="space-y-0.5">{secondaryItems.map(renderNavLink)}</div>
+          </div>
         )}
       </nav>
 
@@ -204,6 +337,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </ButtonLink>
             </div>
           </div>
+        ) : isProvider ? (
+          <div className="space-y-4 px-1">
+            <div className="rounded-2xl border border-line bg-paper p-3.5">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-ink">
+                <BadgeCheck className="h-4 w-4 text-brand" aria-hidden />
+                Directory visibility
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted">
+                Stock quantities, landmark or audio directions, and your
+                admin-verified badge appear live in patient medicine searches.
+              </p>
+            </div>
+            {conversations.length > 0 && (
+              <div>
+                <h2 className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">
+                  Recent companion chats
+                </h2>
+                <ul>
+                  {conversations.slice(0, 6).map((c) => (
+                    <li key={c.id}>
+                      <Link
+                        href={`/chat/${c.id}`}
+                        className="press-soft block truncate rounded-xl px-2 py-1.5 text-sm text-ink hover:bg-mist"
+                      >
+                        {c.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         ) : (
           <>
             <h2 className="px-3 pb-1 text-xs font-medium text-muted">
@@ -237,9 +402,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 Your chats will show up here.
               </p>
             )}
-            {!isProvider && (
+            {!isAdmin && (
               <Link
-                href="/signup?role=provider"
+                href="/signup?role=provider&switch=1"
                 className="press-soft mx-1 mt-5 flex items-start gap-3 rounded-2xl border border-line bg-paper p-3 text-sm hover:border-brand/50"
               >
                 <Store
@@ -319,25 +484,50 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="relative flex min-w-0 flex-1 flex-col">
-        <div className="flex h-14 shrink-0 items-center gap-2 px-3">
-          <button
-            type="button"
-            onClick={() => setMobileOpen(true)}
-            className="press flex h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-mist lg:hidden"
-            aria-label="Open sidebar"
-          >
-            <Menu className="h-5 w-5" aria-hidden />
-          </button>
-          {collapsed && (
+        <div className="flex h-14 shrink-0 items-center justify-between gap-2 px-3 sm:px-5">
+          <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
-              onClick={toggle}
-              className="press hidden h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-mist lg:flex"
+              onClick={() => setMobileOpen(true)}
+              className="press flex h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-mist lg:hidden"
               aria-label="Open sidebar"
             >
-              <PanelLeftOpen className="h-5 w-5" aria-hidden />
+              <Menu className="h-5 w-5" aria-hidden />
             </button>
-          )}
+            {collapsed && (
+              <button
+                type="button"
+                onClick={toggle}
+                className="press hidden h-10 w-10 items-center justify-center rounded-full text-ink hover:bg-mist lg:flex"
+                aria-label="Open sidebar"
+              >
+                <PanelLeftOpen className="h-5 w-5" aria-hidden />
+              </button>
+            )}
+            <span className="truncate text-sm font-medium text-muted">
+              {surfaceTitle}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {isAdmin && adminPath ? (
+              <Link
+                href={adminPath}
+                className="press press-soft inline-flex h-8 items-center gap-1.5 rounded-full border border-brand/30 bg-brand-soft px-3 text-xs font-semibold text-brand-strong hover:bg-brand-soft/80"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+                Admin Console
+              </Link>
+            ) : isProvider && !pathname.startsWith("/provider") ? (
+              <Link
+                href={facilityCount === 0 ? "/provider/new?welcome=1" : "/provider"}
+                className="press press-soft inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-xs font-semibold text-ink hover:border-brand/40"
+              >
+                <Boxes className="h-3.5 w-3.5 text-brand" aria-hidden />
+                {facilityCount === 0 ? "Register facility" : "Manage stock"}
+              </Link>
+            ) : null}
+          </div>
         </div>
         <main
           id="main"
