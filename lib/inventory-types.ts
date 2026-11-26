@@ -97,6 +97,77 @@ export interface AdminVerificationItem {
   updatedAt: string;
 }
 
+export type RegulatoryVerdict =
+  | "verified"
+  | "caution"
+  | "danger"
+  | "unverified";
+
+export interface RegistrySourceFinding {
+  registry:
+    | "NAFDAC Greenbook"
+    | "NAFDAC Herbal & Traditional"
+    | "NAFDAC Public Alerts"
+    | "US FDA Orange Book"
+    | "US FDA openFDA"
+    | "Health Canada DPD"
+    | "UK MHRA"
+    | "China NMPA"
+    | "Global Pharmacovigilance"
+    | "Barcode Registry";
+  status: "matched" | "warning" | "recalled" | "discontinued" | "not_found";
+  title: string;
+  detail: string;
+  code?: string;
+  url?: string;
+  sourceAttribution: string;
+}
+
+export interface RegulatoryAlertFlag {
+  code:
+    | "CATEGORY_MISMATCH"
+    | "ENTITY_MISMATCH"
+    | "ACTIVE_RECALL"
+    | "EXPIRED_PACK"
+    | "EXPIRED_LICENCE"
+    | "DISCONTINUED_DRUG"
+    | "MISSING_CN_TRACEABILITY"
+    | "HERBAL_LISTED_ONLY"
+    | "IMPORT_UNLISTED_LOCALLY"
+    | "UNLISTED_PRODUCT"
+    | "STALE_CACHE_FALLBACK";
+  severity: "danger" | "caution" | "info";
+  title: string;
+  detail: string;
+}
+
+export interface RegulatoryReport {
+  query: string;
+  verdict: RegulatoryVerdict;
+  headline: string;
+  summary: string;
+  nafdacCode?: string;
+  nafdacPrefixDomain?:
+    | "drug"
+    | "cosmetic"
+    | "herbal_listed"
+    | "medical_device"
+    | "food_beverage"
+    | "unknown";
+  barcode?: string;
+  foreignCodes?: string[];
+  manufacturer?: string;
+  countryOfOrigin?: string;
+  findings: RegistrySourceFinding[];
+  flags: RegulatoryAlertFlag[];
+  checkedAt: string;
+  cached: boolean;
+  staleFallback: boolean;
+  staleFromDate?: string;
+  unlistedWarning?: string;
+  disclaimer: string;
+}
+
 export interface Product {
   id: string;
   facilityId: string;
@@ -113,6 +184,13 @@ export interface Product {
   expiresOn: string | null;
   prescriptionOnly: boolean;
   notes: string;
+  barcode: string;
+  nafdacNumber: string;
+  manufacturer: string;
+  countryOfOrigin: string;
+  regulatoryStatus: RegulatoryVerdict | "none";
+  regulatorySummary: RegulatoryReport | null;
+  regulatoryCheckedAt: string | null;
   updatedAt: string;
 }
 

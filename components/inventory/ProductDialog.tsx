@@ -30,6 +30,13 @@ export const EMPTY_PRODUCT: ProductDraft = {
   expiresOn: null,
   prescriptionOnly: false,
   notes: "",
+  barcode: "",
+  nafdacNumber: "",
+  manufacturer: "",
+  countryOfOrigin: "",
+  regulatoryStatus: "none",
+  regulatorySummary: null,
+  regulatoryCheckedAt: null,
 };
 
 const MONTHS = [

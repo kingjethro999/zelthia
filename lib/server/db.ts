@@ -140,6 +140,22 @@ alter table conversations add column if not exists title_enc text;
 alter table messages add column if not exists payload_enc text;
 alter table attachments add column if not exists extracted_enc text;
 alter table attachments add column if not exists encrypted boolean not null default false;
+alter table products add column if not exists barcode text not null default '';
+alter table products add column if not exists nafdac_no text not null default '';
+alter table products add column if not exists manufacturer text not null default '';
+alter table products add column if not exists country_of_origin text not null default '';
+alter table products add column if not exists regulatory_status text not null default 'none';
+alter table products add column if not exists regulatory_summary jsonb;
+alter table products add column if not exists regulatory_checked_at timestamptz;
+create index if not exists products_barcode_idx on products(barcode) where barcode <> '';
+create index if not exists products_nafdac_idx on products(nafdac_no) where nafdac_no <> '';
+create table if not exists regulatory_cache (
+  cache_key text primary key,
+  query_label text not null default '',
+  payload jsonb not null,
+  checked_at timestamptz not null default now()
+);
+create index if not exists regulatory_cache_checked_idx on regulatory_cache(checked_at desc);
 create table if not exists rate_limits (
   bucket_key text not null,
   hit_at timestamptz not null default now()

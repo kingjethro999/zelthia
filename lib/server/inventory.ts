@@ -7,6 +7,8 @@ import {
   type Facility,
   type FacilityKind,
   type Product,
+  type RegulatoryReport,
+  type RegulatoryVerdict,
   type VerificationEvidence,
   type VerificationStatus,
 } from "@/lib/inventory-types";
@@ -54,6 +56,13 @@ interface ProductRow {
   expires_on: Date | null;
   prescription_only: boolean;
   notes: string;
+  barcode: string;
+  nafdac_no: string;
+  manufacturer: string;
+  country_of_origin: string;
+  regulatory_status: string;
+  regulatory_summary: RegulatoryReport | null;
+  regulatory_checked_at: Date | null;
   updated_at: Date;
 }
 
@@ -109,6 +118,19 @@ export const toProduct = (r: ProductRow): Product => ({
   expiresOn: isoDate(r.expires_on),
   prescriptionOnly: r.prescription_only,
   notes: r.notes,
+  barcode: r.barcode ?? "",
+  nafdacNumber: r.nafdac_no ?? "",
+  manufacturer: r.manufacturer ?? "",
+  countryOfOrigin: r.country_of_origin ?? "",
+  regulatoryStatus: (["verified", "caution", "danger", "unverified", "none"].includes(
+    r.regulatory_status,
+  )
+    ? r.regulatory_status
+    : "none") as RegulatoryVerdict | "none",
+  regulatorySummary: r.regulatory_summary ?? null,
+  regulatoryCheckedAt: r.regulatory_checked_at
+    ? new Date(r.regulatory_checked_at).toISOString()
+    : null,
   updatedAt: new Date(r.updated_at).toISOString(),
 });
 
@@ -226,6 +248,24 @@ export function parseProductInput(body: Record<string, unknown>) {
       );
     expiresOn = body.expiresOn;
   }
+  const barcode = str(body.barcode, 64).replace(/\s+/g, "");
+  const nafdacNumber = str(body.nafdacNumber, 64)
+    .toUpperCase()
+    .replace(/\s+/g, "");
+  const regulatoryStatus = (
+    ["verified", "caution", "danger", "unverified", "none"].includes(
+      String(body.regulatoryStatus ?? "none"),
+    )
+      ? String(body.regulatoryStatus)
+      : "none"
+  ) as RegulatoryVerdict | "none";
+  const regulatorySummary =
+    body.regulatorySummary &&
+    typeof body.regulatorySummary === "object" &&
+    !Array.isArray(body.regulatorySummary)
+      ? (body.regulatorySummary as RegulatoryReport)
+      : null;
+
   return {
     name,
     genericName: str(body.genericName, 160),
@@ -240,6 +280,12 @@ export function parseProductInput(body: Record<string, unknown>) {
     expiresOn,
     prescriptionOnly: body.prescriptionOnly === true,
     notes: str(body.notes, 600),
+    barcode,
+    nafdacNumber,
+    manufacturer: str(body.manufacturer, 160),
+    countryOfOrigin: str(body.countryOfOrigin, 80),
+    regulatoryStatus,
+    regulatorySummary,
   };
 }
 
@@ -440,8 +486,11 @@ export async function createProduct(
 ) {
   const rows = await query<ProductRow>(
     `insert into products (facility_id, name, generic_name, category, form, strength, pack_size,
-       price_ngn, quantity, low_stock_at, batch, expires_on, prescription_only, notes)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning *`,
+       price_ngn, quantity, low_stock_at, batch, expires_on, prescription_only, notes,
+       barcode, nafdac_no, manufacturer, country_of_origin, regulatory_status, regulatory_summary,
+       regulatory_checked_at)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::jsonb,
+       case when $19 <> 'none' then now() else null end) returning *`,
     [
       facilityId,
       p.name,
@@ -457,6 +506,12 @@ export async function createProduct(
       p.expiresOn,
       p.prescriptionOnly,
       p.notes,
+      p.barcode,
+      p.nafdacNumber,
+      p.manufacturer,
+      p.countryOfOrigin,
+      p.regulatoryStatus,
+      p.regulatorySummary ? JSON.stringify(p.regulatorySummary) : null,
     ],
   );
   return toProduct(rows[0]);
@@ -472,7 +527,11 @@ export async function updateProduct(
   const rows = await query<ProductRow>(
     `update products set name=$3, generic_name=$4, category=$5, form=$6, strength=$7,
        pack_size=$8, price_ngn=$9, quantity=$10, low_stock_at=$11, batch=$12, expires_on=$13,
-       prescription_only=$14, notes=$15, updated_at=now()
+       prescription_only=$14, notes=$15,
+       barcode=$16, nafdac_no=$17, manufacturer=$18, country_of_origin=$19,
+       regulatory_status=$20, regulatory_summary=$21::jsonb,
+       regulatory_checked_at=case when $20 <> 'none' then now() else regulatory_checked_at end,
+       updated_at=now()
      where id=$1 and facility_id in (select id from facilities where owner_id=$2)
      returning *`,
     [
@@ -491,7 +550,41 @@ export async function updateProduct(
       p.expiresOn,
       p.prescriptionOnly,
       p.notes,
+      p.barcode,
+      p.nafdacNumber,
+      p.manufacturer,
+      p.countryOfOrigin,
+      p.regulatoryStatus,
+      p.regulatorySummary ? JSON.stringify(p.regulatorySummary) : null,
     ],
+  );
+  return rows[0] ? toProduct(rows[0]) : null;
+}
+
+/** Finds an existing item in a facility matching barcode, NAFDAC code, or exact name/strength. */
+export async function findExistingFacilityProduct(
+  facilityId: string,
+  opts: { barcode?: string; nafdacNumber?: string; name?: string },
+): Promise<Product | null> {
+  const barcode = opts.barcode?.trim() || null;
+  const nafdac = opts.nafdacNumber?.trim().toUpperCase() || null;
+  const name = opts.name?.trim() || null;
+  if (!barcode && !nafdac && !name) return null;
+  const rows = await query<ProductRow>(
+    `select * from products
+      where facility_id = $1
+        and (
+          ($2::text is not null and barcode = $2)
+          or ($3::text is not null and upper(nafdac_no) = $3)
+          or ($4::text is not null and lower(name) = lower($4))
+        )
+      order by
+        case when $2::text is not null and barcode = $2 then 0
+             when $3::text is not null and upper(nafdac_no) = $3 then 1
+             else 2 end,
+        updated_at desc
+      limit 1`,
+    [facilityId, barcode, nafdac, name],
   );
   return rows[0] ? toProduct(rows[0]) : null;
 }
@@ -551,7 +644,8 @@ export async function searchDirectory(opts: {
       where ($1::text[] = '{}' or exists (
               select 1 from unnest($1::text[]) pat
                where p.name ilike pat or p.generic_name ilike pat or p.category ilike pat
-                  or p.notes ilike pat))
+                  or p.notes ilike pat or p.barcode ilike pat or p.nafdac_no ilike pat
+                  or p.manufacturer ilike pat))
         and ($2::text is null or f.city ilike $2 or f.state ilike $2)
         and ($3::text is null or p.category = $3)
         and (not $4 or p.quantity > 0)
