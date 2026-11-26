@@ -16,17 +16,15 @@ import { ButtonLink } from "@/components/ui/Button";
 import { useSession } from "@/lib/store/session";
 import { cn } from "@/lib/utils";
 
-/** Routes that render their own chrome (the app sidebar or a full-screen flow). */
-const APP = [
-  "/chat",
-  "/inventory",
-  "/provider",
-  "/admin",
-  "/account",
-  "/signin",
-  "/signup",
-  "/setup",
-];
+/** Only public marketing & informational routes show the global marketing header. */
+const MARKETING_PATHS = new Set([
+  "/",
+  "/for-facilities",
+  "/doctors-note-reader",
+  "/about",
+  "/privacy",
+  "/terms",
+]);
 
 const AUDIENCES = [
   { href: "/", label: "For people", icon: UserRound },
@@ -76,8 +74,7 @@ export function AudienceSwitch({ className }: { className?: string }) {
 
 export function Header() {
   const pathname = usePathname();
-  if (APP.some((p) => pathname === p || pathname.startsWith(`${p}/`)))
-    return null;
+  if (!MARKETING_PATHS.has(pathname)) return null;
 
   return (
     <header className="material-bar sticky top-0 z-40 border-b border-line/60">

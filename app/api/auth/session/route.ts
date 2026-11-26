@@ -1,4 +1,5 @@
 import { NextResponse, connection } from "next/server";
+import { getAdminBasePath } from "@/lib/server/admin-route";
 import { getSessionContext } from "@/lib/server/auth";
 import { getProfile } from "@/lib/server/profile";
 import type { SessionPayload } from "@/lib/auth-types";
@@ -18,8 +19,9 @@ export async function GET() {
       );
       facilityCount = rows[0]?.n ?? 0;
     }
+    const adminPath = user?.isAdmin ? getAdminBasePath() : null;
     return NextResponse.json<SessionPayload>(
-      { user, profile, facilityCount },
+      { user, profile, facilityCount, ...(adminPath ? { adminPath } : {}) },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (err) {

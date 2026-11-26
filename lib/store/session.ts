@@ -22,12 +22,17 @@ interface ApiResult {
 interface SessionState {
   status: Status;
   user: SessionUser | null;
+  /** Ephemeral hidden admin portal path, kept strictly in memory (never localStorage). */
+  adminPath: string | null;
   /** Owned facilities for provider accounts; null when unknown or personal. */
   facilityCount: number | null;
   /** Server copy in memory when signed in; device-local copy for guests only. */
   profile: BiometricProfile;
   hydrate: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<ApiResult>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<ApiResult & { redirectTo?: string }>;
   signUp: (input: {
     name: string;
     email: string;
@@ -66,6 +71,7 @@ export const useSession = create<SessionState>()(
     (set, get) => ({
       status: "idle",
       user: null,
+      adminPath: null,
       facilityCount: null,
       profile: EMPTY_PROFILE,
 
@@ -78,6 +84,7 @@ export const useSession = create<SessionState>()(
           set({
             status: res.ok ? "ready" : "error",
             user: data.user,
+            adminPath: data.user?.isAdmin ? (data.adminPath ?? null) : null,
             facilityCount: data.facilityCount ?? null,
             profile: data.user
               ? { ...EMPTY_PROFILE, ...(data.profile ?? {}) }
@@ -93,13 +100,22 @@ export const useSession = create<SessionState>()(
       signIn: async (email, password) => {
         const { res, data } = await post("/api/auth/signin", { email, password });
         if (!res?.ok) return { ok: false, error: data.error, field: data.field };
+        const adminPath =
+          data.user?.isAdmin && typeof data.adminPath === "string"
+            ? data.adminPath
+            : null;
+        const redirectTo =
+          data.user?.isAdmin && typeof data.redirectTo === "string"
+            ? data.redirectTo
+            : undefined;
         set({
           user: data.user,
+          adminPath,
           profile: { ...EMPTY_PROFILE, ...(data.profile ?? {}) },
           status: "ready",
         });
         void get().hydrate();
-        return { ok: true };
+        return { ok: true, redirectTo };
       },
 
       signUp: async (input) => {
@@ -107,6 +123,7 @@ export const useSession = create<SessionState>()(
         if (!res?.ok) return { ok: false, error: data.error, field: data.field };
         set({
           user: data.user,
+          adminPath: null,
           status: "ready",
           facilityCount: data.user.role === "provider" ? 0 : null,
         });
@@ -116,7 +133,13 @@ export const useSession = create<SessionState>()(
       signOut: async () => {
         await post("/api/auth/signout");
         useChat.getState().reset();
-        set({ user: null, profile: EMPTY_PROFILE, status: "ready", facilityCount: null });
+        set({
+          user: null,
+          adminPath: null,
+          profile: EMPTY_PROFILE,
+          status: "ready",
+          facilityCount: null,
+        });
         try {
           localStorage.removeItem("zelthia-session");
         } catch {
@@ -149,7 +172,12 @@ export const useSession = create<SessionState>()(
         const { res, data } = await post("/api/account", undefined, "DELETE");
         if (!res?.ok) return { ok: false, error: data.error };
         useChat.getState().reset();
-        set({ user: null, profile: EMPTY_PROFILE, facilityCount: null });
+        set({
+          user: null,
+          adminPath: null,
+          profile: EMPTY_PROFILE,
+          facilityCount: null,
+        });
         try {
           localStorage.removeItem("zelthia-session");
         } catch {

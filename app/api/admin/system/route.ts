@@ -1,11 +1,11 @@
 import { connection } from "next/server";
-import { handle, json, requireAdmin } from "@/lib/server/api";
+import { handle, json, requireAdminRead } from "@/lib/server/api";
 import { getAdminSystemHealth } from "@/lib/server/admin";
 
 export async function GET() {
   await connection();
   try {
-    await requireAdmin();
+    await requireAdminRead();
     const health = await getAdminSystemHealth();
     return json(health);
   } catch (err) {

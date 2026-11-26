@@ -46,6 +46,7 @@ const readCollapsed = () => {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const user = useSession((s) => s.user);
+  const adminPath = useSession((s) => s.adminPath);
   const facilityCount = useSession((s) => s.facilityCount);
   const sessionStatus = useSession((s) => s.status);
   const conversations = useChat((s) => s.conversations);
@@ -90,8 +91,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ]
         : [{ href: "/provider", label: "Manage stock", icon: Boxes }]
       : []),
-    ...(user?.isAdmin
-      ? [{ href: "/admin", label: "Admin review", icon: ShieldCheck }]
+    ...(user?.isAdmin && adminPath
+      ? [{ href: adminPath, label: "Console", icon: ShieldCheck }]
       : []),
   ];
 

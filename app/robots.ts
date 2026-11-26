@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/utils";
 
-const PRIVATE = ["/account", "/setup", "/provider", "/admin", "/api/"];
+const PRIVATE = ["/account", "/setup", "/provider", "/api/"];
 /** The read-only directory search is public and safe for agents to call. */
 const OPEN = [
   "/",

@@ -67,6 +67,7 @@ export function Sidebar({
   onCloseMobile: () => void;
 }) {
   const user = useSession((s) => s.user);
+  const adminPath = useSession((s) => s.adminPath);
   const facilityCount = useSession((s) => s.facilityCount);
   const {
     conversations,
@@ -160,13 +161,13 @@ export function Sidebar({
               Manage stock
             </Link>
           ))}
-        {user?.isAdmin && (
+        {user?.isAdmin && adminPath && (
           <Link
-            href="/admin"
+            href={adminPath}
             className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink hover:bg-mist"
           >
             <ShieldCheck className="h-[18px] w-[18px] text-muted" aria-hidden />
-            Admin review
+            Console
           </Link>
         )}
       </nav>

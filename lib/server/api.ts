@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { SITE_URL } from "@/lib/utils";
 import { getSessionUser } from "./auth";
 import { ValidationError } from "./inventory";
+import { rateLimit } from "./rate-limit";
 
 export const json = (data: unknown, status = 200) =>
   NextResponse.json(data, {
@@ -28,6 +29,18 @@ export async function requireAdmin() {
   const user = await getSessionUser();
   if (!user) throw new HttpError("Sign in to access admin tools.", 401);
   if (!user.isAdmin) throw new HttpError("Administrator access required.", 403);
+  return user;
+}
+
+export async function requireAdminRead() {
+  const user = await requireAdmin();
+  const limit = await rateLimit(`admin:read:${user.id}`, 180, 60_000);
+  if (!limit.ok) {
+    throw new HttpError(
+      `Too many console requests. Try again in ${limit.retryAfter} seconds.`,
+      429,
+    );
+  }
   return user;
 }
 

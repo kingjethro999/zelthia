@@ -6,6 +6,7 @@ import {
   json,
   readJson,
   requireAdmin,
+  requireAdminRead,
 } from "@/lib/server/api";
 import {
   adminDeleteFacility,
@@ -19,7 +20,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, { params }: Ctx) {
   await connection();
   try {
-    await requireAdmin();
+    await requireAdminRead();
     const { id } = await params;
     if (!isUuid(id)) throw new HttpError("Invalid facility ID.", 400);
     const detail = await getFacilityDetailForAdmin(id);

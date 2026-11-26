@@ -1,11 +1,11 @@
 import { connection } from "next/server";
-import { handle, json, requireAdmin } from "@/lib/server/api";
+import { handle, json, requireAdminRead } from "@/lib/server/api";
 import { listFacilitiesForAdmin } from "@/lib/server/admin";
 
 export async function GET(req: Request) {
   await connection();
   try {
-    await requireAdmin();
+    await requireAdminRead();
     const { searchParams } = new URL(req.url);
     const data = await listFacilitiesForAdmin({
       q: searchParams.get("q") ?? undefined,

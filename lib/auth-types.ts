@@ -17,6 +17,8 @@ export interface SessionPayload {
   profile: BiometricProfile | null;
   /** Facilities the user owns; null for personal accounts. */
   facilityCount: number | null;
+  /** Ephemeral admin portal path; present only for authenticated admins. */
+  adminPath?: string | null;
 }
 
 export const EMPTY_PROFILE: BiometricProfile = {

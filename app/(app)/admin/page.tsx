@@ -1,16 +1,6 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { AdminVerifications } from "@/components/admin/AdminVerifications";
+import { notFound } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Admin verification queue",
-  robots: { index: false, follow: false },
-};
-
-export default function AdminPage() {
-  return (
-    <Suspense>
-      <AdminVerifications />
-    </Suspense>
-  );
+/** Legacy path disabled so the admin console URL is never exposed or guessable. */
+export default function LegacyAdminPage() {
+  notFound();
 }

@@ -46,15 +46,25 @@ export async function POST(req: Request, { params }: Ctx) {
     }
 
     const note = typeof body.note === "string" ? body.note.trim().slice(0, 300) : "";
-    const url = typeof body.url === "string" ? body.url.trim().slice(0, 300) : "";
+    const rawUrl = typeof body.url === "string" ? body.url.trim().slice(0, 300) : "";
     if (action === "reject" && note.length < 4) {
       throw new HttpError(
         "Provide a brief reason when declining verification.",
         400,
       );
     }
-    if (url && !/^https:\/\//i.test(url)) {
-      throw new HttpError("Verification proof URL must start with https://.", 400);
+    let url = "";
+    if (rawUrl) {
+      let parsed: URL;
+      try {
+        parsed = new URL(rawUrl);
+      } catch {
+        throw new HttpError("Enter a valid https:// proof URL.", 400);
+      }
+      if (parsed.protocol !== "https:") {
+        throw new HttpError("Verification proof URL must start with https://.", 400);
+      }
+      url = parsed.toString();
     }
 
     const updated = await adminDecideVerification(id, admin.id, {

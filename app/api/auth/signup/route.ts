@@ -97,7 +97,10 @@ export async function POST(req: Request) {
       termsVersion: CURRENT_TERMS_VERSION,
     });
     await startSession(row.id, dek);
-    return NextResponse.json({ user: toSessionUser(row) }, { status: 201 });
+    return NextResponse.json(
+      { user: toSessionUser(row) },
+      { status: 201, headers: { "Cache-Control": "private, no-store" } },
+    );
   } catch (err) {
     console.error("POST /api/auth/signup failed", err);
     return NextResponse.json(

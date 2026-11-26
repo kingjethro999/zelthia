@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
+import { getAdminBasePath } from "@/lib/server/admin-route";
 import {
   findUserByEmail,
   migrateUserPlaintextData,
@@ -87,7 +88,16 @@ export async function POST(req: Request) {
 
     await startSession(row.id, dek);
     const profile = await getProfile(row.id, dek);
-    return NextResponse.json({ user: toSessionUser(row), profile });
+    const sessionUser = toSessionUser(row);
+    const adminPath = sessionUser.isAdmin ? getAdminBasePath() : null;
+    return NextResponse.json(
+      {
+        user: sessionUser,
+        profile,
+        ...(adminPath ? { redirectTo: adminPath, adminPath } : {}),
+      },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
   } catch (err) {
     console.error("POST /api/auth/signin failed", err);
     return NextResponse.json(

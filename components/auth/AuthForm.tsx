@@ -72,6 +72,16 @@ export function AuthForm({
       });
       return;
     }
+    const adminDest =
+      mode === "signin" &&
+      "redirectTo" in result &&
+      typeof result.redirectTo === "string"
+        ? safeNext(result.redirectTo)
+        : null;
+    if (adminDest) {
+      router.replace(adminDest);
+      return;
+    }
     const user = useSession.getState().user;
     if (user && !user.onboarded) {
       const dest =
@@ -223,8 +233,9 @@ export function AuthForm({
                 >
                   Privacy policy
                 </Link>
-                , and consent to Zelthia processing my encrypted health profile
-                only to answer my requests.
+                , and give explicit consent under the Nigeria Data Protection
+                Act (NDPA) 2023 for Zelthia to process my encrypted health
+                profile solely to answer my requests.
               </span>
             </label>
             {fieldError("acceptedTerms") && (
