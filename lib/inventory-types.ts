@@ -138,7 +138,7 @@ export interface WebPlace {
   title: string;
   url: string;
   description: string;
-  source: "firecrawl" | "tavily" | "jina";
+  source: "firecrawl" | "tavily" | "you" | "jina" | "zenrows" | "tinyfish" | "registry";
 }
 
 /** A photo found by web search, linked to the page it came from. */
