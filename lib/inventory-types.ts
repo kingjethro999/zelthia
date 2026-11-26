@@ -98,10 +98,7 @@ export interface AdminVerificationItem {
 }
 
 export type RegulatoryVerdict =
-  | "verified"
-  | "caution"
-  | "danger"
-  | "unverified";
+  "verified" | "caution" | "danger" | "unverified";
 
 export interface RegistrySourceFinding {
   registry:
@@ -216,7 +213,14 @@ export interface WebPlace {
   title: string;
   url: string;
   description: string;
-  source: "firecrawl" | "tavily" | "you" | "jina" | "zenrows" | "tinyfish" | "registry";
+  source:
+    | "firecrawl"
+    | "tavily"
+    | "you"
+    | "jina"
+    | "zenrows"
+    | "tinyfish"
+    | "registry";
 }
 
 /** A photo found by web search, linked to the page it came from. */

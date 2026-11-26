@@ -755,7 +755,9 @@ function ScanToStockInner({
             {cameraError ? (
               <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-white/85">
                 <Camera className="h-8 w-8 text-brand" aria-hidden />
-                <p className="max-w-sm text-sm leading-relaxed">{cameraError}</p>
+                <p className="max-w-sm text-sm leading-relaxed">
+                  {cameraError}
+                </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <Button
                     size="sm"
@@ -808,7 +810,10 @@ function ScanToStockInner({
                       </>
                     ) : (
                       <>
-                        <ScanLine className="h-3.5 w-3.5 text-brand" aria-hidden />
+                        <ScanLine
+                          className="h-3.5 w-3.5 text-brand"
+                          aria-hidden
+                        />
                         Align barcode or NAFDAC panel
                       </>
                     )}
@@ -820,7 +825,9 @@ function ScanToStockInner({
                         type="button"
                         onClick={toggleTorch}
                         className="press flex h-8 w-8 items-center justify-center rounded-xl bg-surface/85 text-ink"
-                        aria-label={torchOn ? "Turn off flash" : "Turn on flash"}
+                        aria-label={
+                          torchOn ? "Turn off flash" : "Turn on flash"
+                        }
                       >
                         {torchOn ? (
                           <Zap className="h-4 w-4 text-caution" aria-hidden />
@@ -888,8 +895,8 @@ function ScanToStockInner({
             Upload or take a photo of the carton
           </h3>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted">
-            Capture the front label, NAFDAC registration panel, or barcode strip.
-            Large phone photos are compressed securely in your browser.
+            Capture the front label, NAFDAC registration panel, or barcode
+            strip. Large phone photos are compressed securely in your browser.
           </p>
           <Button
             className="mt-5"
@@ -942,9 +949,9 @@ function ScanToStockInner({
                     Hold carton — do not place on shelf
                   </p>
                   <p className="mt-1 text-sm text-white/90">
-                    Zelthia detected a high-risk safety mismatch, recall alert, or
-                    expired batch. Return the carton to your supplier or inspect
-                    the printed code carefully before continuing.
+                    Zelthia detected a high-risk safety mismatch, recall alert,
+                    or expired batch. Return the carton to your supplier or
+                    inspect the printed code carefully before continuing.
                   </p>
                   {!isVerifyOnly && !dangerAck && (
                     <button
@@ -1035,10 +1042,7 @@ function ScanToStockInner({
                   value={draft.priceNgn ?? ""}
                   onChange={(e) => {
                     const raw = e.target.value.replace(/[^\d.]/g, "");
-                    setDraftField(
-                      "priceNgn",
-                      raw === "" ? null : Number(raw),
-                    );
+                    setDraftField("priceNgn", raw === "" ? null : Number(raw));
                   }}
                   placeholder="e.g. 2500"
                 />

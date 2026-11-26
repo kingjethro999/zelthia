@@ -122,9 +122,13 @@ export const toProduct = (r: ProductRow): Product => ({
   nafdacNumber: r.nafdac_no ?? "",
   manufacturer: r.manufacturer ?? "",
   countryOfOrigin: r.country_of_origin ?? "",
-  regulatoryStatus: (["verified", "caution", "danger", "unverified", "none"].includes(
-    r.regulatory_status,
-  )
+  regulatoryStatus: ([
+    "verified",
+    "caution",
+    "danger",
+    "unverified",
+    "none",
+  ].includes(r.regulatory_status)
     ? r.regulatory_status
     : "none") as RegulatoryVerdict | "none",
   regulatorySummary: r.regulatory_summary ?? null,

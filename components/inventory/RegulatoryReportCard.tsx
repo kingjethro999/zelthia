@@ -151,9 +151,7 @@ export function RegulatoryReportCard({
                 Cached {report.staleFromDate}
               </span>
             ) : report.cached && checkedDate ? (
-              <span className="text-xs text-muted">
-                Checked {checkedDate}
-              </span>
+              <span className="text-xs text-muted">Checked {checkedDate}</span>
             ) : null}
           </div>
 
@@ -197,7 +195,10 @@ export function RegulatoryReportCard({
               {flag.severity === "info" ? (
                 <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               ) : (
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <AlertTriangle
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                  aria-hidden
+                />
               )}
               <div>
                 <p className="font-semibold">{flag.title}</p>
@@ -234,9 +235,7 @@ export function RegulatoryReportCard({
                   </span>
                 </div>
                 <p className="mt-1 font-medium text-ink">{f.title}</p>
-                {f.detail && (
-                  <p className="mt-0.5 text-muted">{f.detail}</p>
-                )}
+                {f.detail && <p className="mt-0.5 text-muted">{f.detail}</p>}
                 <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted">
                   <span>{f.sourceAttribution}</span>
                   {href && (

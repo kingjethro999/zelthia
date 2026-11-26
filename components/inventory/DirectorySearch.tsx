@@ -35,10 +35,7 @@ import {
   type WebPlace,
 } from "@/lib/inventory-types";
 import { cn } from "@/lib/utils";
-import {
-  ScanToStockSheet,
-  type PublicVerifyResult,
-} from "./ScanToStockSheet";
+import { ScanToStockSheet, type PublicVerifyResult } from "./ScanToStockSheet";
 
 const SUGGESTIONS = [
   { icon: Pill, text: "Paracetamol" },
@@ -144,12 +141,14 @@ export function DirectorySearch() {
             searching ? "text-2xl" : "text-3xl sm:text-4xl",
           )}
         >
-          {searching ? "Find & verify health products" : "What do you need today?"}
+          {searching
+            ? "Find & verify health products"
+            : "What do you need today?"}
         </h1>
         {!searching && (
           <p className="mx-auto mt-3 max-w-xl text-center text-muted">
-            Search live pharmacy stock, scan a barcode or carton photo, and check
-            NAFDAC, US FDA & global public safety registries.
+            Search live pharmacy stock, scan a barcode or carton photo, and
+            check NAFDAC, US FDA & global public safety registries.
           </p>
         )}
 

@@ -1,8 +1,5 @@
 import { readWithVision } from "@/lib/ai/providers";
-import {
-  extractRegulatoryCodes,
-  parseScannedCode,
-} from "@/lib/barcode";
+import { extractRegulatoryCodes, parseScannedCode } from "@/lib/barcode";
 import { MAX_ATTACHMENT_BYTES } from "@/lib/chat-types";
 import {
   PRODUCT_CATEGORIES,
@@ -92,10 +89,12 @@ function normalizeCategory(raw: unknown): string {
   if (/skin|cream|cosmetic|lotion|soap/.test(lower))
     return "Skin care and cosmetics";
   if (/pain|muscle|rub|balm/.test(lower)) return "Pain relief and muscle care";
-  if (/vitamin|supplement|herbal/.test(lower)) return "Vitamins and supplements";
+  if (/vitamin|supplement|herbal/.test(lower))
+    return "Vitamins and supplements";
   if (/device|monitor|thermometer|nebulizer/.test(lower))
     return "Medical devices";
-  if (/test|kit|diagnostic|strip/.test(lower)) return "Test kits and diagnostics";
+  if (/test|kit|diagnostic|strip/.test(lower))
+    return "Test kits and diagnostics";
   return "Medicine";
 }
 
@@ -207,13 +206,20 @@ export async function POST(req: Request) {
           })
             .then((r) => parseVisionJson(r.text))
             .catch((err) => {
-              console.warn("Scan-to-stock vision failed", (err as Error).message);
+              console.warn(
+                "Scan-to-stock vision failed",
+                (err as Error).message,
+              );
               return {};
             })
         : Promise.resolve({});
 
     const barcodeForMeta =
-      gs1?.ean13 ?? gs1?.upcA ?? gs1?.gtin ?? inlineCodes.barcode ?? rawBarcodeInput;
+      gs1?.ean13 ??
+      gs1?.upcA ??
+      gs1?.gtin ??
+      inlineCodes.barcode ??
+      rawBarcodeInput;
     const barcodeMetaPromise = barcodeForMeta
       ? lookupBarcodeMetadata(barcodeForMeta).catch(() => null)
       : Promise.resolve(null);
@@ -253,8 +259,7 @@ export async function POST(req: Request) {
     const packSize =
       cleanStr(vision.packSize, 60) || cleanStr(barcodeMeta?.packSize, 60);
     const batch = gs1?.gs1Batch || cleanStr(vision.batch, 60);
-    const expiresOn =
-      gs1?.gs1Expiry || normalizeExpiry(vision.expiresOn);
+    const expiresOn = gs1?.gs1Expiry || normalizeExpiry(vision.expiresOn);
     const barcode =
       gs1?.ean13 ||
       gs1?.gtin ||

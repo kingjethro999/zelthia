@@ -91,10 +91,7 @@ export function parseScannedCode(rawInput: string): ScannedCodeInfo {
     if (m17) out.gs1Expiry = gs1DateToIso(m17[1]);
     if (m10) out.gs1Batch = m10[1].trim();
     if (m21) out.gs1Serial = m21[1].trim();
-  } else if (
-    /^01\d{14}/.test(strippedSym) ||
-    strippedSym.includes("\x1d")
-  ) {
+  } else if (/^01\d{14}/.test(strippedSym) || strippedSym.includes("\x1d")) {
     // 2. Unparenthesized GS1 FNC1 stream (common from hardware DataMatrix scanners)
     let cursor = 0;
     while (cursor < strippedSym.length) {
@@ -103,18 +100,28 @@ export function parseScannedCode(rawInput: string): ScannedCodeInfo {
         continue;
       }
       const ai2 = strippedSym.slice(cursor, cursor + 2);
-      if (ai2 === "01" && /^\d{14}/.test(strippedSym.slice(cursor + 2, cursor + 16))) {
+      if (
+        ai2 === "01" &&
+        /^\d{14}/.test(strippedSym.slice(cursor + 2, cursor + 16))
+      ) {
         const g = strippedSym.slice(cursor + 2, cursor + 16);
         if (isValidGtin(g)) out.gtin = g;
         cursor += 16;
-      } else if (ai2 === "17" && /^\d{6}/.test(strippedSym.slice(cursor + 2, cursor + 8))) {
+      } else if (
+        ai2 === "17" &&
+        /^\d{6}/.test(strippedSym.slice(cursor + 2, cursor + 8))
+      ) {
         out.gs1Expiry = gs1DateToIso(strippedSym.slice(cursor + 2, cursor + 8));
         cursor += 8;
-      } else if (ai2 === "11" && /^\d{6}/.test(strippedSym.slice(cursor + 2, cursor + 8))) {
+      } else if (
+        ai2 === "11" &&
+        /^\d{6}/.test(strippedSym.slice(cursor + 2, cursor + 8))
+      ) {
         cursor += 8;
       } else if (ai2 === "10" || ai2 === "21") {
         const nextSep = strippedSym.indexOf("\x1d", cursor + 2);
-        const end = nextSep === -1 ? Math.min(strippedSym.length, cursor + 22) : nextSep;
+        const end =
+          nextSep === -1 ? Math.min(strippedSym.length, cursor + 22) : nextSep;
         const val = strippedSym.slice(cursor + 2, end).trim();
         if (ai2 === "10" && val) out.gs1Batch = val;
         if (ai2 === "21" && val) out.gs1Serial = val;

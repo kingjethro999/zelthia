@@ -8,7 +8,10 @@ const lastHostHit = new Map<string, number>();
 
 function isPrivateIpv4(ip: string): boolean {
   const parts = ip.split(".").map((p) => Number.parseInt(p, 10));
-  if (parts.length !== 4 || parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) {
+  if (
+    parts.length !== 4 ||
+    parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)
+  ) {
     return true;
   }
   const [a, b] = parts;
@@ -22,7 +25,10 @@ function isPrivateIpv4(ip: string): boolean {
 }
 
 function isPrivateIp(host: string): boolean {
-  const bare = host.replace(/^\[|\]$/g, "").split("%")[0].toLowerCase();
+  const bare = host
+    .replace(/^\[|\]$/g, "")
+    .split("%")[0]
+    .toLowerCase();
   const kind = isIP(bare);
   if (kind === 4) return isPrivateIpv4(bare);
   if (kind === 6) {

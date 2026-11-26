@@ -221,7 +221,8 @@ function ProductDialogInner({
                 Have the carton nearby?
               </p>
               <p className="text-xs text-muted">
-                Scan barcode or snap pack to autofill fields & verify NAFDAC/FDA.
+                Scan barcode or snap pack to autofill fields & verify
+                NAFDAC/FDA.
               </p>
             </div>
             <Button
@@ -250,7 +251,10 @@ function ProductDialogInner({
             label="NAFDAC Reg. No. (optional)"
             value={p.nafdacNumber}
             onChange={(e) =>
-              set("nafdacNumber", e.target.value.toUpperCase().replace(/\s+/g, ""))
+              set(
+                "nafdacNumber",
+                e.target.value.toUpperCase().replace(/\s+/g, ""),
+              )
             }
             placeholder="e.g. A4-9674"
           />
@@ -280,7 +284,8 @@ function ProductDialogInner({
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-mist/45 px-4 py-3">
           <p className="text-xs text-muted">
-            Check public registries (NAFDAC, FDA Orange Book, Health Canada, MHRA, NMPA) before saving.
+            Check public registries (NAFDAC, FDA Orange Book, Health Canada,
+            MHRA, NMPA) before saving.
           </p>
           <Button
             type="button"

@@ -44,17 +44,6 @@ next-env.d.ts
 # Coming-soon research: regulator registers, reports, strategy notes
 /data/comingsoon-*.md
 /data/indexsites.md
-/data/EOBZIP_*/
-/data/Orange Book Data Files*
-/data/MHRA_*.pdf
-/data/Medicines and Healthcare products Regulatory Agency*
-/data/Safety Public Assessment Reports*
-/data/Pre-release access list*
-/data/Data_Protection_Act_*.pdf
-/data/ukpga_*.pdf
-/data/Adult social care finance report*
-/data/adult-social-care-finance-report-*
-/data/skills/
 
 # Local agent tooling
 /.agents/

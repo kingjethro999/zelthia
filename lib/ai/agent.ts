@@ -372,7 +372,10 @@ export async function runTurn({
   }
   if (
     !allChecks.length &&
-    (inlineCodes.nafdac || inlineCodes.barcode || inlineCodes.guoyaoZhunzi || inlineCodes.ndc)
+    (inlineCodes.nafdac ||
+      inlineCodes.barcode ||
+      inlineCodes.guoyaoZhunzi ||
+      inlineCodes.ndc)
   ) {
     allChecks.push({
       name:

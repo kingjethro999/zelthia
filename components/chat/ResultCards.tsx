@@ -22,11 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 
 /** Public-registry verification cards attached to a chat answer. */
-export function RegulatoryChecks({
-  reports,
-}: {
-  reports: RegulatoryReport[];
-}) {
+export function RegulatoryChecks({ reports }: { reports: RegulatoryReport[] }) {
   if (!reports.length) return null;
   return (
     <div className="mt-4 space-y-3">

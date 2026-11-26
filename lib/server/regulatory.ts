@@ -172,7 +172,11 @@ export async function lookupBarcodeMetadata(
   rawBarcode: string,
 ): Promise<BarcodeMetadata | null> {
   const scanned = parseScannedCode(rawBarcode);
-  const gtin = scanned.ean13 ?? scanned.upcA ?? scanned.gtin ?? rawBarcode.replace(/\D/g, "");
+  const gtin =
+    scanned.ean13 ??
+    scanned.upcA ??
+    scanned.gtin ??
+    rawBarcode.replace(/\D/g, "");
   if (!gtin || gtin.length < 8) return null;
 
   const meta: BarcodeMetadata = {
@@ -202,7 +206,8 @@ export async function lookupBarcodeMetadata(
             );
             const r = data?.results?.[0];
             if (r) {
-              meta.name = meta.name || String(r.brand_name ?? r.generic_name ?? "");
+              meta.name =
+                meta.name || String(r.brand_name ?? r.generic_name ?? "");
               meta.genericName =
                 meta.genericName || String(r.generic_name ?? "");
               meta.manufacturer =
@@ -238,8 +243,7 @@ export async function lookupBarcodeMetadata(
               String(prod.product_name ?? prod.generic_name ?? "").trim();
             meta.manufacturer =
               meta.manufacturer || String(prod.brands ?? "").trim();
-            meta.packSize =
-              meta.packSize || String(prod.quantity ?? "").trim();
+            meta.packSize = meta.packSize || String(prod.quantity ?? "").trim();
             meta.countryOfOrigin =
               meta.countryOfOrigin || String(prod.countries ?? "").trim();
             meta.category =
@@ -300,7 +304,8 @@ async function checkNafdac(
       flags.push({
         code: "CATEGORY_MISMATCH",
         severity: "danger",
-        title: "Counterfeit alert: Food/Beverage NAFDAC prefix on medical product",
+        title:
+          "Counterfeit alert: Food/Beverage NAFDAC prefix on medical product",
         detail: `Code ${cls.normalized} uses a Food/Beverage prefix (e.g. yoghurt, drinks, packaged foods), not a registered pharmaceutical or medical device prefix. Reject this batch until verified directly with NAFDAC.`,
       });
     } else if (cls.domain === "cosmetic" && category === "Medicine") {
@@ -339,16 +344,16 @@ async function checkNafdac(
       searchWebGeneral(q, {
         limit: 6,
         country: "NG",
-        includeDomains: [
-          "greenbook.nafdac.gov.ng",
-          "nafdac.gov.ng",
-        ],
+        includeDomains: ["greenbook.nafdac.gov.ng", "nafdac.gov.ng"],
       }),
     ),
   );
 
-  const combinedHits: Array<{ title: string; url: string; description: string }> =
-    [];
+  const combinedHits: Array<{
+    title: string;
+    url: string;
+    description: string;
+  }> = [];
   const seen = new Set<string>();
   for (const r of searchRes) {
     if (r.status === "fulfilled") {
@@ -374,7 +379,8 @@ async function checkNafdac(
       if (scraped?.text) {
         combinedHits[0] = {
           ...combinedHits[0],
-          description: `${combinedHits[0].description} ${scraped.text.slice(0, 500)}`.trim(),
+          description:
+            `${combinedHits[0].description} ${scraped.text.slice(0, 500)}`.trim(),
         };
       }
     } catch {
@@ -402,7 +408,11 @@ async function checkNafdac(
       lower.replace(/[\s/]/g, "-").includes(cls.normalized.toLowerCase());
     const matchedClaimTokens = claimTokens.filter((t) => lower.includes(t));
 
-    if (isAlert && RECALL_WORDS_RE.test(lower) && (codeInText || matchedClaimTokens.length > 0)) {
+    if (
+      isAlert &&
+      RECALL_WORDS_RE.test(lower) &&
+      (codeInText || matchedClaimTokens.length > 0)
+    ) {
       findings.push({
         registry: "NAFDAC Public Alerts",
         status: "recalled",
@@ -410,7 +420,8 @@ async function checkNafdac(
         detail: hit.description.slice(0, 280),
         code: cls?.normalized,
         url: safeUrl(hit.url),
-        sourceAttribution: "Source: NAFDAC Public Safety Alerts (nafdac.gov.ng)",
+        sourceAttribution:
+          "Source: NAFDAC Public Safety Alerts (nafdac.gov.ng)",
       });
       flags.push({
         code: "ACTIVE_RECALL",
@@ -585,7 +596,9 @@ async function checkUsFda(
               registry: "US FDA openFDA",
               status: "recalled",
               title: `Ongoing FDA Recall: ${String(hit.recall_number ?? "")}`,
-              detail: String(hit.reason_for_recall ?? hit.product_description ?? "").slice(0, 260),
+              detail: String(
+                hit.reason_for_recall ?? hit.product_description ?? "",
+              ).slice(0, 260),
               code: String(hit.recall_number ?? ""),
               url: "https://open.fda.gov/apis/drug/enforcement/",
               sourceAttribution: "Source: US FDA Drug Enforcement & Recalls",
@@ -596,7 +609,11 @@ async function checkUsFda(
               title: "Ongoing US FDA recall alert",
               detail: `${String(hit.classification ?? "Recall")}: ${String(hit.reason_for_recall ?? "").slice(0, 200)}`,
             });
-          } else if (isCosmetic && hit && Number(data?.meta?.results?.total ?? 0) > 0) {
+          } else if (
+            isCosmetic &&
+            hit &&
+            Number(data?.meta?.results?.total ?? 0) > 0
+          ) {
             findings.push({
               registry: "US FDA openFDA",
               status: "warning",
@@ -921,9 +938,7 @@ export async function verifyHealthProduct(
     );
   }
 
-  const regFindings = findings.filter(
-    (f) => f.registry !== "Barcode Registry",
-  );
+  const regFindings = findings.filter((f) => f.registry !== "Barcode Registry");
   const confirmedFindings = regFindings.filter(
     (f) => f.status === "matched" || f.status === "discontinued",
   );
@@ -998,7 +1013,9 @@ export async function verifyHealthProduct(
       : confirmedFindings
           .slice(0, 3)
           .map((f) => `${f.registry}: ${f.title}`)
-          .join(" · ") || flags[0]?.detail || "";
+          .join(" · ") ||
+        flags[0]?.detail ||
+        "";
 
   let report: RegulatoryReport = {
     query: enrichedInput.name,

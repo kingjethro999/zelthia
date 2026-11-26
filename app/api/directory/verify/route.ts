@@ -63,10 +63,12 @@ async function runVerification(opts: {
 }) {
   const cleanName = opts.query.trim().slice(0, 120);
   const terms = cleanName
-    ? [...new Set([cleanName, ...cleanName.split(/\s+/).filter((w) => w.length >= 3)])].slice(
-        0,
-        5,
-      )
+    ? [
+        ...new Set([
+          cleanName,
+          ...cleanName.split(/\s+/).filter((w) => w.length >= 3),
+        ]),
+      ].slice(0, 5)
     : [];
 
   const [report, matches, placesRes, wideWeb, images] = await Promise.all([
@@ -91,11 +93,14 @@ async function runVerification(opts: {
         })
       : Promise.resolve([]),
     searchPlaces(cleanName, opts.city ?? null, 6),
-    searchWebGeneral(`${cleanName} ${opts.nafdacCode ?? ""} authentic OR NAFDAC OR FDA`, {
-      limit: 6,
-      country: "NG",
-      filterLowValue: true,
-    }),
+    searchWebGeneral(
+      `${cleanName} ${opts.nafdacCode ?? ""} authentic OR NAFDAC OR FDA`,
+      {
+        limit: 6,
+        country: "NG",
+        filterLowValue: true,
+      },
+    ),
     searchImages(cleanName, opts.city ?? null, 6),
   ]);
 
@@ -119,7 +124,11 @@ async function runVerification(opts: {
 export async function GET(req: Request) {
   await connection();
   try {
-    const limit = await rateLimit(`dir-verify:${clientIp(req)}`, 30, 10 * 60_000);
+    const limit = await rateLimit(
+      `dir-verify:${clientIp(req)}`,
+      30,
+      10 * 60_000,
+    );
     if (!limit.ok) {
       throw new HttpError(
         `Too many verification requests. Try again in ${limit.retryAfter} seconds.`,
@@ -187,12 +196,14 @@ export async function POST(req: Request) {
     }
 
     const body = await readJson(req);
-    const q = typeof body.query === "string" ? body.query.trim().slice(0, 120) : "";
+    const q =
+      typeof body.query === "string" ? body.query.trim().slice(0, 120) : "";
     const barcodeInput =
       typeof body.barcode === "string" ? body.barcode.trim().slice(0, 120) : "";
     const codeInput =
       typeof body.code === "string" ? body.code.trim().slice(0, 80) : "";
-    const city = typeof body.city === "string" ? body.city.trim().slice(0, 80) : null;
+    const city =
+      typeof body.city === "string" ? body.city.trim().slice(0, 80) : null;
     const imageBase64 =
       typeof body.imageBase64 === "string" ? body.imageBase64.trim() : "";
     const imageMime =
@@ -234,11 +245,19 @@ export async function POST(req: Request) {
 
     const gs1 = barcodeInput ? parseScannedCode(barcodeInput) : null;
     const extracted = extractRegulatoryCodes(
-      [q, codeInput, barcodeInput, vision.nafdacNumber, vision.foreignCodes, vision.barcode]
+      [
+        q,
+        codeInput,
+        barcodeInput,
+        vision.nafdacNumber,
+        vision.foreignCodes,
+        vision.barcode,
+      ]
         .filter(Boolean)
         .join(" "),
     );
-    const barcode = gs1?.ean13 ?? gs1?.gtin ?? extracted.barcode ?? barcodeInput;
+    const barcode =
+      gs1?.ean13 ?? gs1?.gtin ?? extracted.barcode ?? barcodeInput;
     const bMeta = barcode
       ? await lookupBarcodeMetadata(barcode).catch(() => null)
       : null;
@@ -254,13 +273,17 @@ export async function POST(req: Request) {
 
     const payload = await runVerification({
       query: resolvedName,
-      genericName: String(vision.genericName ?? "").trim() || bMeta?.genericName,
+      genericName:
+        String(vision.genericName ?? "").trim() || bMeta?.genericName,
       category: String(vision.category ?? "").trim() || bMeta?.category,
       nafdacCode:
-        codeInput || extracted.nafdac || String(vision.nafdacNumber ?? "").trim(),
+        codeInput ||
+        extracted.nafdac ||
+        String(vision.nafdacNumber ?? "").trim(),
       barcode: barcode || undefined,
       foreignCode: String(vision.foreignCodes ?? "").trim() || undefined,
-      manufacturer: String(vision.manufacturer ?? "").trim() || bMeta?.manufacturer,
+      manufacturer:
+        String(vision.manufacturer ?? "").trim() || bMeta?.manufacturer,
       countryOfOrigin:
         String(vision.countryOfOrigin ?? "").trim() || bMeta?.countryOfOrigin,
       expiresOn:
