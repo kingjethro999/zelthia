@@ -135,6 +135,9 @@ alter table facilities add column if not exists verified_by uuid references user
 alter table users add column if not exists wrapped_dek text;
 alter table users add column if not exists terms_accepted_at timestamptz;
 alter table users add column if not exists terms_version text not null default '';
+alter table users add column if not exists processing_restricted boolean not null default false;
+alter table users add column if not exists processing_restricted_at timestamptz;
+alter table users add column if not exists consent_history jsonb not null default '[]'::jsonb;
 alter table health_profiles add column if not exists data_enc text;
 alter table conversations add column if not exists title_enc text;
 alter table messages add column if not exists payload_enc text;

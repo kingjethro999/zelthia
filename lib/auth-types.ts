@@ -10,6 +10,9 @@ export interface SessionUser {
   onboarded: boolean;
   isAdmin?: boolean;
   encrypted?: boolean;
+  processingRestricted?: boolean;
+  termsAcceptedAt?: string | null;
+  termsVersion?: string;
 }
 
 export interface SessionPayload {

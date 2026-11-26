@@ -15,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { Switch } from "@/components/ui/Choice";
 import { TextField } from "@/components/ui/Field";
 import { Dialog } from "@/components/ui/Dialog";
 import { useSession } from "@/lib/store/session";
@@ -53,6 +54,7 @@ function AccountForm() {
     facilityCount,
     profile,
     saveProfile,
+    setProcessingRestricted,
     signOut,
     revokeOtherSessions,
     deleteAccount,
@@ -62,6 +64,7 @@ function AccountForm() {
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [revoking, setRevoking] = useState(false);
+  const [restricting, setRestricting] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(
     null,
   );
@@ -124,6 +127,22 @@ function AccountForm() {
                 : "No other active sessions found.",
           }
         : { ok: false, text: res.error ?? "Could not sign out other devices." },
+    );
+  };
+
+  const toggleRestrict = async (next: boolean) => {
+    setRestricting(true);
+    const res = await setProcessingRestricted(next);
+    setRestricting(false);
+    setNotice(
+      res.ok
+        ? {
+            ok: true,
+            text: next
+              ? "Processing restriction active (DPA 2018 s. 47 / Art. 18): chats stay temporary and profile writes are paused."
+              : "Processing restriction lifted.",
+          }
+        : { ok: false, text: res.error ?? "Could not update preference." },
     );
   };
 
@@ -286,12 +305,43 @@ function AccountForm() {
         <section className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
           <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-ink">
             <ShieldCheck className="h-5 w-5 text-brand" aria-hidden />
-            Privacy and sessions
+            Privacy, Subject Access &amp; Data Protection Rights
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Download a copy of your decrypted profile and chat history, or sign
-            out of other browsers and devices.
+            Enforced under the Nigeria Data Protection Act 2023, UK Data
+            Protection Act 2018 (UKPGA 2018 c. 12), and UK GDPR.
+            {user.termsVersion && (
+              <span className="mt-1 block text-xs">
+                Consent recorded: version{" "}
+                <span className="font-medium text-ink">{user.termsVersion}</span>
+                {user.termsAcceptedAt
+                  ? ` on ${new Date(user.termsAcceptedAt).toLocaleDateString("en-NG", { dateStyle: "medium" })}`
+                  : ""}
+                .
+              </span>
+            )}
           </p>
+
+          <div
+            className={`mt-4 rounded-2xl border border-line bg-paper/60 p-4 ${restricting ? "pointer-events-none opacity-60" : ""}`}
+          >
+            <Switch
+              checked={Boolean(user.processingRestricted)}
+              onChange={(v) => {
+                if (!restricting) void toggleRestrict(v);
+              }}
+              label="Restrict further processing (DPA 2018 s. 47 / Art. 18)"
+              description="Locks your stored health profile against updates and keeps new chats temporary (unsaved) while preserving your existing encrypted records."
+            />
+          </div>
+
+          <p className="mt-3 text-xs leading-relaxed text-muted">
+            Automated decision-making safeguard (DPA 2018 s. 14 / Art. 22):
+            Zelthia AI triage never replaces a doctor&apos;s diagnosis, and
+            facility licence verification is approved solely by a human
+            administrator.
+          </p>
+
           <div className="mt-4 flex flex-wrap gap-3">
             <Button
               variant="secondary"
@@ -299,7 +349,7 @@ function AccountForm() {
               onClick={exportData}
             >
               <Download className="h-4 w-4" aria-hidden />
-              Download my data
+              Subject Access Request &amp; Data Export
             </Button>
             <Button
               variant="secondary"
@@ -345,8 +395,13 @@ function AccountForm() {
             {notice.text}
           </p>
         )}
-        <Button onClick={save} loading={saving} size="lg">
-          Save changes
+        <Button
+          onClick={save}
+          loading={saving}
+          disabled={Boolean(user.processingRestricted)}
+          size="lg"
+        >
+          {user.processingRestricted ? "Processing restricted" : "Save changes"}
         </Button>
       </div>
 

@@ -35,6 +35,13 @@ export function isAdminEmail(email: string): boolean {
   return adminEmails().has(email.trim().toLowerCase());
 }
 
+export interface ConsentEvent {
+  event: string;
+  legalBasis: string;
+  termsVersion?: string;
+  at: string;
+}
+
 export interface UserRow {
   id: string;
   email: string;
@@ -43,6 +50,11 @@ export interface UserRow {
   onboarded_at: Date | null;
   password_hash: string;
   wrapped_dek: string | null;
+  terms_accepted_at: Date | null;
+  terms_version: string | null;
+  processing_restricted: boolean | null;
+  processing_restricted_at: Date | null;
+  consent_history: ConsentEvent[] | null;
 }
 
 export interface SessionContext {
@@ -60,6 +72,11 @@ export function toSessionUser(row: UserRow): SessionUser {
     onboarded: Boolean(row.onboarded_at),
     isAdmin: isAdminEmail(row.email),
     encrypted: Boolean(row.wrapped_dek),
+    processingRestricted: Boolean(row.processing_restricted),
+    termsAcceptedAt: row.terms_accepted_at
+      ? new Date(row.terms_accepted_at).toISOString()
+      : null,
+    termsVersion: row.terms_version ?? "",
   };
 }
 
@@ -80,9 +97,19 @@ export async function createUser(input: {
   termsVersion?: string;
 }) {
   const passwordHash = await hashPassword(input.password);
+  const termsVersion = input.termsVersion ?? CURRENT_TERMS_VERSION;
+  const initialConsent: ConsentEvent[] = [
+    {
+      event: "explicit_consent_granted",
+      legalBasis:
+        "UK GDPR Art. 6(1)(a) & Art. 9(2)(a); DPA 2018 (UKPGA c. 12) s. 10, s. 11 & Sch. 1; NDPA 2023 s. 25 & s. 30",
+      termsVersion,
+      at: new Date().toISOString(),
+    },
+  ];
   const rows = await query<UserRow>(
-    `insert into users (email, name, password_hash, role, wrapped_dek, onboarded_at, terms_accepted_at, terms_version)
-     values ($1, $2, $3, $4, $5, $6, now(), $7) returning *`,
+    `insert into users (email, name, password_hash, role, wrapped_dek, onboarded_at, terms_accepted_at, terms_version, consent_history)
+     values ($1, $2, $3, $4, $5, $6, now(), $7, $8::jsonb) returning *`,
     [
       input.email.trim().toLowerCase(),
       input.name.trim(),
@@ -90,10 +117,60 @@ export async function createUser(input: {
       input.role,
       input.wrappedDek,
       input.role === "provider" ? new Date() : null,
-      input.termsVersion ?? CURRENT_TERMS_VERSION,
+      termsVersion,
+      JSON.stringify(initialConsent),
     ],
   );
   return rows[0];
+}
+
+/** Toggles DPA 2018 s. 47 / UK GDPR Art. 18 processing restriction & logs consent audit entry. */
+export async function setUserProcessingRestriction(
+  userId: string,
+  restricted: boolean,
+): Promise<UserRow | null> {
+  const auditEntry: ConsentEvent = {
+    event: restricted
+      ? "processing_restricted_enabled"
+      : "processing_restriction_lifted",
+    legalBasis: "UKPGA Data Protection Act 2018 s. 47 & UK GDPR Art. 18",
+    at: new Date().toISOString(),
+  };
+  const rows = await query<UserRow>(
+    `update users
+        set processing_restricted = $2,
+            processing_restricted_at = case when $2 then now() else null end,
+            consent_history = coalesce(consent_history, '[]'::jsonb) || $3::jsonb
+      where id = $1
+      returning *`,
+    [userId, restricted, JSON.stringify([auditEntry])],
+  );
+  return rows[0] ?? null;
+}
+
+export async function getUserConsentAudit(userId: string): Promise<{
+  termsVersion: string;
+  termsAcceptedAt: string | null;
+  processingRestricted: boolean;
+  processingRestrictedAt: string | null;
+  consentHistory: ConsentEvent[];
+}> {
+  const rows = await query<UserRow>(
+    "select * from users where id = $1 limit 1",
+    [userId],
+  );
+  const u = rows[0];
+  return {
+    termsVersion: u?.terms_version ?? "",
+    termsAcceptedAt: u?.terms_accepted_at
+      ? new Date(u.terms_accepted_at).toISOString()
+      : null,
+    processingRestricted: Boolean(u?.processing_restricted),
+    processingRestrictedAt: u?.processing_restricted_at
+      ? new Date(u.processing_restricted_at).toISOString()
+      : null,
+    consentHistory: Array.isArray(u?.consent_history) ? u.consent_history : [],
+  };
 }
 
 /**

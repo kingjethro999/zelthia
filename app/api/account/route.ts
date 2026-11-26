@@ -1,5 +1,10 @@
 import { NextResponse, connection } from "next/server";
-import { endSession, getSessionContext } from "@/lib/server/auth";
+import {
+  endSession,
+  getSessionContext,
+  setUserProcessingRestriction,
+  toSessionUser,
+} from "@/lib/server/auth";
 import { assertJson, assertSameOrigin, handle } from "@/lib/server/api";
 import { getProfile, sanitizeProfile, saveProfile } from "@/lib/server/profile";
 import { query } from "@/lib/server/db";
@@ -24,21 +29,46 @@ export async function PUT(req: Request) {
     } catch {
       return NextResponse.json({ error: "Send a JSON body." }, { status: 400 });
     }
+    let activeUser = user;
+    if (typeof body.processingRestricted === "boolean") {
+      const updated = await setUserProcessingRestriction(
+        user.id,
+        body.processingRestricted,
+      );
+      if (updated) activeUser = toSessionUser(updated);
+      if (body.profile === undefined && typeof body.name !== "string") {
+        return NextResponse.json({
+          user: activeUser,
+          profile: await getProfile(user.id, dek),
+        });
+      }
+    }
+
+    if (activeUser.processingRestricted) {
+      return NextResponse.json(
+        {
+          error:
+            "Processing restriction is active (DPA 2018 s. 47 / UK GDPR Art. 18). Lift the restriction in Privacy settings before modifying stored records.",
+        },
+        { status: 409 },
+      );
+    }
+
     const profile = sanitizeProfile(body.profile);
     await saveProfile(user.id, profile, dek);
 
     const name = typeof body.name === "string" ? body.name.trim() : "";
     if (name.length >= 2 && name.length <= 80) {
       await query("update users set name = $1 where id = $2", [name, user.id]);
-      user.name = name;
+      activeUser = { ...activeUser, name };
     }
-    if (body.complete === true && !user.onboarded) {
+    if (body.complete === true && !activeUser.onboarded) {
       await query("update users set onboarded_at = now() where id = $1", [
         user.id,
       ]);
-      user.onboarded = true;
+      activeUser = { ...activeUser, onboarded: true };
     }
-    return NextResponse.json({ user, profile });
+    return NextResponse.json({ user: activeUser, profile });
   } catch (err) {
     if (err instanceof Error && "status" in err) {
       return handle("PUT /api/account", err);

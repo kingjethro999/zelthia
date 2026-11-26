@@ -11,15 +11,32 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalPage title="Terms of use" updated="25 November 2026">
+    <LegalPage title="Terms of use" updated="26 November 2026">
       <section>
         <h2>Zelthia is not medical care</h2>
         <p>
           Zelthia gives general health information and helps you find facilities
-          and medicines. It does not diagnose, prescribe or replace a doctor,
-          pharmacist or nurse. Always check with a qualified health worker
-          before starting, stopping or changing a medicine. In an emergency,
-          call 112 or go to the nearest emergency unit.
+          and verify product registrations. It does not diagnose, prescribe or
+          replace a doctor, pharmacist or nurse. In keeping with automated
+          decision-making safeguards under Section 14 of the UK Data Protection
+          Act 2018 (UKPGA c. 12) and the Nigeria Data Protection Act 2023, AI
+          guidance is strictly informational; always check with a qualified
+          health worker before starting, stopping or changing a medicine. In an
+          emergency, call 112 or go to the nearest emergency unit.
+        </p>
+      </section>
+
+      <section>
+        <h2>Public regulatory &amp; open government data disclaimers</h2>
+        <p>
+          Product safety checks reference public NAFDAC registries, US FDA
+          Orange Book and openFDA APIs, UK MHRA Safety Public Assessment
+          Reports, Health Canada DPD, China NMPA format checks, and UK DHSC
+          Adult Social Care Finance reports (published under public registries
+          and Open Government Licence v3.0 where applicable). Registration
+          records cannot inspect the physical chemical contents of a sealed
+          pack—always verify physical expiry dates, batch numbers and intact
+          security seals.
         </p>
       </section>
 

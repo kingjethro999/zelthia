@@ -100,7 +100,8 @@ export async function POST(req: NextRequest) {
       429,
     );
 
-  const saved = Boolean(ctx) && body.temporary !== true;
+  const restricted = Boolean(ctx?.user.processingRestricted);
+  const saved = Boolean(ctx) && !restricted && body.temporary !== true;
   let conversationId: string | null = null;
   let isNew = false;
   if (saved && ctx && typeof body.conversationId === "string") {
@@ -125,6 +126,11 @@ export async function POST(req: NextRequest) {
             steps.start("Checking your account"),
             "Couldn't reach your account, so this chat won't be saved. Your answer is unaffected.",
             "failed",
+          );
+        } else if (restricted) {
+          steps.finish(
+            steps.start("Checking data processing preference"),
+            "Processing restriction active (DPA 2018 s. 47 / UK GDPR Art. 18): answering transiently without saving history or files.",
           );
         }
         if (saved && ctx && !conversationId) {

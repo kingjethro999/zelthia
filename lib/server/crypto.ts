@@ -23,7 +23,7 @@ const TAG_BYTES = 16;
 const DEK_AAD = Buffer.from("zelthia:dek:v1", "utf8");
 const FILE_MAGIC = Buffer.from([0x5a, 0x45, 0x4e, 0x43, 0x01]); // "ZENC\x01"
 
-export const CURRENT_TERMS_VERSION = "2026-11-25";
+export const CURRENT_TERMS_VERSION = "2026-11-26-dpa2018-ndpa";
 
 /** Constant dummy hash (16-byte salt, 64-byte key) used so failed sign-ins spend uniform scrypt time. */
 export const DUMMY_PASSWORD_HASH =

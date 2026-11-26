@@ -46,6 +46,7 @@ interface SessionState {
     profile: BiometricProfile,
     opts?: { complete?: boolean; name?: string },
   ) => Promise<ApiResult>;
+  setProcessingRestricted: (restricted: boolean) => Promise<ApiResult>;
   deleteAccount: () => Promise<ApiResult>;
 }
 
@@ -176,6 +177,18 @@ export const useSession = create<SessionState>()(
         const { res, data } = await post(
           "/api/account",
           { profile, complete: opts.complete, name: opts.name },
+          "PUT",
+        );
+        if (!res?.ok) return { ok: false, error: data.error };
+        set({ user: data.user, profile: data.profile });
+        return { ok: true };
+      },
+
+      setProcessingRestricted: async (restricted) => {
+        if (!get().user) return { ok: false, error: "Not signed in." };
+        const { res, data } = await post(
+          "/api/account",
+          { processingRestricted: restricted },
           "PUT",
         );
         if (!res?.ok) return { ok: false, error: data.error };
