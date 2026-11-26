@@ -13,7 +13,10 @@ import { parseAiResponse, stripTags } from "./parser";
 import { complete, readWithVision, stream, type Turn } from "./providers";
 import { generateClinicalFallback } from "./fallback";
 import { searchDirectory } from "@/lib/server/inventory";
+import { searchDataProtectionProvisions } from "@/lib/server/compliance";
+import { getMhraAgencyOverview } from "@/lib/server/mhra";
 import { verifyHealthProduct } from "@/lib/server/regulatory";
+import { queryAdultSocialCareFinance } from "@/lib/server/social-care";
 import {
   searchImages,
   searchPlaces,
@@ -166,11 +169,14 @@ interface Plan {
   location: string | null;
   needs: Need[];
   checks: ProductCheck[];
+  socialCareQuery: string | null;
+  complianceQuery: string | null;
 }
 
-const PLAN_PROMPT = `You route requests for a health assistant in Nigeria. Read the conversation and decide:
+const PLAN_PROMPT = `You route requests for a health assistant in Nigeria (with public UK MHRA, US FDA, DHSC Social Care Finance 2025-2026, and UKPGA Data Protection Act 2018 datasets). Read the conversation and decide:
 1) Whether the user needs to find a place for a medicine, health/beauty product, test, scan or procedure ("needs").
 2) Whether the user mentioned, asked about the authenticity/safety/ingredients of, or uploaded a photo of a specific medicine, skincare cream, soap, herbal product, supplement, or regulatory code ("checks").
+3) Whether the user asks about England/UK Adult Social Care Finance 2025-2026 figures ("socialCareQuery"), or UK Data Protection Act 2018 (UKPGA c. 12) / NDPA 2023 privacy rights / MHRA governance ("complianceQuery").
 
 Return only JSON:
 {"title": "3 to 6 word chat title",
@@ -183,7 +189,9 @@ Return only JSON:
              "category": "Medicine | Skin care and cosmetics | Vitamins and supplements | Pain relief and muscle care | Medical devices | Other health products",
              "nafdacCode": "NAFDAC number if seen/mentioned, else ''",
              "barcode": "Barcode/GTIN if seen/mentioned, else ''",
-             "foreignCode": "NDC, Guoyao Zhunzi, MHRA PL, or DIN if seen, else ''"}]}
+             "foreignCode": "NDC, Guoyao Zhunzi, MHRA PL, or DIN if seen, else ''"}],
+ "socialCareQuery": "council, region or care question if asked, else null",
+ "complianceQuery": "privacy, DPA 2018, UKPGA, NDPA, or MHRA governance query if asked, else null"}
 Rules:
 - If the user attached a photo of a product pack or asked whether a drug, cream, supplement, or regulatory number is real/safe/registered, include it in "checks" (and also in "needs" with kind "product" if they need to find where to get it).
 - If an attached document or conversation says the user should get a test, scan, procedure or medicine, include it in "needs". Prefer tests and scans over routine medicines when both exceed 2.
@@ -250,6 +258,14 @@ function parsePlan(text: string, fallbackTitle: string): Plan {
         : null,
     needs,
     checks,
+    socialCareQuery:
+      typeof raw.socialCareQuery === "string" && raw.socialCareQuery.trim()
+        ? raw.socialCareQuery.trim().slice(0, 120)
+        : null,
+    complianceQuery:
+      typeof raw.complianceQuery === "string" && raw.complianceQuery.trim()
+        ? raw.complianceQuery.trim().slice(0, 120)
+        : null,
   };
 }
 
@@ -320,6 +336,8 @@ export async function runTurn({
     location: null,
     needs: [],
     checks: [],
+    socialCareQuery: null,
+    complianceQuery: null,
   };
   const smallTalk =
     !files.length &&
@@ -488,15 +506,101 @@ export async function runTurn({
     if (r) regulatory.push(r);
   }
 
+  // Deterministic + planner-driven lookups for DHSC Adult Social Care 2025-2026 & UKPGA DPA 2018 / MHRA Governance
+  const wantSocialCare =
+    Boolean(plan.socialCareQuery) ||
+    /\b(adult social care|social care finance|local authority expenditure|care funding|council care spend)\b/i.test(
+      userText,
+    );
+  const wantCompliance =
+    Boolean(plan.complianceQuery) ||
+    /\b(data protection act|ukpga|dpa 2018|uk gdpr|ndpa|subject access request|national security certificate|mhra annual report|mhra privacy|safety public assessment)\b/i.test(
+      userText,
+    );
+
+  let socialCareContext: ReturnType<typeof queryAdultSocialCareFinance> | null =
+    null;
+  if (wantSocialCare) {
+    const ascStep = steps.start(
+      "Checking DHSC England Adult Social Care Finance 2025–2026 dataset",
+    );
+    socialCareContext = queryAdultSocialCareFinance({
+      query: plan.socialCareQuery ?? text,
+      limit: 6,
+    });
+    steps.finish(
+      ascStep,
+      `Loaded £${(socialCareContext.englandTotals.totalGrossCurrentExpenditureK / 1_000_000).toFixed(2)}B England gross spend across ${socialCareContext.matchedRegions.length} regions`,
+    );
+  }
+
+  let complianceContext: {
+    dpa: ReturnType<typeof searchDataProtectionProvisions>;
+    mhraOverview: ReturnType<typeof getMhraAgencyOverview>;
+  } | null = null;
+  if (wantCompliance) {
+    const compStep = steps.start(
+      "Checking UK Data Protection Act 2018 (UKPGA c. 12) & MHRA governance records",
+    );
+    complianceContext = {
+      dpa: searchDataProtectionProvisions(plan.complianceQuery ?? text),
+      mhraOverview: getMhraAgencyOverview(),
+    };
+    steps.finish(
+      compStep,
+      `Matched ${complianceContext.dpa.statute.matchedProvisions.length} statutory provision(s) & ${complianceContext.mhraOverview.parsCatalog.totalReports} MHRA reports`,
+    );
+  }
+
   // 5. Answer, grounded only in what was actually found. Keep untrusted retrieved data
   // out of the system prompt and wrapped in explicit data delimiters in the user turn.
   const locationLine = location
     ? `USER LOCATION: ${cleanUntrusted(location, 160)}`
     : "USER LOCATION: unknown";
 
-  const hasContext = plan.needs.length > 0 || regulatory.length > 0;
+  const hasContext =
+    plan.needs.length > 0 ||
+    regulatory.length > 0 ||
+    Boolean(socialCareContext) ||
+    Boolean(complianceContext);
   const retrievedData = hasContext
     ? `<untrusted_retrieved_data>\n${
+        socialCareContext
+          ? `ENGLAND ADULT SOCIAL CARE FINANCE 2025-2026 (GOV.UK DHSC):\n${JSON.stringify(
+              {
+                source: socialCareContext.source,
+                updated: socialCareContext.updated,
+                csvRowsProcessed: socialCareContext.totalCsvRowsProcessed,
+                dataQualityNotice: socialCareContext.dataQualityNotice,
+                englandTotals: socialCareContext.englandTotals,
+                matchedRegions: socialCareContext.matchedRegions,
+                matchedLocalAuthorities:
+                  socialCareContext.matchedLocalAuthorities,
+              },
+            )}\n\n`
+          : ""
+      }${
+        complianceContext
+          ? `UKPGA DATA PROTECTION ACT 2018 & MHRA GOVERNANCE RECORDS:\n${JSON.stringify(
+              {
+                statute: complianceContext.dpa.statute,
+                nationalSecurityGuidance:
+                  complianceContext.dpa.nationalSecurityGuidance,
+                lawfulBasisMatrix: complianceContext.dpa.lawfulBasisMatrix,
+                retentionSchedule: complianceContext.dpa.retentionSchedule,
+                mhraAnnualReport: complianceContext.mhraOverview.annualReport,
+                mhraLeadership2026:
+                  complianceContext.mhraOverview.leadershipStructure2026,
+                mhraParsSummary: {
+                  totalReports:
+                    complianceContext.mhraOverview.parsCatalog.totalReports,
+                  latestReports:
+                    complianceContext.mhraOverview.parsCatalog.latestReports,
+                },
+              },
+            )}\n\n`
+          : ""
+      }${
         regulatory.length
           ? `REGULATORY VERIFICATION RESULTS:\n${JSON.stringify(
               regulatory.map((r) => ({

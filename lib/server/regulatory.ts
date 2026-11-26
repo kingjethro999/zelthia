@@ -13,7 +13,8 @@ import type {
 } from "@/lib/inventory-types";
 import { query } from "./db";
 import { fetchService, politeThrottle } from "./http";
-import { searchOrangeBook } from "./orange-book";
+import { searchMhraSafetyPars } from "./mhra";
+import { queryOpenFdaComprehensive } from "./openfda";
 import { scrapeWebPage, searchWebGeneral } from "./web-search";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -492,147 +493,13 @@ async function checkUsFda(
   input: VerifyProductInput,
   parsedCodes: ReturnType<typeof extractRegulatoryCodes>,
   barcodeMeta: BarcodeMetadata | null,
-): Promise<{
-  findings: RegistrySourceFinding[];
-  flags: RegulatoryAlertFlag[];
-  okCalls: number;
-  failedCalls: number;
-}> {
-  const findings: RegistrySourceFinding[] = [];
-  const flags: RegulatoryAlertFlag[] = [];
-  let okCalls = 0;
-  let failedCalls = 0;
-
-  // 1. Local US FDA Orange Book dataset (data/EOBZIP_2026_10)
-  const ob = searchOrangeBook({
-    query: input.name,
-    ingredient: input.genericName,
-    limit: 6,
+) {
+  return queryOpenFdaComprehensive({
+    name: input.name,
+    genericName: input.genericName,
+    category: input.category,
+    ndcCode: parsedCodes.ndc || barcodeMeta?.derivedUsNdc,
   });
-  if (ob.available && ob.entries.length > 0) {
-    okCalls++;
-    const top = ob.entries[0];
-    findings.push({
-      registry: "US FDA Orange Book",
-      status: ob.allDiscontinued ? "discontinued" : "matched",
-      title: `${top.tradeName} (${top.ingredient})`,
-      detail: ob.allDiscontinued
-        ? `Listed in FDA Orange Book solely as DISCN (Discontinued) by ${top.applicantFullName || top.applicant}, approval ${top.approvalDate}.`
-        : `FDA Orange Book ${top.marketingType}: ${top.strength} ${top.dosageFormRoute} by ${top.applicantFullName || top.applicant} (Appl ${top.applType}${top.applNo}, approved ${top.approvalDate}).`,
-      code: `${top.applType}${top.applNo}`,
-      url: "https://www.accessdata.fda.gov/scripts/cder/ob/index.cfm",
-      sourceAttribution: "Source: US FDA Orange Book (Public Dataset)",
-    });
-    if (ob.allDiscontinued) {
-      flags.push({
-        code: "DISCONTINUED_DRUG",
-        severity: "caution",
-        title: "Discontinued US FDA Orange Book listing",
-        detail: `All matching Orange Book entries for "${input.name}" carry Type DISCN. Verify active manufacturing status before dispensing.`,
-      });
-    }
-  }
-
-  // 2. Live openFDA Drug NDC & Enforcement / Recall checks
-  const searchName = input.name.replace(/"/g, "").trim();
-  const generic = (input.genericName ?? "").replace(/"/g, "").trim();
-  const ndcCode = parsedCodes.ndc || barcodeMeta?.derivedUsNdc;
-
-  const queries: Promise<void>[] = [];
-
-  if (searchName.length >= 3 || ndcCode) {
-    const ndcQuery = ndcCode
-      ? `product_ndc:"${ndcCode.split("-").slice(0, 2).join("-")}" OR brand_name:"${searchName}"`
-      : generic
-        ? `brand_name:"${searchName}" OR generic_name:"${generic}"`
-        : `brand_name:"${searchName}" OR generic_name:"${searchName}"`;
-    queries.push(
-      (async () => {
-        try {
-          const data = await fetchJsonSafe(
-            "openFDA-NDC",
-            `https://api.fda.gov/drug/ndc.json?search=${encodeURIComponent(ndcQuery)}&limit=3`,
-          );
-          okCalls++;
-          const r = data?.results?.[0];
-          if (r) {
-            findings.push({
-              registry: "US FDA openFDA",
-              status: "matched",
-              title: `${r.brand_name ?? searchName} (${r.generic_name ?? generic ?? "Active"})`,
-              detail: `${r.dosage_form ?? "Drug"} by ${r.labeler_name ?? "registered labeler"}${r.product_ndc ? ` (NDC ${r.product_ndc})` : ""}.`,
-              code: r.product_ndc ? String(r.product_ndc) : undefined,
-              url: "https://open.fda.gov/apis/drug/ndc/",
-              sourceAttribution: "Source: openFDA Drug NDC Directory",
-            });
-          }
-        } catch (err) {
-          // 404 on openFDA means "no matching records", not a network outage
-          if ((err as Error).message.includes("404")) okCalls++;
-          else failedCalls++;
-        }
-      })(),
-    );
-
-    const isCosmetic = input.category === "Skin care and cosmetics";
-    const enfEndpoint = isCosmetic
-      ? "https://api.fda.gov/cosmetic/event.json"
-      : "https://api.fda.gov/drug/enforcement.json";
-    const enfQuery = isCosmetic
-      ? `products.product_name:"${searchName}"`
-      : `status:"Ongoing" AND (product_description:"${searchName}"${generic ? ` OR product_description:"${generic}"` : ""})`;
-
-    queries.push(
-      (async () => {
-        try {
-          const data = await fetchJsonSafe(
-            "openFDA-Safety",
-            `${enfEndpoint}?search=${encodeURIComponent(enfQuery)}&limit=2`,
-          );
-          okCalls++;
-          const hit = data?.results?.[0];
-          if (!isCosmetic && hit) {
-            findings.push({
-              registry: "US FDA openFDA",
-              status: "recalled",
-              title: `Ongoing FDA Recall: ${String(hit.recall_number ?? "")}`,
-              detail: String(
-                hit.reason_for_recall ?? hit.product_description ?? "",
-              ).slice(0, 260),
-              code: String(hit.recall_number ?? ""),
-              url: "https://open.fda.gov/apis/drug/enforcement/",
-              sourceAttribution: "Source: US FDA Drug Enforcement & Recalls",
-            });
-            flags.push({
-              code: "ACTIVE_RECALL",
-              severity: "danger",
-              title: "Ongoing US FDA recall alert",
-              detail: `${String(hit.classification ?? "Recall")}: ${String(hit.reason_for_recall ?? "").slice(0, 200)}`,
-            });
-          } else if (
-            isCosmetic &&
-            hit &&
-            Number(data?.meta?.results?.total ?? 0) > 0
-          ) {
-            findings.push({
-              registry: "US FDA openFDA",
-              status: "warning",
-              title: "US FDA Cosmetic Adverse Event reports recorded",
-              detail: `${data.meta.results.total} cosmetic event record(s) found matching "${searchName}". Check ingredients for banned/restricted bleaching agents.`,
-              url: "https://open.fda.gov/apis/cosmetic/event/",
-              sourceAttribution: "Source: US FDA Cosmetic Event Reporting",
-            });
-          }
-        } catch (err) {
-          if ((err as Error).message.includes("404")) okCalls++;
-          else failedCalls++;
-        }
-      })(),
-    );
-  }
-
-  await Promise.allSettled(queries);
-  return { findings, flags, okCalls, failedCalls };
 }
 
 async function checkHealthCanada(
@@ -749,6 +616,31 @@ async function checkGlobalAndChina(
       title: "20-digit Chinese drug traceability code not detected",
       detail:
         "Pharmaceuticals produced for or in mainland China normally carry a 20-digit electronic traceability barcode/number (often starting with 8). Inspect the physical carton carefully.",
+    });
+  }
+
+  // Cross-check indexed UK MHRA Safety Public Assessment Reports (2006–2026)
+  const mhraPars = searchMhraSafetyPars(input.name, input.genericName);
+  if (mhraPars.length > 0) {
+    okCalls++;
+    for (const par of mhraPars.slice(0, 2)) {
+      findings.push({
+        registry: "UK MHRA Safety PAR",
+        status: "warning",
+        title: `${par.title} (${par.year})`,
+        detail:
+          par.matchedReason ??
+          "UK MHRA Safety Public Assessment Report assessing prescribing restrictions or safety risks.",
+        url: safeUrl(par.url),
+        sourceAttribution:
+          "Source: UK MHRA Safety Public Assessment Reports (GOV.UK)",
+      });
+    }
+    flags.push({
+      code: "MHRA_SAFETY_ASSESSMENT",
+      severity: "caution",
+      title: `UK MHRA Safety Public Assessment Report (${mhraPars[0].year})`,
+      detail: `${mhraPars[0].title}: ${mhraPars[0].matchedReason ?? "Review official MHRA safety restrictions and monitoring advice."}`,
     });
   }
 
