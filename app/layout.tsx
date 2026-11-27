@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import "./globals.css";
 import { LocationProvider } from "@/components/providers/LocationProvider";
@@ -104,7 +105,9 @@ export default function RootLayout({
           Skip to content
         </a>
         <SessionProvider />
-        <LocationProvider />
+        <Suspense fallback={null}>
+          <LocationProvider />
+        </Suspense>
         {children}
       </body>
     </html>

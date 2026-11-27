@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { readWithVision } from "@/lib/ai/providers";
 import { extractRegulatoryCodes, parseScannedCode } from "@/lib/barcode";
 import { MAX_ATTACHMENT_BYTES } from "@/lib/chat-types";
@@ -401,6 +402,7 @@ export async function POST(req: Request) {
 
 /** Recent Scan-to-Stock intake history for a facility the provider owns. */
 export async function GET(req: Request) {
+  await connection();
   try {
     const user = await requireProvider();
     const facilityId = new URL(req.url).searchParams.get("facilityId") ?? "";

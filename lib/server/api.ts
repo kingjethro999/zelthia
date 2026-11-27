@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_rethrow } from "next/navigation";
 import { NextResponse } from "next/server";
 import { SITE_URL } from "@/lib/utils";
 import { getSessionUser } from "./auth";
@@ -131,6 +132,7 @@ export async function readJson(req: Request): Promise<Record<string, unknown>> {
 
 /** Maps thrown errors to clear JSON responses; unexpected ones are logged. */
 export function handle(where: string, err: unknown) {
+  unstable_rethrow(err);
   if (err instanceof HttpError) return json({ error: err.message }, err.status);
   if (err instanceof ValidationError)
     return json({ error: err.message, field: err.field }, 400);
