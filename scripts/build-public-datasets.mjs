@@ -82,10 +82,12 @@ async function buildMhraSafetyPars() {
     bodyLines.push(line);
   }
 
-  // Collapse lines while carefully keeping year markers isolated and joining hyphenated/broken URLs cleanly
+  // Collapse lines while skipping GOV.UK print-sidebar year anchors and joining broken URLs cleanly
   let joined = "";
   for (const line of bodyLines) {
     if (!line) continue;
+    // Chrome print-to-PDF overflows the left-hand "2018— ... 2008—" contents rail mid-page
+    if (/^(?:19|20)\d{2}\s*[—–-]$/.test(line)) continue;
     if (/^(20\d{2}|19\d{2})$/.test(line)) {
       joined += `\n<<YEAR:${line}>>\n`;
       continue;
@@ -93,11 +95,17 @@ async function buildMhraSafetyPars() {
     const cleanBullet = line.replace(/^[•\-]\s*/, "");
     if (!joined.endsWith("\n")) {
       // Join wrapped URLs cleanly without spaces; otherwise space-separate prose
-      const tail = joined.slice(-120);
-      const insideParens =
-        tail.lastIndexOf("(") > tail.lastIndexOf(")") &&
-        /https?:\/\//i.test(tail.slice(tail.lastIndexOf("(")));
-      if (insideParens || joined.endsWith("/") || joined.endsWith("-") || joined.endsWith("_")) {
+      const tail = joined.slice(-160);
+      const openParen = tail.lastIndexOf("(");
+      const closeParen = tail.lastIndexOf(")");
+      const insideUrlParens =
+        openParen > closeParen && /https?:\/\//i.test(tail.slice(openParen));
+      if (
+        insideUrlParens ||
+        joined.endsWith("/") ||
+        joined.endsWith("-") ||
+        joined.endsWith("_")
+      ) {
         joined += cleanBullet;
       } else {
         joined += ` ${cleanBullet}`;
@@ -109,22 +117,55 @@ async function buildMhraSafetyPars() {
 
   const reports = [];
   const seenUrls = new Set();
-  const re = /(?:<<YEAR:(20\d{2})>>)|([^()\n]{8,240}?)\s*\((https?:\/\/[^\s)]+)\)/g;
+  const tokenRe = /(?:<<YEAR:(20\d{2})>>)|(\(https?:\/\/[^\s)]+\))/g;
+  let lastIndex = 0;
 
-  for (const m of joined.matchAll(re)) {
+  for (const m of joined.matchAll(tokenRe)) {
+    const matchIndex = m.index ?? 0;
     if (m[1]) {
       currentYear = m[1];
+      lastIndex = matchIndex + m[0].length;
       continue;
     }
-    const rawTitle = (m[2] ?? "")
-      .replace(/^\(PDF[^)]*\)\s*/i, "")
-      .replace(/^\(\d{1,2}\s+[A-Za-z]+\s+\d{4}\)\s*/i, "")
-      .replace(/^[•\-—:\s]+/, "")
-      .replace(/\s+/g, " ")
-      .trim();
-    const url = (m[3] ?? "").replace(/\s+/g, "").trim();
+
+    const segment = joined.slice(lastIndex, matchIndex);
+    lastIndex = matchIndex + m[0].length;
+
+    let cleaned = segment.trim();
+    let prev;
+    do {
+      prev = cleaned;
+      cleaned = cleaned
+        .replace(/^\(PDF[^)]*\)\s*/i, "")
+        .replace(/^\(\d{1,2}\s+[A-Za-z]+\s+\d{4}\)\s*/i, "")
+        .replace(/^[•\-—:,\s]+/, "")
+        .trim();
+    } while (cleaned !== prev);
+
+    const rawTitle = cleaned.replace(/\s+/g, " ").trim();
+    const url = (m[2] ?? "").slice(1, -1).replace(/\s+/g, "").trim();
     if (!rawTitle || !url.startsWith("http") || seenUrls.has(url)) continue;
-    if (/commission-on-human-medicines|ema\.europa\.eu|hma\.eu|products\.mhra\.gov\.uk|drug-safety-update$/i.test(url)) {
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      throw new Error(`Malformed MHRA PAR URL extracted: ${url}`);
+    }
+    if (
+      !["www.gov.uk", "assets.publishing.service.gov.uk"].includes(
+        parsedUrl.hostname,
+      )
+    ) {
+      throw new Error(
+        `Unexpected MHRA PAR hostname "${parsedUrl.hostname}" in ${url}`,
+      );
+    }
+    if (
+      /commission-on-human-medicines|ema\.europa\.eu|hma\.eu|products\.mhra\.gov\.uk|drug-safety-update$/i.test(
+        url,
+      )
+    ) {
       continue;
     }
     seenUrls.add(url);
@@ -233,10 +274,16 @@ async function buildMhraReference() {
   const privacySections = [];
   for (let i = 0; i < sectionTitles.length; i++) {
     const num = `${i + 1}. ${sectionTitles[i]}`;
-    const bodyMarker = new RegExp(`(?:^|\\n)\\s*${i + 1}\\.\\s+${sectionTitles[i].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i");
+    const bodyMarker = new RegExp(
+      `(?:^|\\n)\\s*${i + 1}\\.\\s+${sectionTitles[i].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+      "i",
+    );
     // Find second occurrence (actual section body rather than TOC)
-    const matches = [...privacyClean.matchAll(new RegExp(bodyMarker.source, "gi"))];
-    const startIdx = matches.length > 1 ? matches[1].index : matches[0]?.index ?? -1;
+    const matches = [
+      ...privacyClean.matchAll(new RegExp(bodyMarker.source, "gi")),
+    ];
+    const startIdx =
+      matches.length > 1 ? matches[1].index : (matches[0]?.index ?? -1);
     const excerpt =
       startIdx >= 0
         ? privacyClean
@@ -277,7 +324,10 @@ async function buildMhraReference() {
       source: "MHRA Privacy Notice (GOV.UK)",
       url: "https://www.gov.uk/government/publications/mhra-privacy-notice/mhra-privacy-notice",
       updated: "2026-07-14",
-      legalFrameworks: ["UK Data Protection Act 2018 (c. 12)", "UK GDPR (2016/679)"],
+      legalFrameworks: [
+        "UK Data Protection Act 2018 (c. 12)",
+        "UK GDPR (2016/679)",
+      ],
       totalPages: privacy.totalPages,
       sections: privacySections,
     },
@@ -289,7 +339,9 @@ async function buildMhraReference() {
 async function buildUkpgaDpa2018() {
   const [act, ns] = await Promise.all([
     readPdfPages("ukpga_20180012_en.pdf"),
-    readPdfPages("Data_Protection_Act_2018_-_National_Security_Certificates_Guidance.pdf"),
+    readPdfPages(
+      "Data_Protection_Act_2018_-_National_Security_Certificates_Guidance.pdf",
+    ),
   ]);
 
   const actJoined = act.pages.join("\n");
@@ -308,7 +360,8 @@ async function buildUkpgaDpa2018() {
     },
     {
       section: "Section 10",
-      title: "Special categories of personal data and criminal convictions etc data",
+      title:
+        "Special categories of personal data and criminal convictions etc data",
       anchor: "10 Special categories of personal data",
       domain: "Health & biometric data safeguards",
     },
@@ -392,7 +445,9 @@ async function buildUkpgaDpa2018() {
   }
 
   const nsText = ns.pages.slice(0, 6).join(" ").replace(/\s+/g, " ").trim();
-  const keyGuidanceIdx = nsText.search(/Section 27|Ministerial certificate|Upper Tribunal/i);
+  const keyGuidanceIdx = nsText.search(
+    /Section 27|Ministerial certificate|Upper Tribunal/i,
+  );
 
   return {
     statute: {
@@ -413,14 +468,22 @@ async function buildUkpgaDpa2018() {
       provisions,
     },
     nationalSecurityGuidance: {
-      title: "Data Protection Act 2018 — National Security Certificates Guidance",
+      title:
+        "Data Protection Act 2018 — National Security Certificates Guidance",
       published: "2020-08",
-      sourcePdf: "Data_Protection_Act_2018_-_National_Security_Certificates_Guidance.pdf",
+      sourcePdf:
+        "Data_Protection_Act_2018_-_National_Security_Certificates_Guidance.pdf",
       totalPages: ns.totalPages,
-      relevantSections: ["Section 27 (Part 2)", "Section 79 (Part 3)", "Section 110 (Part 4)"],
+      relevantSections: [
+        "Section 27 (Part 2)",
+        "Section 79 (Part 3)",
+        "Section 110 (Part 4)",
+      ],
       summaryExcerpt:
         keyGuidanceIdx >= 0
-          ? nsText.slice(Math.max(0, keyGuidanceIdx - 120), keyGuidanceIdx + 700).trim()
+          ? nsText
+              .slice(Math.max(0, keyGuidanceIdx - 120), keyGuidanceIdx + 700)
+              .trim()
           : nsText.slice(0, 700).trim(),
     },
   };
@@ -544,7 +607,10 @@ async function buildAdultSocialCare() {
         totalNetCurrentK: 0,
       };
       if (dataLevel === "Gross Current Expenditure") {
-        rec.totalGrossCurrentK = Math.max(rec.totalGrossCurrentK, Math.round(val));
+        rec.totalGrossCurrentK = Math.max(
+          rec.totalGrossCurrentK,
+          Math.round(val),
+        );
       } else {
         rec.totalNetCurrentK = Math.max(rec.totalNetCurrentK, Math.round(val));
       }
@@ -561,7 +627,10 @@ async function buildAdultSocialCare() {
         totalNetCurrentK: 0,
       };
       if (dataLevel === "Gross Current Expenditure") {
-        rec.totalGrossCurrentK = Math.max(rec.totalGrossCurrentK, Math.round(val));
+        rec.totalGrossCurrentK = Math.max(
+          rec.totalGrossCurrentK,
+          Math.round(val),
+        );
       } else {
         rec.totalNetCurrentK = Math.max(rec.totalNetCurrentK, Math.round(val));
       }
@@ -632,7 +701,11 @@ async function buildAdultSocialCare() {
     /Issue affecting Nottinghamshire[\s\S]{0,900}?<\/div>/i,
   );
   const nottsNote = nottsMatch
-    ? nottsMatch[0].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 500)
+    ? nottsMatch[0]
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 500)
     : "Nottinghamshire 2025 to 2026 return carries an official DHSC data quality notice.";
 
   const prerelease = await readPdfPages("Pre-release access list - GOV.UK.pdf");
@@ -645,7 +718,8 @@ async function buildAdultSocialCare() {
   );
 
   return {
-    source: "Department of Health & Social Care — Adult Social Care Finance Report, England 2025–2026",
+    source:
+      "Department of Health & Social Care — Adult Social Care Finance Report, England 2025–2026",
     url: "https://www.gov.uk/government/statistics/adult-social-care-finance-report-england-2025-to-2026",
     updated: "2026-11-25",
     prereleasePages: prerelease.totalPages,
@@ -681,7 +755,9 @@ async function main() {
     JSON.stringify(dpa, null, 2),
   );
 
-  console.log("Streaming & aggregating England Adult Social Care 2025-2026 CSV (509k+ rows)...");
+  console.log(
+    "Streaming & aggregating England Adult Social Care 2025-2026 CSV (509k+ rows)...",
+  );
   const asc = await buildAdultSocialCare();
   fs.writeFileSync(
     path.join(OUT_DIR, "adult-social-care-2025-2026.json"),

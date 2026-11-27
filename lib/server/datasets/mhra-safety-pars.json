@@ -4,32 +4,30 @@
   "published": "2019-01-04",
   "lastUpdated": "2026-10-15",
   "sourcePdfPages": 11,
-  "totalReports": 45,
+  "totalReports": 61,
   "reports": [
     {
       "year": 2026,
       "title": "Antidepressants – updated safety communications",
-      "url": "https://2018—2017—2015—2014—2013—2012—2011—2010—2009—2008—www.gov.uk/government/publications/antidepressants-updated-safety-communications",
-      "keywords": [
-        "antidepressants",
-        "communications"
-      ]
+      "url": "https://www.gov.uk/government/publications/antidepressants-updated-safety-communications",
+      "keywords": ["antidepressants", "communications"]
     },
     {
       "year": 2026,
       "title": "Bladder Anticholinergics: review of risk of dementia",
       "url": "https://www.gov.uk/government/publications/bladder-anticholinergics-review-of-risk-of-dementia",
-      "keywords": [
-        "bladder",
-        "anticholinergics",
-        "dementia"
-      ]
+      "keywords": ["bladder", "anticholinergics", "dementia"]
     },
     {
       "year": 2026,
-      "title": ", Benzodiazepines and Z-Drugs",
+      "title": "Improving information supplied with Gabapentinoids (Pregabalin/Gabapentin), Benzodiazepines and Z-Drugs",
       "url": "https://www.gov.uk/government/publications/improving-information-supplied-with-gabapentinoids-pregabalingabapentin-benzodiazepines-and-z-drugs",
       "keywords": [
+        "improving",
+        "supplied",
+        "gabapentinoids",
+        "pregabalin",
+        "gabapentin",
         "benzodiazepines",
         "z-drugs"
       ]
@@ -38,12 +36,7 @@
       "year": 2026,
       "title": "Review of the impact of recommendations for the prescribing of isotretinoin",
       "url": "https://www.gov.uk/government/publications/review-of-the-impact-of-recommendations-for-the-prescribing-of-isotretinoin",
-      "keywords": [
-        "impact",
-        "recommendations",
-        "prescribing",
-        "isotretinoin"
-      ]
+      "keywords": ["impact", "recommendations", "prescribing", "isotretinoin"]
     },
     {
       "year": 2025,
@@ -65,13 +58,7 @@
       "year": 2025,
       "title": "Modified Release Opioids and Treatment of Post-operative Pain",
       "url": "https://www.gov.uk/government/publications/modified-release-opioids-and-treatment-of-post-operative-pain",
-      "keywords": [
-        "modified",
-        "release",
-        "opioids",
-        "post-operative",
-        "pain"
-      ]
+      "keywords": ["modified", "release", "opioids", "post-operative", "pain"]
     },
     {
       "year": 2025,
@@ -105,34 +92,35 @@
       "year": 2024,
       "title": "Topiramate: review of safety in pregnancy",
       "url": "https://www.gov.uk/government/publications/topiramate-review-of-safety-in-pregnancy",
-      "keywords": [
-        "topiramate",
-        "pregnancy"
-      ]
+      "keywords": ["topiramate", "pregnancy"]
     },
     {
       "year": 2024,
       "title": "Finasteride: review of safety data and expert advice on management of risks",
       "url": "https://www.gov.uk/government/publications/finasteride-review-of-safety-data-and-expert-advice-on-management-of-risks",
+      "keywords": ["finasteride", "data", "expert", "management", "risks"]
+    },
+    {
+      "year": 2024,
+      "title": "MHRA Public consultation on the proposal to make Codeine Linctus available as a prescription-only medicine (POM)",
+      "url": "https://www.gov.uk/government/consultations/mhra-public-consultation-on-the-proposal-to-make-codeine-linctus-available-as-a-prescription-only-medicine-pom",
       "keywords": [
-        "finasteride",
-        "data",
-        "expert",
-        "management",
-        "risks"
+        "mhra",
+        "consultation",
+        "proposal",
+        "make",
+        "codeine",
+        "linctus",
+        "available",
+        "prescription-only",
+        "pom"
       ]
     },
     {
       "year": 2023,
       "title": "Valproate: review of safety data and expert advice on management of risks",
       "url": "https://www.gov.uk/government/publications/valproate-review-of-safety-data-and-expert-advice-on-management-of-risks",
-      "keywords": [
-        "valproate",
-        "data",
-        "expert",
-        "management",
-        "risks"
-      ]
+      "keywords": ["valproate", "data", "expert", "management", "risks"]
     },
     {
       "year": 2022,
@@ -183,46 +171,25 @@
       "year": 2021,
       "title": "Antiepileptic drugs: review of safety of use during pregnancy",
       "url": "https://www.gov.uk/government/publications/public-assesment-report-of-antiepileptic-drugs-review-of-safety-of-use-during-pregnancy/antiepileptic-drugs-review-of-safety-of-use-during-pregnancy",
-      "keywords": [
-        "antiepileptic",
-        "drugs",
-        "during",
-        "pregnancy"
-      ]
+      "keywords": ["antiepileptic", "drugs", "during", "pregnancy"]
     },
     {
       "year": 2021,
       "title": "Topical steroid withdrawal reactions: a review of the evidence",
       "url": "https://www.gov.uk/government/publications/topical-steroid-withdrawal-reactions-a-review-of-the-evidence",
-      "keywords": [
-        "topical",
-        "steroid",
-        "withdrawal",
-        "reactions",
-        "evidence"
-      ]
+      "keywords": ["topical", "steroid", "withdrawal", "reactions", "evidence"]
     },
     {
       "year": 2021,
       "title": "Review of the use of haloperidol in elderly patients with acute delirium",
       "url": "https://www.gov.uk/government/publications/review-of-the-use-of-haloperidol-in-elderly-patients-with-acute-delirium",
-      "keywords": [
-        "haloperidol",
-        "elderly",
-        "acute",
-        "delirium"
-      ]
+      "keywords": ["haloperidol", "elderly", "acute", "delirium"]
     },
     {
       "year": 2020,
       "title": "Public Assessment Report of over-the-counter stimulant laxatives: benefit-risk review",
       "url": "https://www.gov.uk/government/publications/public-assessment-report-of-over-the-counter-stimulant-laxatives-benefit-risk-review",
-      "keywords": [
-        "over-the-counter",
-        "stimulant",
-        "laxatives",
-        "benefit-risk"
-      ]
+      "keywords": ["over-the-counter", "stimulant", "laxatives", "benefit-risk"]
     },
     {
       "year": 2019,
@@ -241,25 +208,19 @@
       "year": 2018,
       "title": "Oral lidocaine products: risk minimisation measures for use in teething",
       "url": "https://assets.publishing.service.gov.uk/media/5c0fded9ed915d0bbf782c2d/Lidocaine_PAR-for-pub.pdf",
-      "keywords": [
-        "oral",
-        "lidocaine",
-        "minimisation",
-        "measures",
-        "teething"
-      ]
+      "keywords": ["oral", "lidocaine", "minimisation", "measures", "teething"]
+    },
+    {
+      "year": 2017,
+      "title": "Pseudoephedrine and ephedrine managing the risk of medicines misuse",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610eed915d093cec0917/Pseudoephedrine_and_ephedrine_managing_the_risk_of_medicines_misuse.pdf",
+      "keywords": ["pseudoephedrine", "ephedrine", "managing", "misuse"]
     },
     {
       "year": 2015,
       "title": "Pseudoephedrine and ephedrine managing the risk of medicines misuse 2015",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610eed915d0933009728/Pseudoephedrine_and_ephedrine_managing_the_risk_of_medicines_misuse_2015.pdf",
-      "keywords": [
-        "pseudoephedrine",
-        "ephedrine",
-        "managing",
-        "misuse",
-        "2015"
-      ]
+      "keywords": ["pseudoephedrine", "ephedrine", "managing", "misuse", "2015"]
     },
     {
       "year": 2015,
@@ -275,28 +236,64 @@
       ]
     },
     {
+      "year": 2014,
+      "title": "Review of isotretinoin and psychiatric adverse reactions (2014)",
+      "url": "https://assets.publishing.service.gov.uk/media/655201b48a2ed40013720d44/Review_of_isotretinoin_and_psychiatric_adverse_reactions__2014_.pdf",
+      "keywords": [
+        "isotretinoin",
+        "psychiatric",
+        "adverse",
+        "reactions",
+        "2014"
+      ]
+    },
+    {
+      "year": 2013,
+      "title": "Aqueous cream contains sodium lauryl sulfate which may cause skin reactions, particularly in children with eczema",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ce5274a090e4827f5/Aqueous_cream_contains_sodium_lauryl_sulfate_which_may_cause_skin_reactions__particularly_in_children_with_eczema.pdf",
+      "keywords": [
+        "aqueous",
+        "cream",
+        "contains",
+        "sodium",
+        "lauryl",
+        "sulfate",
+        "which",
+        "may",
+        "cause",
+        "skin",
+        "reactions",
+        "particularly",
+        "children",
+        "eczema"
+      ]
+    },
+    {
+      "year": 2012,
+      "title": "Cervarix HPV vaccine safety update at end of 4 years routine use in HPV immunisation programme",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610c40f0b609497ff0e8/Cervarix_HPV_vaccine_safety_update_at_end_of_4_years_routine_use_in_HPV_immunisation_programme.pdf",
+      "keywords": [
+        "cervarix",
+        "hpv",
+        "vaccine",
+        "end",
+        "years",
+        "routine",
+        "immunisation",
+        "programme"
+      ]
+    },
+    {
       "year": 2012,
       "title": "Pseudoephedrine and ephedrine managing the risk of misuse - 2012 review",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610e40f0b6094267a5c4/Pseudoephedrine_and_ephedrine_managing_the_risk_of_misuse_-_2012_review.pdf",
-      "keywords": [
-        "pseudoephedrine",
-        "ephedrine",
-        "managing",
-        "misuse",
-        "2012"
-      ]
+      "keywords": ["pseudoephedrine", "ephedrine", "managing", "misuse", "2012"]
     },
     {
       "year": 2012,
       "title": "0.18% saline or 4% glucose IV solution safety risks in children",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610bed915d093931ae90/0.18__saline_or_4__glucose_IV_solution_safety_risks_in_children.pdf",
-      "keywords": [
-        "saline",
-        "glucose",
-        "solution",
-        "risks",
-        "children"
-      ]
+      "keywords": ["saline", "glucose", "solution", "risks", "children"]
     },
     {
       "year": 2012,
@@ -313,13 +310,23 @@
     },
     {
       "year": 2011,
+      "title": "Liquid paracetamol for children revised UK dosing instructions introduced",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ded915d093cec0915/Liquid_paracetamol_for_children_revised_UK_dosing_instructions_introduced.pdf",
+      "keywords": [
+        "liquid",
+        "paracetamol",
+        "children",
+        "revised",
+        "dosing",
+        "instructions",
+        "introduced"
+      ]
+    },
+    {
+      "year": 2011,
       "title": "Reboxetine review of benefits and risks",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610eed915d093931ae94/Reboxetine_review_of_benefits_and_risks.pdf",
-      "keywords": [
-        "reboxetine",
-        "benefits",
-        "risks"
-      ]
+      "keywords": ["reboxetine", "benefits", "risks"]
     },
     {
       "year": 2011,
@@ -351,6 +358,27 @@
     },
     {
       "year": 2011,
+      "title": "Pseudoephedrine and ephedrine managing the risk of misuse 2011 review",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ee5274a08dacf0fe5/Pseudoephedrine_and_ephedrine_managing_the_risk_of_misuse_2011_review.pdf",
+      "keywords": ["pseudoephedrine", "ephedrine", "managing", "misuse", "2011"]
+    },
+    {
+      "year": 2011,
+      "title": "Combined oral contraceptives (the pill) when to start taking the pill, and missed pill advice",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610c40f0b6095a7681a2/Combined_oral_contraceptives__the_pill__when_to_start_taking_the_pill__and_missed_pill_advice.pdf",
+      "keywords": [
+        "combined",
+        "oral",
+        "contraceptives",
+        "pill",
+        "when",
+        "start",
+        "taking",
+        "missed"
+      ]
+    },
+    {
+      "year": 2011,
       "title": "Nicobrevin withdrawn from UK market as risks outweigh benefits",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610ded915d09322e22cc/Nicobrevin_withdrawn_from_UK_market_as_risks_outweigh_benefits.pdf",
       "keywords": [
@@ -367,12 +395,81 @@
       "year": 2011,
       "title": "Swine flu vaccines and antiviral medicines UK post-pandemic safety review",
       "url": "https://assets.publishing.service.gov.uk/media/5df76110e5274a08e626bd82/Swine_flu_vaccines_and_antiviral_medicines_UK_post-pandemic_safety_review.pdf",
+      "keywords": ["swine", "flu", "vaccines", "antiviral", "post-pandemic"]
+    },
+    {
+      "year": 2010,
+      "title": "Seasonal flu vaccines no evidence of an increased risk of febrile convulsions in children",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610fe5274a08e81c3e5d/Seasonal_flu_vaccines_no_evidence_of_an_increased_risk_of_febrile_convulsions_in_children.pdf",
       "keywords": [
-        "swine",
+        "seasonal",
         "flu",
         "vaccines",
-        "antiviral",
-        "post-pandemic"
+        "evidence",
+        "increased",
+        "febrile",
+        "convulsions",
+        "children"
+      ]
+    },
+    {
+      "year": 2010,
+      "title": "Oral liquid cough medicines containing codeine should not be used in those aged less than 18 years",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610e40f0b60941ffefd8/Oral_liquid_cough_medicines_containing_codeine_should_not_be_used_in_those_aged_less_than_18_years.pdf",
+      "keywords": [
+        "oral",
+        "liquid",
+        "cough",
+        "containing",
+        "codeine",
+        "should",
+        "not",
+        "used",
+        "those",
+        "aged",
+        "less",
+        "than",
+        "years"
+      ]
+    },
+    {
+      "year": 2010,
+      "title": "Cervarix (HPV) vaccine update on UK safety in the first 2 years of the HPV immunisation programme",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610ce5274a08de86824c/Cervarix__HPV__vaccine_update_on_UK_safety_in_the_first_2_years_of_the_HPV_immunisation_programme.pdf",
+      "keywords": [
+        "cervarix",
+        "hpv",
+        "vaccine",
+        "first",
+        "years",
+        "immunisation",
+        "programme"
+      ]
+    },
+    {
+      "year": 2010,
+      "title": "Calcium gluconate 10% in 10 mL glass containers risk of aluminium exposure",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610bed915d093931ae91/Calcium_gluconate_10__in_10_mL_glass_containers_risk_of_aluminium_exposure.pdf",
+      "keywords": [
+        "calcium",
+        "gluconate",
+        "glass",
+        "containers",
+        "aluminium",
+        "exposure"
+      ]
+    },
+    {
+      "year": 2010,
+      "title": "Pseudoephedrine and ephedrine managing the risk of misuse – July 2010 update",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610e40f0b60948b2257f/Pseudoephedrine_and_ephedrine_managing_the_risk_of_misuse__U2013_July_2010_update.pdf",
+      "keywords": [
+        "pseudoephedrine",
+        "ephedrine",
+        "managing",
+        "misuse",
+        "july",
+        "2010"
       ]
     },
     {
@@ -390,9 +487,13 @@
     },
     {
       "year": 2010,
-      "title": "cardiovascular risks",
+      "title": "Non-steroidal anti-inflammatory drugs (NSAIDs) cardiovascular risks",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610ee5274a08f518e911/Non-steroidal_anti-inflammatory_drugs__NSAIDs__cardiovascular_risks.pdf",
       "keywords": [
+        "non-steroidal",
+        "anti-inflammatory",
+        "drugs",
+        "nsaids",
         "cardiovascular",
         "risks"
       ]
@@ -401,30 +502,19 @@
       "year": 2009,
       "title": "Warfarin changes to safety information",
       "url": "https://assets.publishing.service.gov.uk/media/5df76110e5274a0910cb6d46/Warfarin_changes_to_safety_information.pdf",
-      "keywords": [
-        "warfarin",
-        "changes"
-      ]
+      "keywords": ["warfarin", "changes"]
     },
     {
       "year": 2009,
       "title": "Finasteride risk of male breast cancer",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610c40f0b60959adc737/Finasteride_risk_of_male_breast_cancer.pdf",
-      "keywords": [
-        "finasteride",
-        "male",
-        "breast",
-        "cancer"
-      ]
+      "keywords": ["finasteride", "male", "breast", "cancer"]
     },
     {
       "year": 2009,
       "title": "Statins update to product safety information",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610fed915d09360e547c/Statins_update_to_product_safety_information.pdf",
-      "keywords": [
-        "statins",
-        "product"
-      ]
+      "keywords": ["statins", "product"]
     },
     {
       "year": 2009,
@@ -441,9 +531,12 @@
     },
     {
       "year": 2009,
-      "title": "withdrawal from UK market after a risk-benefit analysis",
+      "title": "Orciprenaline sulphate (Alupent) withdrawal from UK market after a risk-benefit analysis",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610ee5274a08f518e912/Orciprenaline_sulphate__Alupent__withdrawal_from_UK_market_after_a_risk-benefit_analysis.pdf",
       "keywords": [
+        "orciprenaline",
+        "sulphate",
+        "alupent",
         "withdrawal",
         "from",
         "market",
@@ -456,40 +549,98 @@
       "year": 2009,
       "title": "Codeine and dihydrocodeine minimising the risk of addiction",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610c40f0b60956f5a2e4/Codeine_and_dihydrocodeine_minimising_the_risk_of_addiction.pdf",
-      "keywords": [
-        "codeine",
-        "dihydrocodeine",
-        "minimising",
-        "addiction"
-      ]
+      "keywords": ["codeine", "dihydrocodeine", "minimising", "addiction"]
     },
     {
       "year": 2009,
       "title": "Pseudoephedrine and ephedrine managing the risk of misuse - 2009 update",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610e40f0b609455bc0da/Pseudoephedrine_and_ephedrine_managing_the_risk_of_misuse_-_2009_update.pdf",
-      "keywords": [
-        "pseudoephedrine",
-        "ephedrine",
-        "managing",
-        "misuse",
-        "2009"
-      ]
+      "keywords": ["pseudoephedrine", "ephedrine", "managing", "misuse", "2009"]
     },
     {
       "year": 2009,
       "title": "Risk of venous thromboembolism associated with antipsychotics",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610fed915d093724a2db/Risk_of_venous_thromboembolism_associated_with_antipsychotics.pdf",
+      "keywords": ["venous", "thromboembolism", "antipsychotics"]
+    },
+    {
+      "year": 2008,
+      "title": "Efficacy of progestogens in the maintenance of early pregnancy in women with threatened miscarriage or recurrent miscarriage",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610c40f0b60943263e83/Efficacy_of_progestogens_in_the_maintenance_of_early_pregnancy_in_women_with_threatened_miscarriage_or_recurrent_miscarriage.pdf",
       "keywords": [
-        "venous",
-        "thromboembolism",
-        "antipsychotics"
+        "efficacy",
+        "progestogens",
+        "maintenance",
+        "early",
+        "pregnancy",
+        "women",
+        "threatened",
+        "miscarriage",
+        "recurrent"
       ]
     },
     {
       "year": 2008,
-      "title": "safety update",
+      "title": "Recombinant human erythropoietins (epoetins): new prescribing advice (01 December 2007) Epoetins for the management of anaemia associated with cancer risk of tumour progression and mortality",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7610d40f0b6094e25ac5c/MHRA_Public_Assessment_Report_Epoetins_for_the_management_of_anaemia_associated_with_cancer_risk_of_tumour_progression_and_mortality__676Kb_.pdf",
+      "keywords": [
+        "recombinant",
+        "human",
+        "erythropoietins",
+        "epoetins",
+        "prescribing",
+        "december",
+        "2007",
+        "management",
+        "anaemia",
+        "cancer",
+        "tumour",
+        "progression",
+        "mortality"
+      ]
+    },
+    {
+      "year": 2008,
+      "title": "Epoetins for the management of anaemia in patients with chronic renal disease mortality and cardiovascular morbidity (https://assets.publishing.service.gov.uk/media/5df7610de5274a08dd355bae/MHRA_Public_Assessment_Report_Epoetins_for_the_management_of_anaemia_in_patients_with_chronic_renal_disease_mortality_and_cardiovascular _morbidity.pdf) (PDF, 324 KB, 26 pages) Hormone replacement therapy (HRT) safety update",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610ded915d093cec0914/Hormone_replacement_therapy__HRT__safety_update.pdf",
-      "keywords": []
+      "keywords": [
+        "epoetins",
+        "management",
+        "anaemia",
+        "chronic",
+        "renal",
+        "disease",
+        "mortality",
+        "cardiovascular",
+        "morbidity",
+        "https",
+        "assets",
+        "publishing",
+        "service",
+        "gov",
+        "media",
+        "5df7610de5274a08dd355bae",
+        "mhra",
+        "324",
+        "hormone",
+        "replacement",
+        "therapy",
+        "hrt"
+      ]
+    },
+    {
+      "year": 2008,
+      "title": "α-1 adrenoceptor antagonists and intraoperative floppy iris syndrome (IFIS)",
+      "url": "https://assets.publishing.service.gov.uk/media/5df7611040f0b6095a7681a3/_U03b1-1_adrenoceptor_antagonists_and_intraoperative_floppy_iris_syndrome__IFIS_.pdf",
+      "keywords": [
+        "adrenoceptor",
+        "antagonists",
+        "intraoperative",
+        "floppy",
+        "iris",
+        "syndrome",
+        "ifis"
+      ]
     },
     {
       "year": 2008,
@@ -522,21 +673,13 @@
       "year": 2008,
       "title": "Neuroleptics and cardiac safety",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610ded915d0931d7475e/Neuroleptics_and_cardiac_safety.pdf",
-      "keywords": [
-        "neuroleptics",
-        "cardiac"
-      ]
+      "keywords": ["neuroleptics", "cardiac"]
     },
     {
       "year": 2008,
       "title": "Black cohosh and liver injury",
       "url": "https://assets.publishing.service.gov.uk/media/5df7610ce5274a08f78bca34/Black_cohosh_and_liver_injury.pdf",
-      "keywords": [
-        "black",
-        "cohosh",
-        "liver",
-        "injury"
-      ]
+      "keywords": ["black", "cohosh", "liver", "injury"]
     }
   ]
 }
