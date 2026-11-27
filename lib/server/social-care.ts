@@ -29,10 +29,12 @@ export function getSocialCareSummary() {
  * Queries DHSC England Adult Social Care Finance Report (FY 2025–2026, updated
  * November 2026) across national totals, 9 English regions, and 153 Local Authorities.
  */
-export function queryAdultSocialCareFinance(opts: {
-  query?: string;
-  limit?: number;
-} = {}): SocialCareQueryResult {
+export function queryAdultSocialCareFinance(
+  opts: {
+    query?: string;
+    limit?: number;
+  } = {},
+): SocialCareQueryResult {
   const limit = Math.min(25, Math.max(1, opts.limit ?? 8));
   const needle = (opts.query ?? "").toLowerCase().trim();
   const tokens = needle

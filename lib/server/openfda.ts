@@ -166,7 +166,9 @@ export async function queryOpenFdaComprehensive(opts: {
             status: isDisc ? "discontinued" : "matched",
             title: `${r.application_number ?? "FDA Appl."} · ${r.sponsor_name ?? cleanName}`,
             detail: `${prod?.brand_name ?? cleanName} (${prod?.dosage_form ?? "Drug"}) — FDA marketing status: ${mkt}.`,
-            code: r.application_number ? String(r.application_number) : undefined,
+            code: r.application_number
+              ? String(r.application_number)
+              : undefined,
             url: "https://open.fda.gov/apis/drug/drugsfda/",
             sourceAttribution: "Source: openFDA Drugs@FDA Approvals",
           });
@@ -242,7 +244,8 @@ export async function queryOpenFdaComprehensive(opts: {
             title: `Post-market safety signals for ${faersTarget}`,
             detail: `Most frequently reported FAERS MedDRA terms (not proof of causation): ${top.join(", ")}.`,
             url: "https://open.fda.gov/apis/drug/event/",
-            sourceAttribution: "Source: openFDA Adverse Event Reporting System (FAERS)",
+            sourceAttribution:
+              "Source: openFDA Adverse Event Reporting System (FAERS)",
           });
         })
         .catch((err) => {

@@ -20,7 +20,8 @@ export const LAWFUL_BASIS_MATRIX: LawfulBasisEntry[] = [
       "Salted scrypt password hash; split-key SHA-256 session cookie (HTTP-only, SameSite=Lax)",
   },
   {
-    activity: "Personal biometric & health profile, triage chats & uploaded scans",
+    activity:
+      "Personal biometric & health profile, triage chats & uploaded scans",
     ukLawfulBasis: "UK GDPR Art. 6(1)(a) Explicit Consent",
     specialCategoryCondition:
       "UK GDPR Art. 9(2)(a) Explicit Consent · DPA 2018 s. 10 & s. 11 & Sch. 1",
@@ -39,7 +40,8 @@ export const LAWFUL_BASIS_MATRIX: LawfulBasisEntry[] = [
   },
   {
     activity: "Abuse prevention, CSRF protection & PostgreSQL rate limiting",
-    ukLawfulBasis: "UK GDPR Art. 6(1)(f) Legitimate security interest (DPA 2018 s. 2)",
+    ukLawfulBasis:
+      "UK GDPR Art. 6(1)(f) Legitimate security interest (DPA 2018 s. 2)",
     specialCategoryCondition: "Not special category",
     ndpaBasis: "NDPA 2023 s. 39 (Data Security)",
     technicalControl:
@@ -50,12 +52,14 @@ export const LAWFUL_BASIS_MATRIX: LawfulBasisEntry[] = [
 export const RETENTION_SCHEDULE = [
   {
     category: "Encrypted health profile, chats & encrypted uploads",
-    retention: "Retained until deleted by the user or upon account deletion (immediate purge)",
+    retention:
+      "Retained until deleted by the user or upon account deletion (immediate purge)",
     statute: "UK GDPR Art. 5(1)(e) · DPA 2018 s. 47 · NDPA 2023",
   },
   {
     category: "HTTP-only authentication sessions",
-    retention: "Up to 30 days sliding expiry; instant revocation on sign-out or device revoke",
+    retention:
+      "Up to 30 days sliding expiry; instant revocation on sign-out or device revoke",
     statute: "DPA 2018 s. 2 Security Principle",
   },
   {
@@ -65,7 +69,8 @@ export const RETENTION_SCHEDULE = [
   },
   {
     category: "Public regulatory verification cache (regulatory_cache)",
-    retention: "7-day fresh TTL with stale timestamped fallback notice; no personal user data stored",
+    retention:
+      "7-day fresh TTL with stale timestamped fallback notice; no personal user data stored",
     statute: "Accuracy principle (UK GDPR Art. 5(1)(d))",
   },
 ];
@@ -79,7 +84,8 @@ export function searchDataProtectionProvisions(query: string) {
 
   const matchedAct = tokens.length
     ? ukpgaJson.statute.provisions.filter((p) => {
-        const hay = `${p.section} ${p.title} ${p.domain} ${p.excerpt}`.toLowerCase();
+        const hay =
+          `${p.section} ${p.title} ${p.domain} ${p.excerpt}`.toLowerCase();
         return tokens.some((t) => hay.includes(t));
       })
     : ukpgaJson.statute.provisions.slice(0, 6);
@@ -126,7 +132,8 @@ export function getComplianceFrameworkSummary() {
     ],
     statuteTotalPages: ukpgaJson.statute.totalPages,
     provisionsIndexed: ukpgaJson.statute.provisions.length,
-    nationalSecurityGuidancePages: ukpgaJson.nationalSecurityGuidance.totalPages,
+    nationalSecurityGuidancePages:
+      ukpgaJson.nationalSecurityGuidance.totalPages,
     mhraPrivacySections: mhraRefJson.privacyNotice.sections.length,
     enforcedControls: {
       zeroKnowledgeEncryption:

@@ -25,12 +25,16 @@ const CLINICAL_CLASS_TRIGGERS: Array<{
   {
     trigger:
       /\b(pregabalin|gabapentin|lyrica|neurontin|diazepam|lorazepam|clonazepam|alprazolam|zopiclone|zolpidem)\b/i,
-    matchTerms: ["gabapentinoids", "pregabalin", "gabapentin", "benzodiazepines"],
+    matchTerms: [
+      "gabapentinoids",
+      "pregabalin",
+      "gabapentin",
+      "benzodiazepines",
+    ],
     reason: "Gabapentinoid / Benzodiazepine / Z-drug safety guidance",
   },
   {
-    trigger:
-      /\b(valproate|sodium valproate|epilim|depakote|depakin)\b/i,
+    trigger: /\b(valproate|sodium valproate|epilim|depakote|depakin)\b/i,
     matchTerms: ["valproate"],
     reason: "Valproate teratogenicity & reproductive safety review",
   },
@@ -83,7 +87,8 @@ const CLINICAL_CLASS_TRIGGERS: Array<{
     reason: "UK MHRA PAR archive on intravenous/oral paracetamol dosing",
   },
   {
-    trigger: /\b(topiramate|montelukast|methotrexate|metoclopramide|domperidone|diclofenac|celecoxib|etoricoxib|pioglitazone|rosiglitazone|methylphenidate|atomoxetine)\b/i,
+    trigger:
+      /\b(topiramate|montelukast|methotrexate|metoclopramide|domperidone|diclofenac|celecoxib|etoricoxib|pioglitazone|rosiglitazone|methylphenidate|atomoxetine)\b/i,
     matchTerms: [
       "topiramate",
       "montelukast",
