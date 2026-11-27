@@ -1087,8 +1087,7 @@ export async function getAdminSystemHealth(): Promise<AdminSystemHealth> {
         id: "openfda_apis",
         label: "US openFDA Live REST APIs",
         records: 7,
-        source:
-          "NDC, Drugs@FDA, SPL Label, FAERS, Enforcement, Food, CAERS",
+        source: "NDC, Drugs@FDA, SPL Label, FAERS, Enforcement, Food, CAERS",
         status: "ready",
       },
       {

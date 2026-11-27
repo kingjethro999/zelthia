@@ -117,6 +117,14 @@ export interface RegistrySourceFinding {
     | "Global Pharmacovigilance"
     | "Barcode Registry";
   status: "matched" | "warning" | "recalled" | "discontinued" | "not_found";
+  /**
+   * How strongly this finding identifies the scanned product:
+   * "code" = the printed registration number matched a registry record,
+   * "name" = a registry lists a product with this name or ingredient,
+   * "signal" = safety or reference context only (adverse events, labels,
+   * assessment reports, news), never proof that the product is registered.
+   */
+  evidence?: "code" | "name" | "signal";
   title: string;
   detail: string;
   code?: string;
@@ -138,6 +146,10 @@ export interface RegulatoryAlertFlag {
     | "HERBAL_LISTED_ONLY"
     | "IMPORT_UNLISTED_LOCALLY"
     | "UNLISTED_PRODUCT"
+    | "NAFDAC_CODE_NOT_FOUND"
+    | "NAFDAC_NOT_COVERED"
+    | "VERIFICATION_UNAVAILABLE"
+    | "SUPPLIER_RISK"
     | "STALE_CACHE_FALLBACK";
   severity: "danger" | "caution" | "info";
   title: string;
@@ -169,6 +181,10 @@ export interface RegulatoryReport {
   staleFromDate?: string;
   unlistedWarning?: string;
   disclaimer: string;
+  /** Server-issued id. Products only carry a verdict that matches a stored report. */
+  reportId?: string;
+  /** Registry calls that answered vs failed during this check. */
+  coverage?: { ok: number; failed: number };
 }
 
 export interface Product {

@@ -138,7 +138,14 @@ export async function GET(req: Request) {
 
     const url = new URL(req.url);
     const q = (url.searchParams.get("q") ?? "").trim().slice(0, 120);
-    const code = (url.searchParams.get("code") ?? "").trim().slice(0, 80);
+    // `nafdac` is the documented name (llms.txt, openapi.json); `code` is kept for older clients.
+    const code = (
+      url.searchParams.get("nafdac") ??
+      url.searchParams.get("code") ??
+      ""
+    )
+      .trim()
+      .slice(0, 80);
     const barcode = (url.searchParams.get("barcode") ?? "").trim().slice(0, 80);
     const category = url.searchParams.get("category")?.trim() || undefined;
     const city = url.searchParams.get("city")?.trim() || null;

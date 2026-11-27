@@ -62,7 +62,7 @@ export function generateClinicalFallback(
 
 **Your safety is the absolute priority.** The symptoms you described (${kw}) can be indicators of a life-threatening acute emergency.
 
-#### What you must do right now:
+**What to do right now**
 1. **Call local emergency services immediately**:
    - In Nigeria, dial **112** (or your local emergency response hotline).
    - In the US/International, dial **911** or your regional medical dispatch.
@@ -194,7 +194,7 @@ export function generateClinicalFallback(
 
   const bioSection =
     bioAlerts.length > 0
-      ? `\n\n### Safety check against your profile\n${bioAlerts.join("\n\n")}\n`
+      ? `\n\n**From your profile**\n${bioAlerts.join("\n\n")}\n`
       : "";
 
   // 3. Scenario: Fever / Malaria / Body aches
@@ -215,23 +215,21 @@ export function generateClinicalFallback(
         reason:
           "Find verified Artemether/Lumefantrine and Rapid Diagnostic Kits at nearby Zelthia pharmacies.",
       },
-      message: `### Clinical Assessment: Acute Febrile Episode & Malaria Evaluation
+      message: `A fever accompanied by chills, joint pain, or generalized fatigue in malaria-endemic regions requires prompt attention. Early diagnostic confirmation prevents complications.${bioSection}
 
-A fever accompanied by chills, joint pain, or generalized fatigue in malaria-endemic regions requires prompt attention. Early diagnostic confirmation prevents complications.${bioSection}
-
-#### 1. Recommended Next Steps
+**Recommended Next Steps**
 - **Diagnostic Confirmation First**: Take a Rapid Diagnostic Test (RDT) or blood film for malaria parasites at a local pharmacy or clinic before starting antimalarial therapy.
 - **First-Line Therapy (if positive)**: Artemisinin-based Combination Therapy (ACT), specifically **Artemether-Lumefantrine (Coartem)** or **Artesunate-Amodiaquine**, taken with a meal containing fats (such as milk) to enhance absorption.
 - **Temperature & Pain Management**: Paracetamol 500mg–1000mg every 6–8 hours as needed (do not exceed 4000mg/day).
 - **Hydration**: Drink plenty of fluids (clean water, coconut water, or oral rehydration salts) to counter fluid loss from sweating.
 
-#### 2. Red Flags Requiring Immediate Escalation
+**Red Flags Requiring Immediate Escalation**
 - Temperature above 39.5°C (103°F) that does not respond to antipyretics
 - Persistent vomiting preventing oral fluid or medication intake
 - Altered consciousness, severe confusion, or seizures (signs of cerebral malaria)
 - Extreme jaundice (yellowing of eyes) or tea-colored dark urine
 
-#### 3. Questions to Ask Your Pharmacist or Doctor
+**Questions to Ask Your Pharmacist or Doctor**
 - *"Can you perform an RDT finger-prick test before dispensing antimalarials?"*
 - *"Does this antimalarial interact with any of my current daily medications?"*`,
     };
@@ -243,8 +241,7 @@ A fever accompanied by chills, joint pain, or generalized fatigue in malaria-end
     query.includes("skin") ||
     query.includes("itching") ||
     query.includes("eczema") ||
-    query.includes("dermatitis") ||
-    query.includes("cream")
+    query.includes("dermatitis")
   ) {
     return {
       triageLevel: "low",
@@ -256,20 +253,18 @@ A fever accompanied by chills, joint pain, or generalized fatigue in malaria-end
         reason:
           "Locate soothing topical creams and antihistamines in local partner stock.",
       },
-      message: `### Clinical Assessment: Dermatological Symptoms & Topical Care
+      message: `Skin rashes can originate from contact dermatitis (allergens, detergents, cosmetics), mild fungal infections, insect bites, or heat rash.${bioSection}
 
-Skin rashes can originate from contact dermatitis (allergens, detergents, cosmetics), mild fungal infections, insect bites, or heat rash.${bioSection}
-
-#### 1. Recommended Supportive Care
+**Recommended Supportive Care**
 - **Gentle Cleansing**: Wash the affected area with mild, fragrance-free soap and lukewarm water. Gently pat dry without rubbing.
 - **Topical Calming Agents**: For localized, non-infected itchy patches, a thin layer of **Hydrocortisone 1% cream** applied 1–2 times daily for no more than 7 days can reduce inflammation.
 - **Oral Antihistamines**: If itching is disturbing sleep or daily activities, a non-drowsy antihistamine (such as Cetirizine 10mg or Loratadine 10mg) may provide relief.
 - **Avoid Scratching**: Keep fingernails trimmed and use a cool damp compress to avoid secondary bacterial skin infections.
 
-#### 2. When to Avoid Corticosteroid Creams
+**When to Avoid Corticosteroid Creams**
 - Do **not** apply hydrocortisone to open sores, weeping lesions, fungal ringworm (tinea), or viral blisters (e.g. cold sores or shingles), as steroids can worsen fungal and viral infections.
 
-#### 3. Warning Signs to See a Doctor
+**Warning Signs to See a Doctor**
 - Rash spreading rapidly across large portions of the body
 - Accompanying facial swelling, difficulty swallowing, or hives (anaphylactic reaction -> call 112/911)
 - Signs of secondary bacterial infection: warm skin, pus formation, yellow crusting, or increasing pain.`,
@@ -296,20 +291,18 @@ Skin rashes can originate from contact dermatitis (allergens, detergents, cosmet
         reason:
           "Search licensed community pharmacies for verified prescription stock and landmark directions.",
       },
-      message: `### Clinical Assessment: Prescription Antibiotic Guidance & Stock Availability
+      message: `Antibiotics are essential prescription medicines engineered specifically to treat bacterial infections. They are completely ineffective against viral illnesses like the common cold, viral bronchitis, or influenza.${bioSection}
 
-Antibiotics are essential prescription medicines engineered specifically to treat bacterial infections. They are completely ineffective against viral illnesses like the common cold, viral bronchitis, or influenza.${bioSection}
-
-#### 1. Safe Antibiotic Principles
+**Safe Antibiotic Principles**
 - **Prescription Requirement**: Antibiotics should only be obtained upon a clinical diagnosis and valid prescription from a registered doctor or healthcare facility.
 - **Finish the Prescribed Course**: If you have been prescribed an antibiotic course, complete all doses even if you feel better early. Stopping prematurely fosters antimicrobial resistance (AMR).
 - **Never Share or Reuse**: Never take leftover antibiotics or another person's prescription.
 
-#### 2. Checking Local Availability on Zelthia
+**Checking Local Availability on Zelthia**
 - Zelthia's inventory portal links directly with verified community pharmacies and hospital dispensary centers.
 - You can look up stock counts, batch verification, and landmark-based step-by-step directions directly in the Inventory portal.
 
-#### 3. Red Flags
+**Red Flags**
 - Signs of severe systemic bacterial infection: high persistent fever, rapid heart rate, deep-seated localized throbbing pain, or spreading red streaks from a wound. Seek direct outpatient or emergency clinic evaluation.`,
     };
   }
@@ -335,20 +328,18 @@ Antibiotics are essential prescription medicines engineered specifically to trea
         reason:
           "Review your medication regimen with a licensed clinical pharmacist on Zelthia.",
       },
-      message: `### Clinical Assessment: Comprehensive Drug Interaction Screening
+      message: `Reviewing drug compatibility is one of the most effective measures to prevent adverse drug events and maintain therapeutic efficacy.${bioSection}
 
-Reviewing drug compatibility is one of the most effective measures to prevent adverse drug events and maintain therapeutic efficacy.${bioSection}
-
-#### 1. Profile Status
+**Profile Status**
 - **Current active medications evaluated**: ${medList}
 - When initiating any new medication, supplement, or herbal remedy, your clinical profile should always be verified for CYP450 enzyme interactions, additive CNS depression, and renal/hepatic clearance burdens.
 
-#### 2. Common Interactions to Guard Against
+**Common Interactions to Guard Against**
 - **NSAIDs (Ibuprofen, Diclofenac) + Blood Pressure Meds**: Can blunt the blood pressure-lowering effect and increase stress on kidneys.
 - **Antibiotics + Dairy/Antacids**: Tetracyclines and fluoroquinolones bind with calcium, magnesium, and iron, reducing drug absorption by up to 50%.
 - **Alcohol + Central Acting Drugs / Antibiotics**: Interacts severely with Metronidazole (Flagyl) causing severe disulfiram-like nausea and vomiting.
 
-#### 3. Recommended Action
+**Recommended Action**
 - Consult a certified pharmacist at your local dispensary to run a formal dispensing check before starting any new therapy.`,
     };
   }
@@ -364,25 +355,10 @@ Reviewing drug compatibility is one of the most effective measures to prevent ad
       reason:
         "Connect with community clinics and pharmacies registered on Zelthia.",
     },
-    message: `### Clinical Guidance & Health Navigation
+    message: `I'd rather not guess about your health without looking at it properly.${bioSection}
 
-Thank you for consulting Zelthia AI. I am here to provide evidence-based, compassionate health information and connect you with local care providers.${bioSection}
+If it's not urgent, try again in a minute and I'll look at it properly. In the meantime, a pharmacist at any community pharmacy can usually help with everyday symptoms and medicines.
 
-#### 1. Health Assessment Summary
-- **Symptom Overview**: You inquired about: *"${userQuery.slice(0, 100)}${userQuery.length > 100 ? "..." : ""}"*.
-- For accurate triage, monitoring the duration, intensity, triggers, and any associated symptoms (such as fever, localized pain, or nausea) provides vital clinical context.
-
-#### 2. General Supportive Self-Care
-- **Hydration**: Maintain steady fluid intake throughout the day.
-- **Rest & Recovery**: Allow adequate time for physical rest and recuperation.
-- **Symptom Journaling**: Note down when symptoms started and whether anything makes them better or worse.
-
-#### 3. Red Flags That Require Immediate Medical Evaluation
-- Difficulty breathing, wheezing, or chest tightness
-- High fever unresponsive to standard antipyretics
-- Sudden weakness, fainting, or severe persistent pain
-- Symptoms worsening steadily over 48 to 72 hours
-
-*Zelthia is designed to support, not replace, the relationship between you and your healthcare providers. Always consult a qualified medical professional for diagnosis and personalized treatment plans.*`,
+**Go to a hospital or call 112 now** if you have trouble breathing, chest pain or tightness, sudden weakness or fainting, a high fever that won't come down, or pain that keeps getting worse.`,
   };
 }

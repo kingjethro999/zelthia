@@ -35,7 +35,9 @@ export default function PrivacyPage() {
             your plaintext password.
           </li>
           <li>
-            <strong className="text-ink">Health profile (special category):</strong>{" "}
+            <strong className="text-ink">
+              Health profile (special category):
+            </strong>{" "}
             optional age, biological sex, blood group, location, height, weight,
             allergies, chronic conditions, current medicines and notes.
           </li>
@@ -60,8 +62,8 @@ export default function PrivacyPage() {
           <li>
             <strong className="text-ink">Sign-in cookie:</strong> an HTTP-only
             split-key cookie pairing a random session token with your unlocked
-            encryption key for up to 30 days. Our database stores only a
-            one-way SHA-256 hash of the session token.
+            encryption key for up to 30 days. Our database stores only a one-way
+            SHA-256 hash of the session token.
           </li>
         </ul>
       </section>
@@ -151,12 +153,14 @@ export default function PrivacyPage() {
               Public registry &amp; web search:
             </strong>{" "}
             Product names, barcodes, NAFDAC codes and general city keywords
-            (never user identities or health history) are queried against NAFDAC,
-            openFDA, Health Canada DPD, and search/scrape providers (Firecrawl,
-            Tavily, You.com, Jina, ZenRows, TinyFish).
+            (never user identities or health history) are queried against
+            NAFDAC, openFDA, Health Canada DPD, and search/scrape providers
+            (Firecrawl, Tavily, You.com, Jina, ZenRows, TinyFish).
           </li>
           <li>
-            <strong className="text-ink">Infrastructure &amp; retention:</strong>{" "}
+            <strong className="text-ink">
+              Infrastructure &amp; retention:
+            </strong>{" "}
             Application compute runs on Vercel; PostgreSQL records reside on
             Render over verified TLS (with 24-hour rate-limit pruning and 7-day
             regulatory cache refresh); encrypted uploads reside on Cloudinary.
@@ -165,7 +169,10 @@ export default function PrivacyPage() {
       </section>
 
       <section>
-        <h2>7. Your rights (Subject Access, Restriction, Portability &amp; Erasure)</h2>
+        <h2>
+          7. Your rights (Subject Access, Restriction, Portability &amp;
+          Erasure)
+        </h2>
         <ul>
           <li>
             <strong className="text-ink">
@@ -187,8 +194,8 @@ export default function PrivacyPage() {
               Restrict Processing (DPA 2018 s. 47 / Art. 18):
             </strong>{" "}
             Toggle processing restriction directly on your account page to lock
-            profile edits and force all chats into transient mode without
-            server persistence.
+            profile edits and force all chats into transient mode without server
+            persistence.
           </li>
           <li>
             <strong className="text-ink">

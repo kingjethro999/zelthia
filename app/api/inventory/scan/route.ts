@@ -24,6 +24,11 @@ import {
   lookupBarcodeMetadata,
   verifyHealthProduct,
 } from "@/lib/server/regulatory";
+import {
+  listStockScans,
+  recordStockScan,
+  supplierRiskFlag,
+} from "@/lib/server/stock-scans";
 import { searchImages, searchWebGeneral } from "@/lib/server/web-search";
 
 export const maxDuration = 60;
@@ -166,6 +171,7 @@ export async function POST(req: Request) {
     const imageBase64 = cleanStr(body.imageBase64, 6_000_000);
     const imageMime = cleanStr(body.imageMime || "image/jpeg", 80);
     const forceRefresh = body.forceRefresh === true;
+    const supplier = cleanStr(body.supplier, 120);
 
     if (!rawBarcodeInput && !rawCodeInput && !rawQueryInput && !imageBase64) {
       throw new HttpError(
@@ -298,32 +304,65 @@ export async function POST(req: Request) {
         ? nafdacNumber || barcode
         : name;
 
-    const [report, existingProduct, webSearch, images] = await Promise.all([
-      verifyHealthProduct({
-        name: searchName,
-        genericName: genericName || undefined,
-        category,
-        nafdacCode: nafdacNumber || undefined,
-        barcode: barcode || undefined,
-        foreignCode: foreignCode || undefined,
-        manufacturer: manufacturer || undefined,
-        countryOfOrigin: countryOfOrigin || undefined,
+    const [issuedReport, existingProduct, webSearch, images, supplierFlag] =
+      await Promise.all([
+        verifyHealthProduct({
+          name: searchName,
+          genericName: genericName || undefined,
+          category,
+          nafdacCode: nafdacNumber || undefined,
+          barcode: barcode || undefined,
+          foreignCode: foreignCode || undefined,
+          manufacturer: manufacturer || undefined,
+          countryOfOrigin: countryOfOrigin || undefined,
+          expiresOn,
+          forceRefresh,
+        }),
+        facilityId
+          ? findExistingFacilityProduct(facilityId, {
+              barcode: barcode || undefined,
+              nafdacNumber: nafdacNumber || undefined,
+              name: searchName,
+            }).catch(() => null)
+          : Promise.resolve(null),
+        searchWebGeneral(
+          `${searchName} ${genericName} ${nafdacNumber} manufacturer pharmacy`,
+          { limit: 5, country: "NG", filterLowValue: true },
+        ).catch(() => ({ results: [], errors: [] })),
+        searchImages(`${searchName} ${manufacturer}`, null, 4).catch(() => []),
+        facilityId && supplier
+          ? supplierRiskFlag(supplier, facilityId).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+
+    // Supplier history is advisory context for this intake only; the issued
+    // report (which a product save is checked against) stays unchanged.
+    const report = supplierFlag
+      ? {
+          ...issuedReport,
+          flags: [supplierFlag, ...issuedReport.flags],
+          verdict:
+            issuedReport.verdict === "verified"
+              ? ("caution" as const)
+              : issuedReport.verdict,
+        }
+      : issuedReport;
+
+    if (facilityId) {
+      await recordStockScan({
+        facilityId,
+        userId: user.id,
+        productName: name,
+        nafdacNumber,
+        barcode,
+        batch,
         expiresOn,
-        forceRefresh,
-      }),
-      facilityId
-        ? findExistingFacilityProduct(facilityId, {
-            barcode: barcode || undefined,
-            nafdacNumber: nafdacNumber || undefined,
-            name: searchName,
-          }).catch(() => null)
-        : Promise.resolve(null),
-      searchWebGeneral(
-        `${searchName} ${genericName} ${nafdacNumber} manufacturer pharmacy`,
-        { limit: 5, country: "NG", filterLowValue: true },
-      ).catch(() => ({ results: [], errors: [] })),
-      searchImages(`${searchName} ${manufacturer}`, null, 4).catch(() => []),
-    ]);
+        supplier,
+        report: issuedReport,
+      }).catch((err) =>
+        console.warn("Could not record stock scan", (err as Error).message),
+      );
+    }
 
     const draft: Omit<Product, "id" | "facilityId" | "updatedAt"> = {
       name,
@@ -343,9 +382,9 @@ export async function POST(req: Request) {
       nafdacNumber,
       manufacturer,
       countryOfOrigin,
-      regulatoryStatus: report.verdict,
-      regulatorySummary: report,
-      regulatoryCheckedAt: report.checkedAt,
+      regulatoryStatus: issuedReport.verdict,
+      regulatorySummary: issuedReport,
+      regulatoryCheckedAt: issuedReport.checkedAt,
     };
 
     return json({
@@ -357,5 +396,20 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     return handle("POST /api/inventory/scan", err);
+  }
+}
+
+/** Recent Scan-to-Stock intake history for a facility the provider owns. */
+export async function GET(req: Request) {
+  try {
+    const user = await requireProvider();
+    const facilityId = new URL(req.url).searchParams.get("facilityId") ?? "";
+    const owned = facilityId
+      ? await getOwnedFacility(facilityId, user.id)
+      : null;
+    if (!owned) throw new HttpError("Facility not found.", 404);
+    return json({ scans: await listStockScans(facilityId, 50) });
+  } catch (err) {
+    return handle("GET /api/inventory/scan", err);
   }
 }

@@ -371,7 +371,9 @@ export function SystemView() {
                 </div>
               </div>
               <GlassBadge tone="brand" icon={BookOpenCheck}>
-                <span className="font-mono">{data.compliance.termsVersion}</span>
+                <span className="font-mono">
+                  {data.compliance.termsVersion}
+                </span>
               </GlassBadge>
             </div>
 

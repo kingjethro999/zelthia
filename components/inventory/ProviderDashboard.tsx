@@ -21,6 +21,8 @@ import {
   Stethoscope,
   Trash2,
   TriangleAlert,
+  ExternalLink,
+  QrCode,
 } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ChoiceGroup } from "@/components/ui/Choice";
@@ -219,6 +221,22 @@ function FacilityDashboard() {
               }))}
             />
           )}
+          <ButtonLink
+            href={`/facility/${facility.id}`}
+            variant="secondary"
+            target="_blank"
+          >
+            <ExternalLink className="h-4 w-4" aria-hidden />
+            Public page
+          </ButtonLink>
+          <ButtonLink
+            href={`/sticker/${facility.id}`}
+            variant="secondary"
+            target="_blank"
+          >
+            <QrCode className="h-4 w-4" aria-hidden />
+            QR sticker
+          </ButtonLink>
           <ButtonLink href="/provider/new" variant="secondary">
             <Plus className="h-4 w-4" aria-hidden />
             Add facility

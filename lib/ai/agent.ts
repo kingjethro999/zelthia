@@ -618,13 +618,23 @@ export async function runTurn({
                   title: cleanUntrusted(f.title, 120),
                   detail: cleanUntrusted(f.detail, 260),
                 })),
-                findings: r.findings.slice(0, 6).map((f) => ({
-                  registry: f.registry,
-                  status: f.status,
-                  title: cleanUntrusted(f.title, 140),
-                  detail: cleanUntrusted(f.detail, 240),
-                  source: cleanUntrusted(f.sourceAttribution, 120),
-                })),
+                // Listings first: "signal" findings (adverse events, labels,
+                // news) are context and never proof of registration.
+                findings: [...r.findings]
+                  .sort(
+                    (a, b) =>
+                      Number(a.evidence === "signal") -
+                      Number(b.evidence === "signal"),
+                  )
+                  .slice(0, 6)
+                  .map((f) => ({
+                    registry: f.registry,
+                    status: f.status,
+                    evidence: f.evidence ?? "name",
+                    title: cleanUntrusted(f.title, 140),
+                    detail: cleanUntrusted(f.detail, 240),
+                    source: cleanUntrusted(f.sourceAttribution, 120),
+                  })),
                 unlisted_warning: r.unlistedWarning ?? null,
               })),
             )}\n\n`
@@ -678,6 +688,8 @@ export async function runTurn({
 - Call a facility "verified" only when licence_verified is true. If it has recorded directions, mention they can listen to them on the card below.
 - Facility cards with phone, directions and stock are shown under your answer, so keep your own summary short.
 - Photos from the web search are shown under your answer and link to their source pages; you may refer to them.
+- A finding with evidence "signal" (adverse event counts, labels, assessment reports, news) is safety context only; never describe it as the product being registered or approved. evidence "code" means the printed number matched the registry record; evidence "name" means only a product with that name is registered, so the pack itself still needs checking.
+- If flags include NAFDAC_CODE_NOT_FOUND, say plainly that the NAFDAC number was not found on the Greenbook, do not guess why, and advise consulting a licensed pharmacy, clinic or hospital nearby before use. If flags include VERIFICATION_UNAVAILABLE, say the check could not be completed rather than calling the product unlisted.
 - If REGULATORY VERIFICATION RESULTS shows verdict "unverified" or unlisted_warning is set, explicitly warn the user that no documented regulatory listing could be found across NAFDAC, US FDA, or international registries and advise consulting a licensed pharmacy, clinic, or hospital nearby. NEVER invent an explanation for why a product is unlisted.
 - If REGULATORY VERIFICATION RESULTS shows verdict "danger" or "caution", clearly highlight the exact flags (e.g. NAFDAC category mismatch, expired registration, active recall) and cite each source attribution shown.
 - If ZELTHIA DIRECTORY RESULTS is "none" and the user was looking for where to get something, say clearly that no facility on Zelthia has it in stock yet, then point to the web results.`
@@ -702,7 +714,12 @@ export async function runTurn({
   } catch (err) {
     console.error("All providers failed; using safety rules", err);
     const fb = generateClinicalFallback(userText, profile);
-    raw = `[TRIAGE: ${fb.triageLevel.toUpperCase()}]\n${fb.message}`;
+    // Say plainly that this is the offline safety net, not a full answer.
+    const note =
+      fb.triageLevel === "urgent"
+        ? ""
+        : "My full assistant isn't reachable right now, so this is general guidance only. Try again shortly for an answer that fits your situation.\n\n";
+    raw = `[TRIAGE: ${fb.triageLevel.toUpperCase()}]\n${note}${fb.message}`;
     model = "zelthia-safety-rules";
     emit({ type: "delta", text: stripTags(raw) });
   }

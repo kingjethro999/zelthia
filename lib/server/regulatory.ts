@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   classifyNafdacCode,
   extractRegulatoryCodes,
@@ -12,10 +12,15 @@ import type {
   RegistrySourceFinding,
 } from "@/lib/inventory-types";
 import { query } from "./db";
+import {
+  greenbookByName,
+  greenbookByNrn,
+  type GreenbookRecord,
+} from "./greenbook";
 import { fetchService, politeThrottle } from "./http";
 import { searchMhraSafetyPars } from "./mhra";
 import { queryOpenFdaComprehensive } from "./openfda";
-import { scrapeWebPage, searchWebGeneral } from "./web-search";
+import { searchWebGeneral } from "./web-search";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const API_TIMEOUT_MS = 8500;
@@ -39,6 +44,9 @@ const FOOD_WORDS_RE =
 
 const RECALL_WORDS_RE =
   /\b(recall|recalled|counterfeit|falsified|fake|substandard|unregistered|banned|prohibited|alert|alerted|nsq|not of standard quality|adulterated|withdraw|withdrawn)\b/i;
+
+const GLOBAL_RECALL_RE =
+  /\b(recall|recalled|counterfeit|falsified|withdrawn|banned|suspended)\b/i;
 
 const EXPIRED_LICENCE_RE =
   /\b(expired|lapsed|cancelled|canceled|revoked|suspended|discontinued)\b/i;
@@ -119,6 +127,8 @@ function safeUrl(raw: string | undefined): string | undefined {
 
 function buildCacheKey(input: VerifyProductInput): string {
   const parts = [
+    // Bump when verdict rules change so older cached verdicts are not reused.
+    "v2",
     input.name.trim().toLowerCase(),
     (input.genericName ?? "").trim().toLowerCase(),
     (input.category ?? "").trim().toLowerCase(),
@@ -130,7 +140,7 @@ function buildCacheKey(input: VerifyProductInput): string {
   return createHash("sha256").update(parts.join("|")).digest("hex");
 }
 
-function applyPhysicalExpiryCheck(
+export function applyPhysicalExpiryCheck(
   report: RegulatoryReport,
   expiresOn?: string | null,
 ): RegulatoryReport {
@@ -281,6 +291,26 @@ export async function lookupBarcodeMetadata(
 
 /* ---------- Individual Registry Verifiers ---------- */
 
+/** Tokens of the claimed product that appear in `text`. */
+function overlapTokens(claim: string[], text: string): string[] {
+  const lower = text.toLowerCase();
+  return claim.filter((t) => lower.includes(t));
+}
+
+const GREENBOOK_ATTRIBUTION = "Source: NAFDAC Greenbook (Public Registry)";
+
+function describeRecord(rec: GreenbookRecord): string {
+  return [
+    rec.ingredient && `Active ingredient: ${rec.ingredient}`,
+    rec.strength && `Strength: ${rec.strength}`,
+    rec.applicant && `Holder: ${rec.applicant}`,
+    rec.status && `Status: ${rec.status}`,
+    rec.expiryDate && `Registration valid to ${rec.expiryDate}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 async function checkNafdac(
   input: VerifyProductInput,
   parsedCodes: ReturnType<typeof extractRegulatoryCodes>,
@@ -289,6 +319,8 @@ async function checkNafdac(
   flags: RegulatoryAlertFlag[];
   okCalls: number;
   failedCalls: number;
+  /** True when the NAFDAC side answered at least once. */
+  reached: boolean;
 }> {
   const findings: RegistrySourceFinding[] = [];
   const flags: RegulatoryAlertFlag[] = [];
@@ -298,8 +330,16 @@ async function checkNafdac(
   const rawNafdac = input.nafdacCode || parsedCodes.nafdac;
   const cls = rawNafdac ? classifyNafdacCode(rawNafdac) : null;
   const category = input.category ?? "Medicine";
+  const today = new Date().toISOString().slice(0, 10);
+  const cleanName = input.name.replace(/"/g, "").trim();
+  const claimTokens = [
+    ...new Set([
+      ...cleanTokens(input.name),
+      ...cleanTokens(input.genericName ?? ""),
+    ]),
+  ];
 
-  // 1. Prefix vs Claimed Category Safeguard ("Yoghurt Number" counterfeit catch)
+  // 1. Prefix vs claimed category ("yoghurt number" on a medicine pack)
   if (cls) {
     if (cls.domain === "food_beverage" && MEDICAL_CATEGORIES.has(category)) {
       flags.push({
@@ -317,26 +357,161 @@ async function checkNafdac(
         detail: `Code ${cls.normalized} is structured for cosmetics/topicals rather than registered systemic drugs.`,
       });
     }
-    if (cls.isListedL || cls.domain === "herbal_listed") {
+    if (cls.isListedL) {
       flags.push({
         code: "HERBAL_LISTED_ONLY",
         severity: "info",
-        title: "NAFDAC Listed (L) herbal/traditional product",
+        title: "NAFDAC Listed (L) product",
         detail:
-          "NAFDAC numbers ending in 'L' or prefixed with A7- indicate traditional/herbal products evaluated for safety listing rather than clinical drug efficacy trials.",
+          "NAFDAC numbers ending in 'L' are listed products (often herbal, traditional or nutraceutical) evaluated for safety listing rather than full clinical efficacy review.",
       });
     }
   }
 
+  // The Greenbook covers drugs, biologics, devices, veterinary, herbals,
+  // nutraceuticals and disinfectants. Cosmetics and food are not on it.
+  const greenbookCovers =
+    !cls || (cls.domain !== "cosmetic" && cls.domain !== "food_beverage");
+
+  let reached = false;
+  let codeFound = false;
+  let codeChecked = false;
+
+  // 2. Exact registration number lookup on the Greenbook
+  if (cls && greenbookCovers) {
+    try {
+      const recs = await greenbookByNrn(cls.normalized);
+      okCalls++;
+      reached = true;
+      codeChecked = true;
+      for (const rec of recs.slice(0, 2)) {
+        codeFound = true;
+        const overlap = overlapTokens(
+          claimTokens,
+          `${rec.productName} ${rec.ingredient}`,
+        );
+        if (claimTokens.length > 0 && overlap.length === 0) {
+          flags.push({
+            code: "ENTITY_MISMATCH",
+            severity: "danger",
+            title:
+              "Counterfeit alert: NAFDAC number belongs to a different product",
+            detail: `On the NAFDAC Greenbook, ${cls.normalized} is registered to "${rec.productName}"${rec.applicant ? ` (${rec.applicant})` : ""}, not "${input.name}". Do not accept or use this pack until NAFDAC or a licensed pharmacist confirms it.`,
+          });
+          findings.push({
+            registry: "NAFDAC Greenbook",
+            status: "warning",
+            evidence: "code",
+            title: `${cls.normalized} is registered to ${rec.productName}`,
+            detail: describeRecord(rec),
+            code: rec.nrn,
+            url: rec.url,
+            sourceAttribution: GREENBOOK_ATTRIBUTION,
+          });
+          continue;
+        }
+        const lapsed = Boolean(rec.expiryDate && rec.expiryDate < today);
+        if (lapsed) {
+          flags.push({
+            code: "EXPIRED_LICENCE",
+            severity: "caution",
+            title: "NAFDAC registration validity date has passed",
+            detail: `The Greenbook shows ${rec.nrn} valid to ${rec.expiryDate}${rec.status ? ` with status "${rec.status}"` : ""}. Confirm the renewal with NAFDAC before stocking.`,
+          });
+        }
+        findings.push({
+          registry: "NAFDAC Greenbook",
+          status: lapsed ? "warning" : "matched",
+          evidence: "code",
+          title: `${rec.productName} (${rec.nrn})`,
+          detail: describeRecord(rec),
+          code: rec.nrn,
+          url: rec.url,
+          sourceAttribution: GREENBOOK_ATTRIBUTION,
+        });
+      }
+    } catch (err) {
+      failedCalls++;
+      console.warn("Greenbook NRN lookup failed", (err as Error).message);
+    }
+  } else if (cls && !greenbookCovers) {
+    flags.push({
+      code: "NAFDAC_NOT_COVERED",
+      severity: "info",
+      title: "Cosmetic and food numbers are not on the NAFDAC Greenbook",
+      detail: `NAFDAC does not publish ${cls.domain === "cosmetic" ? "cosmetic" : "food"} registrations on the Greenbook, so ${cls.normalized} could not be checked against it directly. Zelthia searched NAFDAC's public pages instead.`,
+    });
+  }
+
+  // 3. Name lookup on the Greenbook when the number did not settle it
+  let nameRecords: GreenbookRecord[] = [];
+  if (!codeFound && cleanName.length >= 3 && greenbookCovers) {
+    try {
+      const recs = await greenbookByName(cleanName);
+      okCalls++;
+      reached = true;
+      const brandTokens = cleanTokens(input.name);
+      const needed = Math.min(2, brandTokens.length);
+      nameRecords = recs
+        .filter(
+          (rec) =>
+            needed > 0 &&
+            overlapTokens(brandTokens, rec.productName).length >= needed,
+        )
+        .slice(0, 3);
+      for (const rec of nameRecords) {
+        findings.push({
+          registry: "NAFDAC Greenbook",
+          status: "matched",
+          evidence: "name",
+          title: `${rec.productName} (${rec.nrn})`,
+          detail: describeRecord(rec),
+          code: rec.nrn,
+          url: rec.url,
+          sourceAttribution: GREENBOOK_ATTRIBUTION,
+        });
+      }
+    } catch (err) {
+      failedCalls++;
+      console.warn("Greenbook name lookup failed", (err as Error).message);
+    }
+  }
+
+  if (cls && codeChecked && !codeFound) {
+    const listedUnder = [...new Set(nameRecords.map((r) => r.nrn))];
+    flags.push({
+      code: "NAFDAC_CODE_NOT_FOUND",
+      severity: "caution",
+      title: `NAFDAC number ${cls.normalized} was not found on the Greenbook`,
+      detail: `No active or renewing Greenbook registration carries ${cls.normalized}.${listedUnder.length ? ` The Greenbook lists "${nameRecords[0].productName}" under ${listedUnder.join(", ")}, not the number printed on this pack.` : ""} Zelthia cannot tell why it is missing. Do not rely on this number: consult a licensed pharmacy, clinic or hospital nearby, or confirm with NAFDAC, before using or stocking the product.`,
+    });
+    findings.push({
+      registry: "NAFDAC Greenbook",
+      status: "not_found",
+      evidence: "code",
+      title: `${cls.normalized}: no Greenbook record`,
+      detail:
+        "Searched the NAFDAC Greenbook registration-number column directly.",
+      code: cls.normalized,
+      url: "https://greenbook.nafdac.gov.ng/",
+      sourceAttribution: GREENBOOK_ATTRIBUTION,
+    });
+  }
+
+  // 4. NAFDAC public pages: recall and alert notices for every product, plus
+  // registration hints for cosmetics/food (or when the Greenbook was down).
+  const needsWebRegistration = !greenbookCovers || !reached;
   const queries: string[] = [];
-  if (cls?.normalized) queries.push(`"${cls.normalized}"`);
-  const cleanName = input.name.replace(/"/g, "").trim();
+  if (cls?.normalized && needsWebRegistration)
+    queries.push(`"${cls.normalized}"`);
   if (cleanName.length >= 3) {
     queries.push(
       `"${cleanName}"${input.genericName ? ` ${input.genericName}` : ""}`,
     );
   }
-  if (!queries.length) return { findings, flags, okCalls, failedCalls };
+  if (!queries.length) {
+    return { findings, flags, okCalls, failedCalls, reached };
+  }
 
   await politeThrottle("nafdac.gov.ng", 1200);
 
@@ -345,7 +520,7 @@ async function checkNafdac(
       searchWebGeneral(q, {
         limit: 6,
         country: "NG",
-        includeDomains: ["greenbook.nafdac.gov.ng", "nafdac.gov.ng"],
+        includeDomains: ["nafdac.gov.ng"],
       }),
     ),
   );
@@ -358,8 +533,10 @@ async function checkNafdac(
   const seen = new Set<string>();
   for (const r of searchRes) {
     if (r.status === "fulfilled") {
-      if (r.value.errors.length === 0 || r.value.results.length > 0) okCalls++;
-      else failedCalls++;
+      if (r.value.errors.length === 0 || r.value.results.length > 0) {
+        okCalls++;
+        if (needsWebRegistration) reached = true;
+      } else failedCalls++;
       for (const hit of r.value.results) {
         if (!seen.has(hit.url)) {
           seen.add(hit.url);
@@ -371,52 +548,27 @@ async function checkNafdac(
     }
   }
 
-  // Enrich top Greenbook or NAFDAC public alert snippet via polite scraper when helpful
-  if (combinedHits[0] && combinedHits[0].description.length < 180) {
-    try {
-      const scraped = await scrapeWebPage(combinedHits[0].url, {
-        timeoutMs: 9000,
-      });
-      if (scraped?.text) {
-        combinedHits[0] = {
-          ...combinedHits[0],
-          description:
-            `${combinedHits[0].description} ${scraped.text.slice(0, 500)}`.trim(),
-        };
-      }
-    } catch {
-      /* keep search snippet */
-    }
-  }
-
-  const claimTokens = [
-    ...cleanTokens(input.name),
-    ...cleanTokens(input.genericName ?? ""),
-  ];
-
   for (const hit of combinedHits) {
     const text = `${hit.title} ${hit.description}`;
     const lower = text.toLowerCase();
-    const isHerbal = hit.url.includes("herbal-products-database");
-    const isGreenbook = hit.url.includes("greenbook.nafdac.gov.ng");
     const isAlert =
-      hit.url.includes("public-alert") ||
-      hit.url.includes("recall") ||
-      hit.url.includes("press-release");
-
+      /public-alert|recall|press-release|safety-alert/.test(hit.url) ||
+      /\b(public alert|recall)\b/i.test(hit.title);
     const codeInText =
-      cls?.normalized &&
-      lower.replace(/[\s/]/g, "-").includes(cls.normalized.toLowerCase());
-    const matchedClaimTokens = claimTokens.filter((t) => lower.includes(t));
+      Boolean(cls?.normalized) &&
+      new RegExp(
+        `(^|[^a-z0-9])${cls!.normalized.toLowerCase().replace(/-/g, "[\\s/-]?")}($|[^a-z0-9])`,
+      ).test(lower);
+    const matched = overlapTokens(claimTokens, lower);
+    const strongName =
+      claimTokens.length > 0 &&
+      matched.length >= Math.min(2, claimTokens.length);
 
-    if (
-      isAlert &&
-      RECALL_WORDS_RE.test(lower) &&
-      (codeInText || matchedClaimTokens.length > 0)
-    ) {
+    if (isAlert && RECALL_WORDS_RE.test(lower) && (codeInText || strongName)) {
       findings.push({
         registry: "NAFDAC Public Alerts",
         status: "recalled",
+        evidence: codeInText ? "code" : "name",
         title: hit.title.slice(0, 140),
         detail: hit.description.slice(0, 280),
         code: cls?.normalized,
@@ -433,60 +585,52 @@ async function checkNafdac(
       continue;
     }
 
-    // Entity mismatch detector ("Yoghurt Number"): exact NAFDAC code matches a NAFDAC listing whose name conflicts completely
-    if (
-      codeInText &&
-      claimTokens.length > 0 &&
-      matchedClaimTokens.length === 0 &&
-      (FOOD_WORDS_RE.test(lower) || MEDICAL_CATEGORIES.has(category))
-    ) {
+    if (!needsWebRegistration || isAlert) continue;
+
+    if (codeInText && claimTokens.length > 0 && matched.length === 0) {
       flags.push({
         code: "ENTITY_MISMATCH",
         severity: "danger",
         title: "Counterfeit alert: NAFDAC code belongs to a different product",
-        detail: `NAFDAC record for ${cls?.normalized} references "${hit.title.slice(0, 100)}", which does not match "${input.name}".`,
+        detail: `A NAFDAC page for ${cls?.normalized} references "${hit.title.slice(0, 100)}", which does not match "${input.name}".`,
       });
       findings.push({
-        registry: isHerbal ? "NAFDAC Herbal & Traditional" : "NAFDAC Greenbook",
+        registry: "NAFDAC Greenbook",
         status: "warning",
+        evidence: "code",
         title: `Mismatch on ${cls?.normalized}: ${hit.title.slice(0, 100)}`,
         detail: hit.description.slice(0, 260),
         code: cls?.normalized,
         url: safeUrl(hit.url),
-        sourceAttribution: isHerbal
-          ? "Source: NAFDAC Herbal Database (Public Registry)"
-          : "Source: NAFDAC Greenbook (Public Registry)",
+        sourceAttribution: "Source: NAFDAC Portal (nafdac.gov.ng)",
       });
       continue;
     }
 
-    if (matchedClaimTokens.length > 0 || codeInText) {
+    if (strongName || (codeInText && matched.length > 0)) {
       const expired = EXPIRED_LICENCE_RE.test(lower);
       if (expired) {
         flags.push({
           code: "EXPIRED_LICENCE",
           severity: "caution",
           title: "NAFDAC registration may be expired or discontinued",
-          detail: `Registry text indicates expired/lapsed status for ${input.name}${cls ? ` (${cls.normalized})` : ""}. Confirm current renewal status before stocking.`,
+          detail: `NAFDAC page text indicates expired/lapsed status for ${input.name}${cls ? ` (${cls.normalized})` : ""}. Confirm current renewal status before stocking.`,
         });
       }
       findings.push({
-        registry: isHerbal ? "NAFDAC Herbal & Traditional" : "NAFDAC Greenbook",
+        registry: "NAFDAC Greenbook",
         status: expired ? "warning" : "matched",
+        evidence: codeInText ? "code" : "name",
         title: hit.title.slice(0, 140),
         detail: hit.description.slice(0, 260),
         code: cls?.normalized,
         url: safeUrl(hit.url),
-        sourceAttribution: isHerbal
-          ? "Source: NAFDAC Herbal Database (nafdac.gov.ng)"
-          : isGreenbook
-            ? "Source: NAFDAC Greenbook (Public Registry)"
-            : "Source: NAFDAC Portal (nafdac.gov.ng)",
+        sourceAttribution: "Source: NAFDAC Portal (nafdac.gov.ng)",
       });
     }
   }
 
-  return { findings, flags, okCalls, failedCalls };
+  return { findings, flags, okCalls, failedCalls, reached };
 }
 
 async function checkUsFda(
@@ -548,6 +692,7 @@ async function checkHealthCanada(
       findings.push({
         registry: "Health Canada DPD",
         status: isCancelled ? "discontinued" : "matched",
+        evidence: parsedCodes.hcDin ? "code" : "name",
         title: `${p.brand_name ?? input.name} (DIN ${p.drug_identification_number ?? ""})`,
         detail: `Status: ${statusLabel} · Company: ${p.company_name ?? "N/A"}.`,
         code: p.drug_identification_number,
@@ -597,6 +742,7 @@ async function checkGlobalAndChina(
     findings.push({
       registry: "China NMPA",
       status: "matched",
+      evidence: "signal",
       title: `NMPA Format Validated: ${parsedCodes.guoyaoZhunzi}`,
       detail: `Classification: ${parsedCodes.guoyaoKind?.replace(/_/g, " ") ?? "drug"}.${parsedCodes.cnTraceability20 ? ` Traceability code ${parsedCodes.cnTraceability20} detected.` : ""}`,
       code: parsedCodes.guoyaoZhunzi,
@@ -627,6 +773,7 @@ async function checkGlobalAndChina(
       findings.push({
         registry: "UK MHRA Safety PAR",
         status: "warning",
+        evidence: "signal",
         title: `${par.title} (${par.year})`,
         detail:
           par.matchedReason ??
@@ -636,9 +783,11 @@ async function checkGlobalAndChina(
           "Source: UK MHRA Safety Public Assessment Reports (GOV.UK)",
       });
     }
+    // Safety PARs are class-level advice (e.g. all paracetamol), not a
+    // finding about this pack, so they inform rather than downgrade a verdict.
     flags.push({
       code: "MHRA_SAFETY_ASSESSMENT",
-      severity: "caution",
+      severity: "info",
       title: `UK MHRA Safety Public Assessment Report (${mhraPars[0].year})`,
       detail: `${mhraPars[0].title}: ${mhraPars[0].matchedReason ?? "Review official MHRA safety restrictions and monitoring advice."}`,
     });
@@ -647,7 +796,6 @@ async function checkGlobalAndChina(
   // Targeted search across UK MHRA, China NMPA, EMA, India CDSCO, Australia TGA, SAHPRA
   const domains = [
     "products.mhra.gov.uk",
-    "gov.uk",
     "ema.europa.eu",
     "cdsco.gov.in",
     "tga.gov.au",
@@ -667,21 +815,38 @@ async function checkGlobalAndChina(
       if (res.results.length > 0 || res.errors.length === 0) okCalls++;
       else failedCalls++;
 
-      for (const hit of res.results.slice(0, 3)) {
+      const brandTokens = cleanTokens(input.name);
+      const relevant = res.results.filter(
+        (hit) =>
+          brandTokens.length > 0 &&
+          overlapTokens(brandTokens, `${hit.title} ${hit.description}`)
+            .length >= Math.min(2, brandTokens.length),
+      );
+      for (const hit of relevant.slice(0, 3)) {
         const lower = `${hit.title} ${hit.description}`.toLowerCase();
-        const isRecalled = RECALL_WORDS_RE.test(lower);
+        // Regulator sites mention "alert" on almost every page; only a recall
+        // or counterfeit notice that names this product counts as a recall.
+        const nameTokens = cleanTokens(input.name);
+        const isRecalled =
+          GLOBAL_RECALL_RE.test(hit.title) &&
+          nameTokens.length > 0 &&
+          overlapTokens(nameTokens, lower).length >=
+            Math.min(2, nameTokens.length);
         const host = new URL(hit.url).hostname.toLowerCase();
         const registry: RegistrySourceFinding["registry"] = host.includes(
           "nmpa.gov.cn",
         )
           ? "China NMPA"
-          : host.includes("mhra") || host.includes("gov.uk")
+          : host.includes("mhra")
             ? "UK MHRA"
             : "Global Pharmacovigilance";
 
+        // A search hit on a regulator's site is context, not a registry
+        // record, unless it is the MHRA product register itself.
         findings.push({
           registry,
           status: isRecalled ? "recalled" : "matched",
+          evidence: host === "products.mhra.gov.uk" ? "name" : "signal",
           title: hit.title.slice(0, 140),
           detail: hit.description.slice(0, 260),
           code: parsedCodes.mhraPl || parsedCodes.guoyaoZhunzi,
@@ -703,6 +868,61 @@ async function checkGlobalAndChina(
   }
 
   return { findings, flags, okCalls, failedCalls };
+}
+
+/* ---------- Report persistence ---------- */
+
+/** Registries whose hits are context (safety signals, labels, news), never a listing. */
+const SIGNAL_REGISTRIES = new Set<RegistrySourceFinding["registry"]>([
+  "US FDA FAERS",
+  "US FDA Labeling (SPL)",
+  "UK MHRA Safety PAR",
+  "Global Pharmacovigilance",
+  "Barcode Registry",
+]);
+
+function evidenceOf(f: RegistrySourceFinding): "code" | "name" | "signal" {
+  if (f.evidence) return f.evidence;
+  return SIGNAL_REGISTRIES.has(f.registry) ? "signal" : "name";
+}
+
+/**
+ * Stores an issued report so a later product save can prove the verdict came
+ * from Zelthia and not from the browser. Returns the report with its id.
+ */
+async function issueReport(
+  report: RegulatoryReport,
+): Promise<RegulatoryReport> {
+  const reportId = randomUUID();
+  const issued = { ...report, reportId };
+  try {
+    await query(
+      "insert into regulatory_reports (id, payload) values ($1, $2::jsonb)",
+      [reportId, JSON.stringify(issued)],
+    );
+    if (Math.random() < 0.02) {
+      void query(
+        "delete from regulatory_reports where created_at < now() - interval '30 days'",
+      ).catch(() => {});
+    }
+    return issued;
+  } catch (err) {
+    console.warn("Could not store regulatory report", (err as Error).message);
+    return report;
+  }
+}
+
+/** Loads a report Zelthia issued in the last 30 days, or null. */
+export async function getIssuedReport(
+  reportId: string,
+): Promise<RegulatoryReport | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(reportId)) return null;
+  const rows = await query<{ payload: RegulatoryReport }>(
+    `select payload from regulatory_reports
+      where id = $1 and created_at > now() - interval '30 days' limit 1`,
+    [reportId],
+  );
+  return rows[0]?.payload ?? null;
 }
 
 /* ---------- Main Orchestrator with 7-Day Cache & Stale Fallback ---------- */
@@ -728,7 +948,7 @@ export async function verifyHealthProduct(
   };
   const cacheKey = buildCacheKey(input);
 
-  // Check PostgreSQL 7-day regulatory_cache
+  // Cached public-record result, refreshed live once it is older than 7 days
   let cachedRow: { payload: RegulatoryReport; checked_at: Date } | null = null;
   try {
     const rows = await query<{ payload: RegulatoryReport; checked_at: Date }>(
@@ -741,9 +961,11 @@ export async function verifyHealthProduct(
       !input.forceRefresh &&
       Date.now() - new Date(cachedRow.checked_at).getTime() <= SEVEN_DAYS_MS
     ) {
-      return applyPhysicalExpiryCheck(
-        { ...cachedRow.payload, cached: true, staleFallback: false },
-        input.expiresOn,
+      return issueReport(
+        applyPhysicalExpiryCheck(
+          { ...cachedRow.payload, cached: true, staleFallback: false },
+          input.expiresOn,
+        ),
       );
     }
   } catch {
@@ -779,6 +1001,7 @@ export async function verifyHealthProduct(
     findings.push({
       registry: "Barcode Registry",
       status: "matched",
+      evidence: "signal",
       title: `${barcodeMeta.name}${barcodeMeta.packSize ? ` (${barcodeMeta.packSize})` : ""}`,
       detail: `GTIN ${barcodeMeta.barcode}${barcodeMeta.manufacturer ? ` · ${barcodeMeta.manufacturer}` : ""}`,
       code: barcodeMeta.barcode,
@@ -786,6 +1009,8 @@ export async function verifyHealthProduct(
     });
   }
 
+  const nafdacReached =
+    nafdacRes.status === "fulfilled" && nafdacRes.value.reached;
   for (const r of [nafdacRes, fdaRes, globalRes]) {
     if (r.status === "fulfilled") {
       findings.push(...r.value.findings);
@@ -804,54 +1029,71 @@ export async function verifyHealthProduct(
     failedCalls++;
   }
 
-  // Live outage fallback to last known cached record (> 7 days old) with explicit warning
-  if (okCalls === 0 && failedCalls > 0 && cachedRow) {
+  for (const f of findings) f.evidence = evidenceOf(f);
+
+  // Live outage: fall back to the last known record with an explicit warning
+  if (!nafdacReached && cachedRow) {
     const staleDate = new Date(cachedRow.checked_at).toLocaleDateString(
       "en-NG",
       { year: "numeric", month: "short", day: "numeric" },
     );
-    return applyPhysicalExpiryCheck(
-      {
-        ...cachedRow.payload,
-        cached: true,
-        staleFallback: true,
-        staleFromDate: staleDate,
-        flags: [
-          {
-            code: "STALE_CACHE_FALLBACK",
-            severity: "caution",
-            title: "Live verification unavailable — showing cached record",
-            detail: `Live registry checks timed out or were unreachable. Showing cached public record from ${staleDate}.`,
-          },
-          ...cachedRow.payload.flags,
-        ],
-      },
-      input.expiresOn,
+    return issueReport(
+      applyPhysicalExpiryCheck(
+        {
+          ...cachedRow.payload,
+          cached: true,
+          staleFallback: true,
+          staleFromDate: staleDate,
+          flags: [
+            {
+              code: "STALE_CACHE_FALLBACK",
+              severity: "caution",
+              title: "Live verification failed — showing cached record",
+              detail: `NAFDAC could not be reached just now. Showing the cached public record from ${staleDate}. Check again before relying on it.`,
+            },
+            ...cachedRow.payload.flags.filter(
+              (f) => f.code !== "STALE_CACHE_FALLBACK",
+            ),
+          ],
+        },
+        input.expiresOn,
+      ),
     );
   }
 
-  const regFindings = findings.filter((f) => f.registry !== "Barcode Registry");
-  const confirmedFindings = regFindings.filter(
-    (f) => f.status === "matched" || f.status === "discontinued",
-  );
-  const hasNafdacMatch = findings.some(
+  const isListing = (f: RegistrySourceFinding) =>
+    (f.status === "matched" || f.status === "discontinued") &&
+    f.evidence !== "signal";
+  const listings = findings.filter(isListing);
+  const nafdacListings = listings.filter(
     (f) =>
-      (f.registry === "NAFDAC Greenbook" ||
-        f.registry === "NAFDAC Herbal & Traditional") &&
-      f.status === "matched",
+      f.registry === "NAFDAC Greenbook" ||
+      f.registry === "NAFDAC Herbal & Traditional",
   );
+  const nafdacCodeMatch = nafdacListings.some((f) => f.evidence === "code");
+  const codeNotFound = flags.some((f) => f.code === "NAFDAC_CODE_NOT_FOUND");
 
-  if (confirmedFindings.length > 0 && !hasNafdacMatch) {
+  if (!nafdacReached) {
     flags.push({
-      code: "IMPORT_UNLISTED_LOCALLY",
-      severity: "info",
-      title: "Verified abroad — local NAFDAC Greenbook entry not confirmed",
+      code: "VERIFICATION_UNAVAILABLE",
+      severity: "caution",
+      title: "NAFDAC could not be checked right now",
       detail:
-        "Listed on an international regulatory database (such as US FDA, Health Canada, UK MHRA, or NMPA), while no live NAFDAC Greenbook entry matched. Confirm local import authorization where applicable.",
+        "The NAFDAC registry did not answer, so this result is incomplete. It does not mean the product is unlisted. Try again shortly, and consult a licensed pharmacy, clinic or hospital nearby before relying on it.",
     });
   }
 
-  if (confirmedFindings.length === 0) {
+  if (listings.length > 0 && nafdacListings.length === 0 && nafdacReached) {
+    flags.push({
+      code: "IMPORT_UNLISTED_LOCALLY",
+      severity: "caution",
+      title: "Listed abroad, not confirmed on NAFDAC",
+      detail:
+        "A product with this name appears on an international register (such as US FDA, Health Canada or UK MHRA), but no NAFDAC registration matched. A foreign listing says nothing about this pack. Confirm local registration with a licensed pharmacist before stocking or using it.",
+    });
+  }
+
+  if (listings.length === 0 && nafdacReached) {
     flags.push({
       code: "UNLISTED_PRODUCT",
       severity: "caution",
@@ -861,14 +1103,13 @@ export async function verifyHealthProduct(
   }
 
   const hasDanger = flags.some((f) => f.severity === "danger");
-  const hasCaution = flags.some(
-    (f) => f.severity === "caution" || f.code === "EXPIRED_LICENCE",
-  );
+  const hasCaution = flags.some((f) => f.severity === "caution");
 
   let verdict: RegulatoryVerdict;
   if (hasDanger) verdict = "danger";
-  else if (confirmedFindings.length === 0) verdict = "unverified";
-  else if (hasCaution) verdict = "caution";
+  else if (listings.length === 0) verdict = "unverified";
+  else if (hasCaution || codeNotFound || nafdacListings.length === 0)
+    verdict = "caution";
   else verdict = "verified";
 
   const nafdacCls = enrichedInput.nafdacCode
@@ -884,25 +1125,29 @@ export async function verifyHealthProduct(
     parsedCodes.hcDin,
   ].filter((v): v is string => Boolean(v));
 
-  let headline = "Unlisted across checked public registries";
+  let headline: string;
   if (verdict === "danger") {
     headline =
       flags.find((f) => f.severity === "danger")?.title ??
       "Red Flag: Safety or authenticity warning";
   } else if (verdict === "verified") {
-    headline = hasNafdacMatch
-      ? "Registered on NAFDAC public registry"
-      : `Listed on ${confirmedFindings[0].registry}`;
+    headline = nafdacCodeMatch
+      ? "NAFDAC number matches the Greenbook record"
+      : "Product name registered with NAFDAC — check the number on the pack";
   } else if (verdict === "caution") {
     headline =
       flags.find((f) => f.severity === "caution")?.title ??
       "Review caution notices before stocking";
+  } else {
+    headline = nafdacReached
+      ? "Unlisted across checked public registries"
+      : "Verification incomplete — NAFDAC unreachable";
   }
 
   const summary =
-    verdict === "unverified"
+    verdict === "unverified" && nafdacReached
       ? MANDATORY_UNLISTED_WARNING
-      : confirmedFindings
+      : listings
           .slice(0, 3)
           .map((f) => `${f.registry}: ${f.title}`)
           .join(" · ") ||
@@ -926,25 +1171,31 @@ export async function verifyHealthProduct(
     cached: false,
     staleFallback: false,
     unlistedWarning:
-      confirmedFindings.length === 0 ? MANDATORY_UNLISTED_WARNING : undefined,
+      listings.length === 0 && nafdacReached
+        ? MANDATORY_UNLISTED_WARNING
+        : undefined,
     disclaimer: PERMANENT_VERIFICATION_DISCLAIMER,
+    coverage: { ok: okCalls, failed: failedCalls },
   };
 
-  try {
-    // Store without batch-specific EXPIRED_PACK flag so cache stays product-level
-    await query(
-      `insert into regulatory_cache (cache_key, query_label, payload, checked_at)
-       values ($1, $2, $3::jsonb, now())
-       on conflict (cache_key)
-       do update set query_label = excluded.query_label,
-                     payload = excluded.payload,
-                     checked_at = now()`,
-      [cacheKey, enrichedInput.name.slice(0, 160), JSON.stringify(report)],
-    );
-  } catch {
-    /* ignore cache persistence error */
+  // Only cache a result that actually reached NAFDAC; an outage is not a record.
+  if (nafdacReached) {
+    try {
+      await query(
+        `insert into regulatory_cache (cache_key, query_label, payload, checked_at)
+         values ($1, $2, $3::jsonb, now())
+         on conflict (cache_key)
+         do update set query_label = excluded.query_label,
+                       payload = excluded.payload,
+                       checked_at = now()`,
+        [cacheKey, enrichedInput.name.slice(0, 160), JSON.stringify(report)],
+      );
+    } catch {
+      /* ignore cache persistence error */
+    }
   }
 
+  // Batch-specific pack expiry is applied after caching so the cache stays product-level
   report = applyPhysicalExpiryCheck(report, enrichedInput.expiresOn);
-  return report;
+  return issueReport(report);
 }

@@ -182,7 +182,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     ? [
         {
           href: "/chat",
-          label: "Health chat & note reader",
+          label: "Health chat",
           icon: MessageCircleHeart,
           active: pathname.startsWith("/chat"),
         },

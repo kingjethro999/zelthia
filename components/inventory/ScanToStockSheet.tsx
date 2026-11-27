@@ -15,6 +15,7 @@ import {
   ScanLine,
   ShieldAlert,
   Sparkles,
+  Truck,
   Upload,
   Zap,
   ZapOff,
@@ -42,6 +43,30 @@ import { RegulatoryReportCard } from "./RegulatoryReportCard";
 import type { ProductDraft } from "./ProductDialog";
 
 type InputMode = "camera" | "upload" | "manual";
+
+interface RecentScan {
+  id: string;
+  productName: string;
+  nafdacNumber: string;
+  supplier: string;
+  verdict: string;
+  headline: string;
+  createdAt: string;
+}
+
+const SCAN_DOT: Record<string, string> = {
+  verified: "bg-brand",
+  caution: "bg-caution",
+  unverified: "bg-caution",
+  danger: "bg-alert",
+};
+
+const SCAN_LABEL: Record<string, string> = {
+  verified: "Registry match",
+  caution: "Caution",
+  unverified: "No listing",
+  danger: "Red flag",
+};
 
 export interface PublicVerifyResult {
   extractedQuery: string;
@@ -175,6 +200,9 @@ function ScanToStockInner({
   const [lastStockedName, setLastStockedName] = useState<string | null>(null);
 
   const [manualInput, setManualInput] = useState(initialCode ?? "");
+  // Kept across scans: one delivery usually comes from one supplier.
+  const [supplier, setSupplier] = useState("");
+  const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [liveLockedCode, setLiveLockedCode] = useState<string | null>(null);
@@ -249,6 +277,19 @@ function ScanToStockInner({
     };
   }, [stopMediaTracks]);
 
+  // Intake history: refreshed whenever the sheet returns to its idle state
+  useEffect(() => {
+    if (!open || isVerifyOnly || !facilityId || report) return;
+    const ctrl = new AbortController();
+    fetch(`/api/inventory/scan?facilityId=${encodeURIComponent(facilityId)}`, {
+      signal: ctrl.signal,
+    })
+      .then((r) => (r.ok ? r.json() : { scans: [] }))
+      .then((d: { scans?: RecentScan[] }) => setRecentScans(d.scans ?? []))
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [open, isVerifyOnly, facilityId, report]);
+
   const submitScan = useCallback(
     async (payload: {
       barcode?: string;
@@ -292,6 +333,7 @@ function ScanToStockInner({
             body: JSON.stringify({
               ...payload,
               facilityId,
+              supplier: supplier.trim() || undefined,
             }),
           });
           const data = await res.json();
@@ -317,7 +359,7 @@ function ScanToStockInner({
         scanningLockRef.current = false;
       }
     },
-    [city, facilityId, isVerifyOnly, onVerified, stopCamera],
+    [city, facilityId, isVerifyOnly, onVerified, stopCamera, supplier],
   );
 
   // Start / stop live camera when modal is open, camera mode active, and no result yet
@@ -698,6 +740,20 @@ function ScanToStockInner({
         </div>
       )}
 
+      {!isVerifyOnly && !report && (
+        <div className="mb-4">
+          <TextField
+            label="Supplier or distributor (optional)"
+            icon={Truck}
+            value={supplier}
+            maxLength={120}
+            onChange={(e) => setSupplier(e.target.value)}
+            placeholder="Who delivered this carton?"
+            hint="Saved with each scan. If other facilities flagged cartons from the same supplier, you will see it here."
+          />
+        </div>
+      )}
+
       {/* Segmented input mode selector when idle */}
       {!report && (
         <div
@@ -932,6 +988,53 @@ function ScanToStockInner({
             </Button>
           </div>
         </form>
+      )}
+
+      {!isVerifyOnly && !report && recentScans.length > 0 && (
+        <section aria-label="Recent intake" className="mt-5">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+            Recent intake
+          </h3>
+          <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+            {recentScans.slice(0, 8).map((s) => (
+              <li
+                key={s.id}
+                className="flex items-center gap-3 px-3.5 py-2.5 text-xs"
+              >
+                <span
+                  className={cn(
+                    "h-2 w-2 shrink-0 rounded-full",
+                    SCAN_DOT[s.verdict] ?? "bg-line",
+                  )}
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-ink">
+                    {s.productName}
+                    {s.nafdacNumber && (
+                      <span className="ml-1.5 font-normal text-muted">
+                        {s.nafdacNumber}
+                      </span>
+                    )}
+                  </p>
+                  <p className="truncate text-muted">
+                    {SCAN_LABEL[s.verdict] ?? s.verdict}
+                    {s.supplier && ` · ${s.supplier}`}
+                  </p>
+                </div>
+                <time
+                  dateTime={s.createdAt}
+                  className="shrink-0 tabular-nums text-muted"
+                >
+                  {new Date(s.createdAt).toLocaleDateString("en-NG", {
+                    day: "numeric",
+                    month: "short",
+                  })}
+                </time>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {/* ---------- VERIFICATION + BATCH STOCKING STAGE ---------- */}

@@ -30,6 +30,18 @@ export const PAGES = [
       "Free inventory management and listing for pharmacies, clinics, hospitals, scan centres and health stores.",
   },
   {
+    path: "/pricing",
+    title: "Pricing",
+    summary:
+      "Free today. Paid plans are not on sale yet; when they open, Verified Pro will be ₦15,000 a month in Nigeria or $15 elsewhere, and Diagnostic & Hospital Plus ₦50,000 to ₦100,000 or $50 to $100.",
+  },
+  {
+    path: "/coming-soon",
+    title: "Coming soon",
+    summary:
+      "What is being built next: the mobile app with Darling and live chat, paid facility plans, and booking.",
+  },
+  {
     path: "/about",
     title: "About",
     summary:

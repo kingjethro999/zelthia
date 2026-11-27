@@ -4,10 +4,7 @@ import {
   getComplianceFrameworkSummary,
   searchDataProtectionProvisions,
 } from "@/lib/server/compliance";
-import {
-  getMhraAgencyOverview,
-  searchMhraSafetyPars,
-} from "@/lib/server/mhra";
+import { getMhraAgencyOverview, searchMhraSafetyPars } from "@/lib/server/mhra";
 import { getOrangeBookStats, searchOrangeBook } from "@/lib/server/orange-book";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 import {

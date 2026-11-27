@@ -313,7 +313,9 @@ function AccountForm() {
             {user.termsVersion && (
               <span className="mt-1 block text-xs">
                 Consent recorded: version{" "}
-                <span className="font-medium text-ink">{user.termsVersion}</span>
+                <span className="font-medium text-ink">
+                  {user.termsVersion}
+                </span>
                 {user.termsAcceptedAt
                   ? ` on ${new Date(user.termsAcceptedAt).toLocaleDateString("en-NG", { dateStyle: "medium" })}`
                   : ""}

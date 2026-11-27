@@ -159,6 +159,29 @@ create table if not exists regulatory_cache (
   checked_at timestamptz not null default now()
 );
 create index if not exists regulatory_cache_checked_idx on regulatory_cache(checked_at desc);
+create table if not exists regulatory_reports (
+  id uuid primary key,
+  payload jsonb not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists regulatory_reports_created_idx on regulatory_reports(created_at);
+create table if not exists stock_scans (
+  id uuid primary key default gen_random_uuid(),
+  facility_id uuid not null references facilities(id) on delete cascade,
+  user_id uuid references users(id) on delete set null,
+  product_name text not null default '',
+  nafdac_no text not null default '',
+  barcode text not null default '',
+  batch text not null default '',
+  expires_on date,
+  supplier text not null default '',
+  supplier_key text not null default '',
+  verdict text not null,
+  headline text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists stock_scans_facility_idx on stock_scans(facility_id, created_at desc);
+create index if not exists stock_scans_supplier_idx on stock_scans(supplier_key, created_at desc) where supplier_key <> '';
 create table if not exists rate_limits (
   bucket_key text not null,
   hit_at timestamptz not null default now()

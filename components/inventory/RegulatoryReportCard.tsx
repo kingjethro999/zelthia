@@ -30,6 +30,12 @@ const safeHttpUrl = (raw?: string): string | null => {
   }
 };
 
+const EVIDENCE_LABEL = {
+  code: "Number match",
+  name: "Name match",
+  signal: "Safety context",
+} as const;
+
 const VERDICT_META = {
   verified: {
     icon: ShieldCheck,
@@ -217,7 +223,7 @@ export function RegulatoryReportCard({
               <li key={`${f.registry}-${i}`} className="p-3.5 text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1.5 font-semibold text-ink">
-                    {f.status === "matched" && (
+                    {f.status === "matched" && f.evidence !== "signal" && (
                       <BadgeCheck
                         className="h-3.5 w-3.5 text-brand"
                         aria-hidden
@@ -225,13 +231,24 @@ export function RegulatoryReportCard({
                     )}
                     {f.registry}
                   </span>
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 font-semibold capitalize",
-                      FINDING_BADGE[f.status],
+                  <span className="inline-flex items-center gap-1.5">
+                    {f.evidence && (
+                      <span className="text-[11px] text-muted">
+                        {EVIDENCE_LABEL[f.evidence]}
+                      </span>
                     )}
-                  >
-                    {f.status.replace("_", " ")}
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 font-semibold capitalize",
+                        f.evidence === "signal" && f.status === "matched"
+                          ? "bg-mist text-muted"
+                          : FINDING_BADGE[f.status],
+                      )}
+                    >
+                      {f.evidence === "signal" && f.status === "matched"
+                        ? "reference"
+                        : f.status.replace("_", " ")}
+                    </span>
                   </span>
                 </div>
                 <p className="mt-1 font-medium text-ink">{f.title}</p>

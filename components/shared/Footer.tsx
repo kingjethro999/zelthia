@@ -17,6 +17,8 @@ const COLUMNS = [
     title: "Facilities",
     links: [
       { href: "/for-facilities", label: "Inventory for facilities" },
+      { href: "/pricing", label: "Pricing" },
+      { href: "/coming-soon", label: "Coming soon" },
       { href: "/signup?role=provider", label: "List your facility" },
     ],
   },

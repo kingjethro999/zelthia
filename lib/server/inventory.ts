@@ -13,6 +13,7 @@ import {
   type VerificationStatus,
 } from "@/lib/inventory-types";
 import { query } from "./db";
+import { applyPhysicalExpiryCheck, getIssuedReport } from "./regulatory";
 
 /* ---------- row mapping ---------- */
 
@@ -256,19 +257,17 @@ export function parseProductInput(body: Record<string, unknown>) {
   const nafdacNumber = str(body.nafdacNumber, 64)
     .toUpperCase()
     .replace(/\s+/g, "");
-  const regulatoryStatus = (
-    ["verified", "caution", "danger", "unverified", "none"].includes(
-      String(body.regulatoryStatus ?? "none"),
-    )
-      ? String(body.regulatoryStatus)
-      : "none"
-  ) as RegulatoryVerdict | "none";
-  const regulatorySummary =
-    body.regulatorySummary &&
-    typeof body.regulatorySummary === "object" &&
-    !Array.isArray(body.regulatorySummary)
-      ? (body.regulatorySummary as RegulatoryReport)
-      : null;
+  // The browser never decides a regulatory verdict. It may only point at a
+  // report Zelthia issued; the server loads and checks it before saving.
+  const summary = body.regulatorySummary as { reportId?: unknown } | null;
+  const regulatoryReportId =
+    typeof body.regulatoryReportId === "string"
+      ? body.regulatoryReportId
+      : summary &&
+          typeof summary === "object" &&
+          typeof summary.reportId === "string"
+        ? summary.reportId
+        : "";
 
   return {
     name,
@@ -288,8 +287,7 @@ export function parseProductInput(body: Record<string, unknown>) {
     nafdacNumber,
     manufacturer: str(body.manufacturer, 160),
     countryOfOrigin: str(body.countryOfOrigin, 80),
-    regulatoryStatus,
-    regulatorySummary,
+    regulatoryReportId,
   };
 }
 
@@ -474,6 +472,81 @@ export async function deleteFacility(
   return { deleted: true, orphanedAudio };
 }
 
+/* ---------- regulatory verdict trust ---------- */
+
+type ProductInput = ReturnType<typeof parseProductInput>;
+
+interface ResolvedRegulatory {
+  status: RegulatoryVerdict | "none";
+  summary: RegulatoryReport | null;
+  checkedAt: string | null;
+}
+
+const identityTokens = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((t) => t.length >= 3);
+
+const normCode = (s: string | undefined) =>
+  (s ?? "").toUpperCase().replace(/\s+/g, "").replace(/\//g, "-");
+const normBarcode = (s: string | undefined) =>
+  (s ?? "").replace(/\D/g, "").replace(/^0+/, "");
+
+/** True when an issued report is about the product being saved. */
+function reportMatchesProduct(rep: RegulatoryReport, p: ProductInput): boolean {
+  const repCode = normCode(rep.nafdacCode);
+  const prodCode = normCode(p.nafdacNumber);
+  if (repCode !== prodCode) return false;
+  const repBarcode = normBarcode(rep.barcode);
+  const prodBarcode = normBarcode(p.barcode);
+  if (repBarcode && prodBarcode && repBarcode !== prodBarcode) return false;
+  if (prodBarcode && !repBarcode && !repCode) return false;
+  const queryTokens = identityTokens(rep.query);
+  const nameTokens = identityTokens(`${p.name} ${p.genericName}`);
+  const nameMatch = queryTokens.some((t) => nameTokens.includes(t));
+  const queriedByCode =
+    (repCode && normCode(rep.query) === repCode) ||
+    (repBarcode && normBarcode(rep.query) === repBarcode);
+  return nameMatch || Boolean(queriedByCode);
+}
+
+const sameIdentity = (row: ProductRow, p: ProductInput) =>
+  row.name.trim().toLowerCase() === p.name.trim().toLowerCase() &&
+  normCode(row.nafdac_no) === normCode(p.nafdacNumber) &&
+  normBarcode(row.barcode) === normBarcode(p.barcode) &&
+  isoDate(row.expires_on) === p.expiresOn;
+
+async function resolveRegulatory(
+  p: ProductInput,
+  existing: ProductRow | null,
+): Promise<ResolvedRegulatory> {
+  if (p.regulatoryReportId) {
+    const rep = await getIssuedReport(p.regulatoryReportId).catch(() => null);
+    if (rep && reportMatchesProduct(rep, p)) {
+      const checked = applyPhysicalExpiryCheck(rep, p.expiresOn);
+      return {
+        status: checked.verdict,
+        summary: checked,
+        checkedAt: rep.checkedAt,
+      };
+    }
+  }
+  if (existing && sameIdentity(existing, p)) {
+    return {
+      status:
+        (existing.regulatory_status as RegulatoryVerdict | "none") ?? "none",
+      summary: existing.regulatory_summary,
+      checkedAt: existing.regulatory_checked_at
+        ? new Date(existing.regulatory_checked_at).toISOString()
+        : null,
+    };
+  }
+  // Name, number, barcode or expiry changed without a fresh check
+  return { status: "none", summary: null, checkedAt: null };
+}
+
 /* ---------- products ---------- */
 
 export async function listProducts(facilityId: string) {
@@ -488,13 +561,14 @@ export async function createProduct(
   facilityId: string,
   p: ReturnType<typeof parseProductInput>,
 ) {
+  const reg = await resolveRegulatory(p, null);
   const rows = await query<ProductRow>(
     `insert into products (facility_id, name, generic_name, category, form, strength, pack_size,
        price_ngn, quantity, low_stock_at, batch, expires_on, prescription_only, notes,
        barcode, nafdac_no, manufacturer, country_of_origin, regulatory_status, regulatory_summary,
        regulatory_checked_at)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::jsonb,
-       case when $19 <> 'none' then now() else null end) returning *`,
+       $21::timestamptz) returning *`,
     [
       facilityId,
       p.name,
@@ -514,8 +588,9 @@ export async function createProduct(
       p.nafdacNumber,
       p.manufacturer,
       p.countryOfOrigin,
-      p.regulatoryStatus,
-      p.regulatorySummary ? JSON.stringify(p.regulatorySummary) : null,
+      reg.status,
+      reg.summary ? JSON.stringify(reg.summary) : null,
+      reg.checkedAt,
     ],
   );
   return toProduct(rows[0]);
@@ -528,13 +603,20 @@ export async function updateProduct(
   p: ReturnType<typeof parseProductInput>,
 ) {
   if (!isUuid(id)) return null;
+  const current = await query<ProductRow>(
+    `select * from products
+      where id = $1 and facility_id in (select id from facilities where owner_id = $2)`,
+    [id, ownerId],
+  );
+  if (!current[0]) return null;
+  const reg = await resolveRegulatory(p, current[0]);
   const rows = await query<ProductRow>(
     `update products set name=$3, generic_name=$4, category=$5, form=$6, strength=$7,
        pack_size=$8, price_ngn=$9, quantity=$10, low_stock_at=$11, batch=$12, expires_on=$13,
        prescription_only=$14, notes=$15,
        barcode=$16, nafdac_no=$17, manufacturer=$18, country_of_origin=$19,
        regulatory_status=$20, regulatory_summary=$21::jsonb,
-       regulatory_checked_at=case when $20 <> 'none' then now() else regulatory_checked_at end,
+       regulatory_checked_at=$22::timestamptz,
        updated_at=now()
      where id=$1 and facility_id in (select id from facilities where owner_id=$2)
      returning *`,
@@ -558,8 +640,9 @@ export async function updateProduct(
       p.nafdacNumber,
       p.manufacturer,
       p.countryOfOrigin,
-      p.regulatoryStatus,
-      p.regulatorySummary ? JSON.stringify(p.regulatorySummary) : null,
+      reg.status,
+      reg.summary ? JSON.stringify(reg.summary) : null,
+      reg.checkedAt,
     ],
   );
   return rows[0] ? toProduct(rows[0]) : null;
@@ -653,7 +736,9 @@ export async function searchDirectory(opts: {
         and ($2::text is null or f.city ilike $2 or f.state ilike $2)
         and ($3::text is null or p.category = $3)
         and (not $4 or p.quantity > 0)
-      order by (p.quantity > 0) desc, p.updated_at desc
+      order by (p.quantity > 0) desc,
+               (f.verification_status = 'verified') desc,
+               p.updated_at desc
       limit $5`,
     [patterns, city, opts.category ?? null, opts.inStockOnly ?? false, limit],
   );

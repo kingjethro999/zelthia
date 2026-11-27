@@ -170,23 +170,30 @@ export function classifyNafdacCode(rawCode: string): {
     .toUpperCase()
     .replace(/\s+/g, "")
     .replace(/\//g, "-");
-  const isListedL = /L$/.test(normalized);
+  const isListedL = /\d+L$/.test(normalized);
   const prefix = normalized.split("-")[0] ?? "";
 
-  if (isListedL || prefix === "A7") {
-    return { normalized, domain: "herbal_listed", isListedL: true };
-  }
-  if (["04", "A4", "B4"].includes(prefix)) {
-    return { normalized, domain: "drug", isListedL: false };
+  // Greenbook evidence: A4/04/B4 drugs, A6/06 vaccines and biologics, A7/07
+  // supplements, nutraceuticals and some drugs (an "L" suffix marks a listed
+  // product), 03 medical devices, 02/C4/A2 cosmetics, 01/A1/B1/C1/08/A8 food.
+  if (["04", "A4", "B4", "A6", "06", "A7", "07"].includes(prefix)) {
+    return {
+      normalized,
+      domain: isListedL ? "herbal_listed" : "drug",
+      isListedL,
+    };
   }
   if (["02", "C4", "A2"].includes(prefix)) {
-    return { normalized, domain: "cosmetic", isListedL: false };
+    return { normalized, domain: "cosmetic", isListedL };
   }
-  if (prefix === "03") {
-    return { normalized, domain: "medical_device", isListedL: false };
+  if (["03", "A3"].includes(prefix)) {
+    return { normalized, domain: "medical_device", isListedL };
   }
   if (["01", "08", "A1", "B1", "C1", "A8"].includes(prefix)) {
-    return { normalized, domain: "food_beverage", isListedL: false };
+    return { normalized, domain: "food_beverage", isListedL };
+  }
+  if (isListedL) {
+    return { normalized, domain: "herbal_listed", isListedL };
   }
   return { normalized, domain: "unknown", isListedL: false };
 }
@@ -206,7 +213,7 @@ export function extractRegulatoryCodes(text: string): ExtractedRegulatoryCodes {
     /NAFDAC\s*(?:REG\.?\s*(?:NO\.?)?)?\s*[:#-]?\s*([A-Z0-9]{1,3}\s*[-/]\s*\d{3,7}\s*L?)\b/i,
   );
   const canonicalNafdac = clean.match(
-    /\b((?:A4|B4|04|C4|A7|01|02|03|08|A1|B1|C1|A2|A8)\s*-\s*\d{3,7}\s*L?)\b/i,
+    /\b((?:A4|B4|04|C4|A6|06|A7|07|01|02|03|A3|08|A1|B1|C1|A2|A8)\s*-\s*\d{3,7}\s*L?)\b/i,
   );
   const nafdacRaw = explicitNafdac?.[1] ?? canonicalNafdac?.[1];
   if (nafdacRaw) {
