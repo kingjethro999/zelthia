@@ -26,7 +26,7 @@ import { VitalConstellation } from "./VitalConstellation";
 
 const TELEMETRY_HINTS = [
   "Drag or tap the pulse orb",
-  "Signal checked — route unmapped",
+  "Signal checked: route unmapped",
   "Everything else on Zelthia is live",
   "Drag further for elastic rebound",
 ] as const;
@@ -348,7 +348,7 @@ export function NotFoundExperience() {
                   onPointerUp={onOrbPointerRelease}
                   onPointerCancel={onOrbPointerRelease}
                   onClick={onOrbClick}
-                  aria-label="Send a diagnostic pulse — drag or activate the 0 orb"
+                  aria-label="Send a diagnostic pulse by dragging or activating the 0 orb"
                   className="nf-orb relative flex items-center justify-center focus-visible:outline-offset-4"
                 >
                   <Activity

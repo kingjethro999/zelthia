@@ -165,7 +165,7 @@ export async function queryOpenFdaComprehensive(opts: {
             registry: "US FDA Drugs@FDA",
             status: isDisc ? "discontinued" : "matched",
             title: `${r.application_number ?? "FDA Appl."} · ${r.sponsor_name ?? cleanName}`,
-            detail: `${prod?.brand_name ?? cleanName} (${prod?.dosage_form ?? "Drug"}) — FDA marketing status: ${mkt}.`,
+            detail: `${prod?.brand_name ?? cleanName} (${prod?.dosage_form ?? "Drug"}): FDA marketing status is ${mkt}.`,
             code: r.application_number
               ? String(r.application_number)
               : undefined,
@@ -179,7 +179,7 @@ export async function queryOpenFdaComprehensive(opts: {
         }),
     );
 
-    // 4. openFDA Structured Product Labeling (drug/label.json) — Boxed Warnings & Contraindications
+    // 4. openFDA Structured Product Labeling (drug/label.json): Boxed Warnings & Contraindications
     tasks.push(
       fetchOpenFda(
         "openFDA-Label",
@@ -204,7 +204,7 @@ export async function queryOpenFdaComprehensive(opts: {
           findings.push({
             registry: "US FDA Labeling (SPL)",
             status: boxed ? "warning" : "matched",
-            title: `${firstText(r.openfda?.brand_name, 80) || cleanName} — Official FDA Label`,
+            title: `${firstText(r.openfda?.brand_name, 80) || cleanName} · Official FDA label`,
             detail: boxed
               ? `Boxed Warning: ${boxed}`
               : contra

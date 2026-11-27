@@ -582,7 +582,7 @@ function StockTab({ facility }: { facility: Facility }) {
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted">
             Scan a barcode or snap a pack photo to check NAFDAC, FDA & recalls
-            live before shelving—or add an item manually.
+            live before shelving, or add an item manually.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-2.5">
             <Button onClick={() => setScanOpen(true)}>

@@ -47,7 +47,7 @@ const PULSE_MS = 950;
 
 /**
  * Ambient Canvas 2D constellation behind the 404 stage.
- * Uses a seamless periodic phase loop, caps DPR at 2, pauses offscreen or on
+ * Uses a continuous periodic phase loop, caps DPR at 2, pauses offscreen or on
  * hidden tabs, and renders a single static frame for reduced-motion users.
  */
 export function VitalConstellation({ pulseCount }: { pulseCount: number }) {

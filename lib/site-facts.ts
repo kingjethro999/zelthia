@@ -70,8 +70,8 @@ export function llmsText(full: boolean) {
     "- Zelthia gives guidance, not a diagnosis, and does not replace a doctor or pharmacist. Emergency number in Nigeria: 112.",
     "- Stock and services shown come only from facilities that listed them. Web results are labelled unverified and link to their sources. Zelthia does not invent facilities, prices or phone numbers.",
     "- Facilities with a confirmed licence or registration number carry a verified badge.",
-    "- Integrated regulatory & public health datasets: Nigeria NAFDAC (Greenbook, Herbal, Alerts), US FDA Orange Book (EOBZIP_2026_10) & all 7 openFDA REST endpoints (drug/ndc, drug/drugsfda, drug/label, drug/event, drug/enforcement, food/enforcement, cosmetic/event), UK MHRA Safety Public Assessment Reports (2006–2026) & 2025–2026 Annual Report, Health Canada DPD, China NMPA, and DHSC England Adult Social Care Finance Report 2025–2026.",
-    "- Enforced data protection & privacy compliance: Nigeria Data Protection Act 2023 (NDPA), UK Data Protection Act 2018 (UKPGA 2018 c. 12), and UK GDPR — with zero-knowledge AES-256-GCM encryption, explicit timestamped consent audit, Subject Access Request export, and runtime processing restriction.",
+    "- Integrated regulatory and public health datasets: Nigeria NAFDAC (Greenbook, Herbal, Alerts), US FDA Orange Book (EOBZIP_2026_10) and all 7 openFDA REST endpoints (drug/ndc, drug/drugsfda, drug/label, drug/event, drug/enforcement, food/enforcement, cosmetic/event), UK MHRA Safety Public Assessment Reports (2006 to 2026) and 2025-2026 Annual Report, Health Canada DPD, China NMPA, and DHSC England Adult Social Care Finance Report 2025-2026.",
+    "- Enforced data protection and privacy compliance: Nigeria Data Protection Act 2023 (NDPA), UK Data Protection Act 2018 (UKPGA 2018 c. 12), and UK GDPR, using zero-knowledge AES-256-GCM encryption, explicit timestamped consent audits, Subject Access Request exports, and runtime processing restriction.",
     `- Facility types: ${Object.values(FACILITY_KIND_LABEL).join(", ")}.`,
     `- Product categories: ${PRODUCT_CATEGORIES.join(", ")}.`,
     "",
@@ -88,7 +88,7 @@ export function llmsText(full: boolean) {
     `- Verify a medicine or product: GET ${SITE_URL}/api/directory/verify?q={medicine}&barcode={gtin}&nafdac={reg}`,
     "  Cross-checks barcode/GTIN, NAFDAC Greenbook, FDA Orange Book & openFDA, UK MHRA Safety PARs, Health Canada DPD, and China NMPA. Upstream outages are reported honestly as could not check.",
     `- Explore indexed public datasets: GET ${SITE_URL}/api/research/datasets?source={overview|mhra|dpa|social-care|orange-book}&q={query}`,
-    "  Read-only access to indexed FDA Orange Book metadata, MHRA Safety PARs, UKPGA Data Protection Act 2018 provisions, and DHSC England Adult Social Care 2025–2026 expenditure aggregates.",
+    "  Read-only access to indexed FDA Orange Book metadata, MHRA Safety PARs, UKPGA Data Protection Act 2018 provisions, and DHSC England Adult Social Care 2025-2026 expenditure aggregates.",
     "- To point a person at a search, link to " +
       `${SITE_URL}/inventory?search={query}` +
       ". To hand a question to the chat, link to " +

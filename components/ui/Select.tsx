@@ -56,7 +56,6 @@ export function Select<T extends string>({
     searchable && needle
       ? options.filter((o) => o.label.toLowerCase().includes(needle))
       : options;
-  const selectedIndex = shown.findIndex((o) => o.value === value);
   const SelectedIcon = selected?.icon ?? LeadIcon;
 
   useEffect(() => {

@@ -36,7 +36,7 @@ type Filter = "pending" | "verified" | "rejected" | "all";
 const DECLINE_TEMPLATES = [
   "Licence number could not be matched on an official Nigerian registry.",
   "Facility name does not match the regulatory licence record.",
-  "Licence appears expired or incomplete — please upload current registration details.",
+  "Licence appears expired or incomplete. Please upload current registration details.",
 ];
 
 export function VerificationsView() {

@@ -708,7 +708,7 @@ export async function adminDeleteProduct(
   return { deleted: true, name: removed.name };
 }
 
-/* ---------- Users (metadata only — strictly zero encrypted content access) ---------- */
+/* ---------- Users (metadata only; zero encrypted content access) ---------- */
 
 interface UserAdminRow {
   id: string;
@@ -1098,7 +1098,7 @@ export async function getAdminSystemHealth(): Promise<AdminSystemHealth> {
         id: "uk_mhra",
         label: "UK MHRA Safety PARs & HC 516",
         records: mhra.parsCatalog.totalReports,
-        source: "GOV.UK MHRA (2006–2026) & 2025–2026 Annual Report",
+        source: "GOV.UK MHRA (2006-2026) & 2025-2026 Annual Report",
         status: "ready",
       },
       {
@@ -1110,7 +1110,7 @@ export async function getAdminSystemHealth(): Promise<AdminSystemHealth> {
       },
       {
         id: "dhsc_social_care",
-        label: "England Adult Social Care 2025–26",
+        label: "England Adult Social Care 2025-26",
         records: asc.totalCsvRowsProcessed,
         source: "DHSC GOV.UK (9 regions · 153 Local Authorities)",
         status: "ready",

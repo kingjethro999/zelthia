@@ -35,7 +35,7 @@ export default function TermsPage() {
           Adult Social Care Finance reports (published under public registries
           and Open Government Licence v3.0 where applicable). Registration
           records cannot inspect the physical chemical contents of a sealed
-          pack—always verify physical expiry dates, batch numbers and intact
+          pack. Always verify physical expiry dates, batch numbers, and intact
           security seals.
         </p>
       </section>

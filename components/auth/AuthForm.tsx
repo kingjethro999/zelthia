@@ -185,7 +185,7 @@ export function AuthForm({
         icon={LockKeyhole}
         hint={
           mode === "signup"
-            ? "Also locks your encrypted health profile and saved chats — keep it safe."
+            ? "Also locks your encrypted health profile and saved chats, so keep it safe."
             : undefined
         }
         error={fieldError("password")}
@@ -202,8 +202,8 @@ export function AuthForm({
             </p>
             <p className="mt-1 text-muted">
               We never sell or mine your personal data. Your health profile,
-              saved chats and uploaded notes are encrypted before storage —
-              never saved as plain text in our database and unreadable to
+              saved chats, and uploaded notes are encrypted before storage,
+              never saved as plain text in our database, and unreadable to
               Zelthia staff.
             </p>
           </div>

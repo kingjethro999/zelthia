@@ -1064,7 +1064,7 @@ function ScanToStockInner({
                 <ShieldAlert className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />
                 <div className="flex-1">
                   <p className="font-display text-base font-bold">
-                    Hold carton — do not place on shelf
+                    Hold carton. Do not place on shelf.
                   </p>
                   <p className="mt-1 text-sm text-white/90">
                     Zelthia detected a high-risk safety mismatch, recall alert,

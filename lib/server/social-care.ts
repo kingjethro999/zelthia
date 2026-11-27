@@ -26,7 +26,7 @@ export function getSocialCareSummary() {
 }
 
 /**
- * Queries DHSC England Adult Social Care Finance Report (FY 2025–2026, updated
+ * Queries DHSC England Adult Social Care Finance Report (FY 2025-2026, updated
  * November 2026) across national totals, 9 English regions, and 153 Local Authorities.
  */
 export function queryAdultSocialCareFinance(

@@ -52,7 +52,7 @@ interface VisionPackExtract {
 }
 
 const VISION_EXTRACT_PROMPT = `You are a pharmaceutical & healthcare supply-chain scanner reading a pack, box, bottle, blister strip, or barcode photo.
-Return ONLY valid JSON with these keys (use "" or null when absent — NEVER invent or guess unseen values):
+Return ONLY valid JSON with these keys (use "" or null when absent; NEVER invent or guess unseen values):
 {
   "name": "Brand or commercial product name exactly as printed on pack",
   "genericName": "Active ingredient(s) printed on pack, or ''",

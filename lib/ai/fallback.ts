@@ -58,19 +58,17 @@ export function generateClinicalFallback(
           actionText: "Find Nearest Emergency Facility",
           reason: "Immediate in-person emergency evaluation is required.",
         },
-        message: `### Urgent Medical Alert: Immediate Emergency Evaluation Required
+        message: `### Get emergency care now
 
-**Your safety is the absolute priority.** The symptoms you described (${kw}) can be indicators of a life-threatening acute emergency.
+The symptom you described (${kw}) needs urgent in-person evaluation and can point to a life-threatening emergency.
 
 **What to do right now**
-1. **Call local emergency services immediately**:
-   - In Nigeria, dial **112** (or your local emergency response hotline).
-   - In the US/International, dial **911** or your regional medical dispatch.
-2. **Alert someone near you**: Tell a family member, neighbor, or colleague immediately so you are not alone.
-3. **Do not drive yourself**: Have an ambulance or trusted person transport you to the nearest hospital emergency room.
-4. **Sit upright and rest**: Loosen tight clothing around the neck and chest while awaiting emergency assistance.
+1. Call local emergency services now: dial **112** in Nigeria, or **911** (or your local emergency number) elsewhere.
+2. Tell someone near you so you are not alone.
+3. Do not drive yourself; have an ambulance or someone with you take you to the nearest hospital emergency unit.
+4. Sit upright and loosen any tight clothing around your neck and chest while waiting for help.
 
-> **Important Safety Notice**: AI companions cannot diagnose or stabilize acute medical emergencies. Please seek immediate professional medical attention without delay.`,
+This chat cannot diagnose or stabilize an emergency, so please get to a hospital right away.`,
       };
     }
   }
@@ -95,7 +93,7 @@ export function generateClinicalFallback(
         query.includes("penicillin")
       ) {
         bioAlerts.push(
-          "**Severe Allergy Contraindication**: You have a documented **Penicillin allergy**. Amoxicillin, Ampicillin, and Augmentin belong to the beta-lactam penicillin family and pose a high risk of anaphylaxis. Do not take these without direct allergist/physician clearance.",
+          "Your profile lists a **penicillin allergy**. Amoxicillin, ampicillin, and Augmentin are penicillin antibiotics and can trigger anaphylaxis, so do not take them without direct doctor clearance.",
         );
       }
     }
@@ -108,7 +106,7 @@ export function generateClinicalFallback(
         query.includes("sulfa")
       ) {
         bioAlerts.push(
-          "**Sulfa Allergy Contraindication**: Your profile lists a **Sulfa allergy**. Sulfonamide antibiotics like Septrin/Bactrim must be avoided to prevent hypersensitivity reactions or severe cutaneous drug reactions.",
+          "Your profile lists a **sulfa allergy**. Avoid sulfonamide antibiotics such as Septrin or Bactrim because they can cause severe allergic reactions.",
         );
       }
     }
@@ -128,7 +126,7 @@ export function generateClinicalFallback(
         query.includes("naproxen")
       ) {
         bioAlerts.push(
-          "**NSAID Allergy Alert**: Your profile lists an **NSAID / Aspirin allergy**. Avoid Ibuprofen, Diclofenac, and Naproxen. Consider Paracetamol (Acetaminophen) for analgesia instead.",
+          "Your profile lists an **NSAID or aspirin allergy**. Avoid ibuprofen, diclofenac, and naproxen; ask your pharmacist about paracetamol instead.",
         );
       }
     }
@@ -146,7 +144,7 @@ export function generateClinicalFallback(
         query.includes("sinus")
       ) {
         bioAlerts.push(
-          "**Hypertension Precaution**: Many OTC multi-symptom cold/sinus remedies contain **pseudoephedrine or phenylephrine**, which can dangerously elevate blood pressure. Look for decongestant-free cold formulas or consult your pharmacist.",
+          "With **high blood pressure**, watch out for multi-symptom cold and sinus remedies containing pseudoephedrine or phenylephrine, which can raise blood pressure. Ask a pharmacist for a decongestant-free formula.",
         );
       }
     }
@@ -158,7 +156,7 @@ export function generateClinicalFallback(
         query.includes("diclofenac")
       ) {
         bioAlerts.push(
-          "**Asthma Precaution**: NSAIDs (Ibuprofen, Aspirin) can trigger bronchospasm in up to 10-20% of asthmatic individuals (aspirin-exacerbated respiratory disease). Exercise caution and prioritize Paracetamol.",
+          "With **asthma**, NSAIDs like ibuprofen and aspirin can trigger bronchospasm in sensitive people. Check with a pharmacist and consider paracetamol instead.",
         );
       }
     }
@@ -166,7 +164,7 @@ export function generateClinicalFallback(
     if (conditions.some((c) => c.includes("diabetes"))) {
       if (query.includes("cough syrup") || query.includes("syrup")) {
         bioAlerts.push(
-          "**Diabetes Precaution**: Standard liquid cough syrups frequently contain high concentrations of sucrose or corn syrup. Request sugar-free formulation at the pharmacy to avoid glycemic spikes.",
+          "With **diabetes**, many liquid cough syrups carry high amounts of sugar or corn syrup. Ask your pharmacist for a sugar-free option.",
         );
       }
     }
@@ -186,7 +184,7 @@ export function generateClinicalFallback(
         query.includes("pain relief")
       ) {
         bioAlerts.push(
-          "**Medication Interaction**: You are taking an ACE inhibitor. Combining ACE inhibitors with regular NSAIDs can reduce antihypertensive efficacy and increase renal strain.",
+          "Since you take an **ACE inhibitor** (such as lisinopril, enalapril, or ramipril), regular NSAIDs can blunt its blood-pressure effect and strain your kidneys.",
         );
       }
     }
@@ -215,23 +213,23 @@ export function generateClinicalFallback(
         reason:
           "Find verified Artemether/Lumefantrine and Rapid Diagnostic Kits at nearby Zelthia pharmacies.",
       },
-      message: `A fever accompanied by chills, joint pain, or generalized fatigue in malaria-endemic regions requires prompt attention. Early diagnostic confirmation prevents complications.${bioSection}
+      message: `A fever with chills or body aches should be tested properly rather than treated by guesswork.${bioSection}
 
-**Recommended Next Steps**
-- **Diagnostic Confirmation First**: Take a Rapid Diagnostic Test (RDT) or blood film for malaria parasites at a local pharmacy or clinic before starting antimalarial therapy.
-- **First-Line Therapy (if positive)**: Artemisinin-based Combination Therapy (ACT), specifically **Artemether-Lumefantrine (Coartem)** or **Artesunate-Amodiaquine**, taken with a meal containing fats (such as milk) to enhance absorption.
-- **Temperature & Pain Management**: Paracetamol 500mg–1000mg every 6–8 hours as needed (do not exceed 4000mg/day).
-- **Hydration**: Drink plenty of fluids (clean water, coconut water, or oral rehydration salts) to counter fluid loss from sweating.
+**What to do next**
+- Get a malaria Rapid Diagnostic Test (RDT) or blood film at a pharmacy or clinic before starting antimalarials.
+- If malaria is confirmed, first-line treatment is usually an ACT such as **artemether-lumefantrine** or artesunate-amodiaquine taken with food or milk to improve absorption.
+- For fever and aches, adults typically use paracetamol 500 mg to 1000 mg every 6 to 8 hours (never more than 4000 mg in 24 hours).
+- Drink clean water or oral rehydration salts steadily to replace fluids lost from sweating.
 
-**Red Flags Requiring Immediate Escalation**
-- Temperature above 39.5°C (103°F) that does not respond to antipyretics
-- Persistent vomiting preventing oral fluid or medication intake
-- Altered consciousness, severe confusion, or seizures (signs of cerebral malaria)
-- Extreme jaundice (yellowing of eyes) or tea-colored dark urine
+**When to go in right away**
+- Fever above 39.5°C (103°F) that does not drop after paracetamol
+- Persistent vomiting that keeps you from holding down fluids or tablets
+- Confusion, severe drowsiness, or seizures
+- Yellow eyes or dark tea-colored urine
 
-**Questions to Ask Your Pharmacist or Doctor**
-- *"Can you perform an RDT finger-prick test before dispensing antimalarials?"*
-- *"Does this antimalarial interact with any of my current daily medications?"*`,
+**Questions to ask**
+- "Can you run a finger-prick RDT before dispensing malaria medicine?"
+- "Does this antimalarial interact with anything else I take?"`,
     };
   }
 
@@ -253,21 +251,21 @@ export function generateClinicalFallback(
         reason:
           "Locate soothing topical creams and antihistamines in local partner stock.",
       },
-      message: `Skin rashes can originate from contact dermatitis (allergens, detergents, cosmetics), mild fungal infections, insect bites, or heat rash.${bioSection}
+      message: `Skin rashes often come from contact irritation (soaps, detergents, cosmetics), heat rash, insect bites, or superficial fungal infections.${bioSection}
 
-**Recommended Supportive Care**
-- **Gentle Cleansing**: Wash the affected area with mild, fragrance-free soap and lukewarm water. Gently pat dry without rubbing.
-- **Topical Calming Agents**: For localized, non-infected itchy patches, a thin layer of **Hydrocortisone 1% cream** applied 1–2 times daily for no more than 7 days can reduce inflammation.
-- **Oral Antihistamines**: If itching is disturbing sleep or daily activities, a non-drowsy antihistamine (such as Cetirizine 10mg or Loratadine 10mg) may provide relief.
-- **Avoid Scratching**: Keep fingernails trimmed and use a cool damp compress to avoid secondary bacterial skin infections.
+**What helps at home**
+- Wash the area with lukewarm water and mild, fragrance-free soap, then pat dry gently.
+- For small, non-infected itchy patches, a thin layer of **hydrocortisone 1% cream** 1 to 2 times daily for up to 7 days can calm inflammation.
+- If itching disrupts sleep or daily life, an oral non-drowsy antihistamine such as cetirizine 10 mg or loratadine 10 mg may help.
+- Keep nails short and use a cool damp cloth so scratching does not break the skin.
 
-**When to Avoid Corticosteroid Creams**
-- Do **not** apply hydrocortisone to open sores, weeping lesions, fungal ringworm (tinea), or viral blisters (e.g. cold sores or shingles), as steroids can worsen fungal and viral infections.
+**When to skip hydrocortisone cream**
+- Do **not** put steroid creams on open sores, weeping skin, ringworm, fungal infections, or viral blisters (cold sores, shingles), as steroids can worsen fungal and viral infections.
 
-**Warning Signs to See a Doctor**
-- Rash spreading rapidly across large portions of the body
-- Accompanying facial swelling, difficulty swallowing, or hives (anaphylactic reaction -> call 112/911)
-- Signs of secondary bacterial infection: warm skin, pus formation, yellow crusting, or increasing pain.`,
+**When to see a doctor**
+- A rash spreading quickly across large areas of your body
+- Facial or lip swelling, trouble swallowing, or widespread hives (call 112/911 right away)
+- Warm skin, pus, yellow crusting, or worsening pain around the rash`,
     };
   }
 
@@ -291,19 +289,14 @@ export function generateClinicalFallback(
         reason:
           "Search licensed community pharmacies for verified prescription stock and landmark directions.",
       },
-      message: `Antibiotics are essential prescription medicines engineered specifically to treat bacterial infections. They are completely ineffective against viral illnesses like the common cold, viral bronchitis, or influenza.${bioSection}
+      message: `Antibiotics treat bacterial infections, not viral illnesses such as the common cold or flu.${bioSection}
 
-**Safe Antibiotic Principles**
-- **Prescription Requirement**: Antibiotics should only be obtained upon a clinical diagnosis and valid prescription from a registered doctor or healthcare facility.
-- **Finish the Prescribed Course**: If you have been prescribed an antibiotic course, complete all doses even if you feel better early. Stopping prematurely fosters antimicrobial resistance (AMR).
-- **Never Share or Reuse**: Never take leftover antibiotics or another person's prescription.
+**How to use antibiotics safely**
+- Get antibiotics only after a proper clinical check and valid prescription from a registered doctor or clinic.
+- Finish the full prescribed course even if you feel better early; stopping halfway drives antimicrobial resistance.
+- Never take leftover tablets or another person's prescription.
 
-**Checking Local Availability on Zelthia**
-- Zelthia's inventory portal links directly with verified community pharmacies and hospital dispensary centers.
-- You can look up stock counts, batch verification, and landmark-based step-by-step directions directly in the Inventory portal.
-
-**Red Flags**
-- Signs of severe systemic bacterial infection: high persistent fever, rapid heart rate, deep-seated localized throbbing pain, or spreading red streaks from a wound. Seek direct outpatient or emergency clinic evaluation.`,
+You can check live pharmacy and dispensary stock, pack verifications, and landmark directions in Zelthia's directory. Go to a clinic or hospital right away if you have a persistent high fever, rapid pulse, worsening localized pain, or spreading red streaks from a wound.`,
     };
   }
 
@@ -317,7 +310,7 @@ export function generateClinicalFallback(
   ) {
     const medList =
       biometrics?.currentMedications?.join(", ") ||
-      "None registered in profile";
+      "None listed in your profile";
     return {
       triageLevel: "low",
       referral: {
@@ -328,19 +321,14 @@ export function generateClinicalFallback(
         reason:
           "Review your medication regimen with a licensed clinical pharmacist on Zelthia.",
       },
-      message: `Reviewing drug compatibility is one of the most effective measures to prevent adverse drug events and maintain therapeutic efficacy.${bioSection}
+      message: `Active medicines checked from your profile: **${medList}**.${bioSection}
 
-**Profile Status**
-- **Current active medications evaluated**: ${medList}
-- When initiating any new medication, supplement, or herbal remedy, your clinical profile should always be verified for CYP450 enzyme interactions, additive CNS depression, and renal/hepatic clearance burdens.
+**Common combinations to watch out for**
+- NSAIDs (ibuprofen, diclofenac) taken alongside blood-pressure medicines can reduce blood-pressure control and add strain on the kidneys.
+- Tetracyclines and fluoroquinolones bind with calcium, magnesium, iron, dairy, and antacids, which can cut absorption roughly in half.
+- Alcohol interacts strongly with metronidazole (Flagyl), triggering severe nausea and vomiting.
 
-**Common Interactions to Guard Against**
-- **NSAIDs (Ibuprofen, Diclofenac) + Blood Pressure Meds**: Can blunt the blood pressure-lowering effect and increase stress on kidneys.
-- **Antibiotics + Dairy/Antacids**: Tetracyclines and fluoroquinolones bind with calcium, magnesium, and iron, reducing drug absorption by up to 50%.
-- **Alcohol + Central Acting Drugs / Antibiotics**: Interacts severely with Metronidazole (Flagyl) causing severe disulfiram-like nausea and vomiting.
-
-**Recommended Action**
-- Consult a certified pharmacist at your local dispensary to run a formal dispensing check before starting any new therapy.`,
+Ask a licensed pharmacist to check any new medicine, supplement, or herbal product against your full medication list before taking them together.`,
     };
   }
 

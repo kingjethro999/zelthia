@@ -221,7 +221,7 @@ export function UsersView() {
           </span>
           <div>
             <p className="text-sm font-semibold text-ink">
-              Zero-Knowledge clinical privacy enforced
+              Zero-knowledge clinical privacy enforced
             </p>
             <p className="mt-0.5 text-xs leading-relaxed text-muted">
               Administrators can view non-clinical account metadata (role,

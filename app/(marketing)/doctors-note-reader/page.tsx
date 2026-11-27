@@ -52,37 +52,37 @@ export default function DoctorsNoteReaderPage() {
       sections={[
         {
           icon: ScanText,
-          title: "It reads the handwriting",
-          body: "Every word it can make out is written down, and anything unreadable is marked rather than guessed.",
+          title: "Reads the handwriting",
+          body: "Every word it can make out is written down, and anything unreadable is marked clearly instead of guessed.",
         },
         {
           icon: FileText,
-          title: "It explains the shorthand",
+          title: "Explains the shorthand",
           body: "Abbreviations like c/o, Rx, bd, 2D ECHO or MRI LS spine are spelled out and explained.",
         },
         {
           icon: Stethoscope,
-          title: "It tells you the next step",
+          title: "Shows the next step",
           body: "What the doctor is asking you to do, what the test involves and how to prepare.",
         },
         {
           icon: MapPinned,
-          title: "It finds where to go",
+          title: "Finds where to go",
           body: "Facilities on Zelthia that offer it, with phone, opening hours and directions by landmarks.",
         },
         {
           icon: Globe,
-          title: "It searches the web too",
+          title: "Searches the web when needed",
           body: "When nothing is listed on Zelthia, it finds pages from clinics and pharmacies and links to them.",
         },
         {
           icon: Images,
-          title: "It shows photos",
+          title: "Shows product and place photos",
           body: "Product and place photos from the web, each linked to the page it came from.",
         },
         {
           icon: ShieldCheck,
-          title: "It checks your allergies",
+          title: "Checks your allergies",
           body: "If you have saved a health profile, medicines in the note are checked against your allergies and current medicines.",
         },
         {

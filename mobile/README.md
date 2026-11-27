@@ -1,19 +1,19 @@
-# Zelthia Mobile (`coming soon`)
+# Zelthia mobile (`coming soon`)
 
-Native mobile clients for **Android** (Kotlin / Jetpack Compose) and **iOS** (Swift / SwiftUI), paired with the on-device **"Hey Darling"** wake-word and care companion experience, are in active development and previewed at `/coming-soon` on the web app.
+Native mobile clients for Android (Kotlin and Jetpack Compose) and iOS (Swift and SwiftUI), paired with the on-device "Hey Darling" wake-word and care companion, are in active development and previewed at `/coming-soon` on the web app.
 
 ## Platforms
 
-- **Android ([`mobile/kotlin/`](./kotlin)):** Application ID `com.zelthia.app`, built with Kotlin, Jetpack Compose, Material 3, and AndroidX Navigation 3 (`minSdk = 24`, `compileSdk = 37`, Java 17 toolchain).
+- Android ([`mobile/kotlin/`](./kotlin)) uses application ID `com.zelthia.app`, Kotlin, Jetpack Compose, Material 3, and AndroidX Navigation 3 (`minSdk = 24`, `compileSdk = 37`, Java 17 toolchain):
   ```bash
   cd mobile/kotlin
   ./gradlew assembleDebug testDebugUnitTest
   ```
-- **iOS ([`mobile/swift/`](./swift)):** Directory reserved for the native Swift / SwiftUI application.
+- iOS ([`mobile/swift/`](./swift)) holds the directory reserved for the native Swift and SwiftUI client.
 
-## On-Device Wake-Word & Audio Models (`mobile/assets/`)
+## On-device wake-word and audio models (`mobile/assets/`)
 
-All trained audio pipeline and wake-word assets live under [`mobile/assets/`](./assets):
+All trained audio preprocessing and wake-word model files live under [`mobile/assets/`](./assets):
 
 | Asset                                                                                 | Format           | Purpose                                        |
 | ------------------------------------------------------------------------------------- | ---------------- | ---------------------------------------------- |

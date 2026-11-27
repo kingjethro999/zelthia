@@ -439,7 +439,7 @@ export async function runTurn({
         steps.finish(
           regStep,
           rep.staleFallback
-            ? `Live registry unavailable — showing cached record from ${rep.staleFromDate}`
+            ? `Live registry unavailable; showing cached record from ${rep.staleFromDate}`
             : rep.headline,
           rep.verdict === "danger" ? "failed" : "done",
         );
@@ -538,7 +538,7 @@ export async function runTurn({
     null;
   if (wantSocialCare) {
     const ascStep = steps.start(
-      "Checking DHSC England Adult Social Care Finance 2025–2026 dataset",
+      "Checking DHSC England Adult Social Care Finance 2025-2026 dataset",
     );
     socialCareContext = queryAdultSocialCareFinance({
       query: plan.socialCareQuery ?? text,
@@ -713,9 +713,9 @@ export async function runTurn({
 - Facility cards with phone, directions and stock are shown under your answer, so keep your own summary short.
 - Photos from the web search are shown under your answer and link to their source pages; you may refer to them.
 - A finding with evidence "signal" (adverse event counts, labels, assessment reports, news) is safety context only; never describe it as the product being registered or approved. evidence "code" means the printed number matched the registry record; evidence "name" means only a product with that name is registered, so the pack itself still needs checking.
-- If flags include NAFDAC_CODE_NOT_FOUND, say plainly that the NAFDAC number was not found on the Greenbook, do not guess why, and advise consulting a licensed pharmacy, clinic or hospital nearby before use. If flags include VERIFICATION_UNAVAILABLE, say the check could not be completed rather than calling the product unlisted.
+- If flags include NAFDAC_CODE_NOT_FOUND, say plainly that the NAFDAC number was not found on the Greenbook, do not guess why, and advise consulting a licensed pharmacy, clinic or hospital nearby before use. If flags include VERIFICATION_UNAVAILABLE, say the check could not be completed instead of calling the product unlisted.
 - If REGULATORY VERIFICATION RESULTS shows verdict "unverified" or unlisted_warning is set, explicitly warn the user that no documented regulatory listing could be found across NAFDAC, US FDA, or international registries and advise consulting a licensed pharmacy, clinic, or hospital nearby. NEVER invent an explanation for why a product is unlisted.
-- If REGULATORY VERIFICATION RESULTS shows verdict "danger" or "caution", clearly highlight the exact flags (e.g. NAFDAC category mismatch, expired registration, active recall) and cite each source attribution shown.
+- If REGULATORY VERIFICATION RESULTS shows verdict "danger" or "caution", state the exact flags clearly (e.g. NAFDAC category mismatch, expired registration, active recall) and cite each source attribution shown.
 - If ZELTHIA DIRECTORY RESULTS is "none" and the user was looking for where to get something, say clearly that no facility on Zelthia has it in stock yet, then point to the web results.`
     : "";
   const system = [buildSystemPrompt(profile), locationLine, grounding]

@@ -121,7 +121,7 @@ export function GET() {
                             service: {
                               type: "string",
                               description:
-                                "Present when the match is a listed service rather than a product.",
+                                "Present when the match is a listed service instead of a product.",
                             },
                           },
                         },

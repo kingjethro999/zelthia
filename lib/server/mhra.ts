@@ -106,7 +106,7 @@ const CLINICAL_CLASS_TRIGGERS: Array<{
 ];
 
 /**
- * Searches all 45 indexed UK MHRA Safety Public Assessment Reports (2006–2026)
+ * Searches all 61 indexed UK MHRA Safety Public Assessment Reports (2006-2026)
  * extracted from `data/Safety Public Assessment Reports - GOV.UK.pdf`.
  */
 export function searchMhraSafetyPars(

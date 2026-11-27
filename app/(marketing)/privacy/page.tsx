@@ -119,11 +119,11 @@ export default function PrivacyPage() {
               Non-personal public health &amp; regulatory datasets:
             </strong>{" "}
             Product and safety verification queries solely check non-personal
-            public registries—Nigeria NAFDAC Greenbook &amp; Herbal Database, US
-            FDA Orange Book (<code>EOBZIP_2026_10</code>) &amp; openFDA APIs, UK
-            MHRA Safety Public Assessment Reports &amp; Annual Reports, Health
-            Canada DPD, China NMPA formats, and UK DHSC England Adult Social
-            Care Finance Statistics (2025–2026).
+            public registries: Nigeria NAFDAC Greenbook &amp; Herbal Database,
+            US FDA Orange Book (<code>EOBZIP_2026_10</code>) &amp; openFDA APIs,
+            UK MHRA Safety Public Assessment Reports &amp; Annual Reports,
+            Health Canada DPD, China NMPA formats, and UK DHSC England Adult
+            Social Care Finance Statistics (2025-2026).
           </li>
         </ul>
       </section>
@@ -133,7 +133,7 @@ export default function PrivacyPage() {
         <p>
           Under Section 14 of the UK Data Protection Act 2018 and Article 22 of
           GDPR, AI clinical triage does not make legally binding decisions or
-          diagnoses—every response clearly displays its sources and escalation
+          diagnoses. Every response clearly displays its sources and escalation
           guidance to consult a human clinician. Facility licence badges are
           never auto-approved by AI; a human administrator reviews public
           registry findings before granting verification.
@@ -170,13 +170,12 @@ export default function PrivacyPage() {
 
       <section>
         <h2>
-          7. Your rights (Subject Access, Restriction, Portability &amp;
-          Erasure)
+          7. Your rights (subject access, restriction, portability, and erasure)
         </h2>
         <ul>
           <li>
             <strong className="text-ink">
-              Subject Access Request &amp; Portability (DPA 2018 s. 45 / Art. 15
+              Subject access request &amp; portability (DPA 2018 s. 45 / Art. 15
               &amp; 20):
             </strong>{" "}
             Download a complete JSON package including your consent audit log,
@@ -191,7 +190,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-ink">
-              Restrict Processing (DPA 2018 s. 47 / Art. 18):
+              Restrict processing (DPA 2018 s. 47 / Art. 18):
             </strong>{" "}
             Toggle processing restriction directly on your account page to lock
             profile edits and force all chats into transient mode without server
@@ -199,7 +198,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-ink">
-              Rectification, Session Revocation &amp; Erasure (s. 46–47):
+              Rectification, session revocation, and erasure (s. 46 to 47):
             </strong>{" "}
             Edit your profile, sign out other devices, delete individual chats,
             or permanently erase your account and encrypted files from your
@@ -207,7 +206,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-ink">
-              National Security &amp; Supervisory Complaints:
+              National security and supervisory complaints:
             </strong>{" "}
             Disclosures outside your control never occur absent lawful statutory
             requirements (subject to proportionality and tribunal safeguards

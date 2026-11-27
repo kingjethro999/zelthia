@@ -30,7 +30,7 @@ export const PERMANENT_VERIFICATION_DISCLAIMER =
   "Zelthia checks public registration records and web sources, not physical chemical composition. Always inspect the physical pack, batch number, security seal, and expiry date.";
 
 export const MANDATORY_UNLISTED_WARNING =
-  "Could not find any documented regulatory listing for this product across NAFDAC, US FDA, Health Canada, UK MHRA, or international public registries. Never assume why a product is unlisted — consult a licensed pharmacy, clinic, or hospital nearby before using or stocking it.";
+  "Could not find any documented regulatory listing for this product across NAFDAC, US FDA, Health Canada, UK MHRA, or international public registries. Never assume why a product is unlisted. Consult a licensed pharmacy, clinic, or hospital nearby before using or stocking it.";
 
 const MEDICAL_CATEGORIES = new Set([
   "Medicine",
@@ -39,9 +39,6 @@ const MEDICAL_CATEGORIES = new Set([
   "Test kits and diagnostics",
   "Mother and baby",
 ]);
-
-const FOOD_WORDS_RE =
-  /\b(yoghurt|yogurt|milk|juice|beverage|drink|soft drink|biscuit|noodle|noodles|water|sachet water|chocolate|butter|bread|seasoning|spice|tea|coffee|snack)\b/i;
 
 const RECALL_WORDS_RE =
   /\b(recall|recalled|counterfeit|falsified|fake|substandard|unregistered|banned|prohibited|alert|alerted|nsq|not of standard quality|adulterated|withdraw|withdrawn)\b/i;
@@ -362,7 +359,7 @@ async function checkNafdac(
         code: "CATEGORY_MISMATCH",
         severity: "danger",
         title: "Category mismatch: Cosmetic NAFDAC prefix on claimed medicine",
-        detail: `Code ${cls.normalized} is structured for cosmetics/topicals rather than registered systemic drugs.`,
+        detail: `Code ${cls.normalized} is for cosmetics or topicals, not registered systemic drugs.`,
       });
     }
     if (cls.isListedL) {
@@ -371,7 +368,7 @@ async function checkNafdac(
         severity: "info",
         title: "NAFDAC Listed (L) product",
         detail:
-          "NAFDAC numbers ending in 'L' are listed products (often herbal, traditional or nutraceutical) evaluated for safety listing rather than full clinical efficacy review.",
+          "NAFDAC numbers ending in 'L' are listed products (often herbal, traditional, or nutraceutical) reviewed for safety listing, not full clinical efficacy.",
       });
     }
   }
@@ -744,7 +741,7 @@ async function checkGlobalAndChina(
         code: "CATEGORY_MISMATCH",
         severity: "danger",
         title: "China NMPA 'B' (Health Food/Supplement) vs Medicine claim",
-        detail: `${parsedCodes.guoyaoZhunzi} carries the 'B' supplement prefix rather than H/Z/S/J pharmaceutical approval.`,
+        detail: `${parsedCodes.guoyaoZhunzi} carries the 'B' supplement prefix, not an H/Z/S/J pharmaceutical approval.`,
       });
     }
     findings.push({
@@ -773,7 +770,7 @@ async function checkGlobalAndChina(
     });
   }
 
-  // Cross-check indexed UK MHRA Safety Public Assessment Reports (2006–2026)
+  // Cross-check indexed UK MHRA Safety Public Assessment Reports (2006-2026)
   const mhraPars = searchMhraSafetyPars(input.name, input.genericName);
   if (mhraPars.length > 0) {
     okCalls++;
@@ -1112,7 +1109,7 @@ export async function verifyHealthProduct(
             {
               code: "STALE_CACHE_FALLBACK",
               severity: "caution",
-              title: "Live verification failed — showing cached record",
+              title: "Live verification failed; showing cached record",
               detail: `${homeLabel} could not be reached just now. Showing the cached public record from ${staleDate}. Check again before relying on it.`,
             },
             ...cachedRow.payload.flags.filter(
@@ -1211,7 +1208,7 @@ export async function verifyHealthProduct(
       country === "NG"
         ? nafdacCodeMatch
           ? "NAFDAC number matches the Greenbook record"
-          : "Product name registered with NAFDAC — check the number on the pack"
+          : "Product name registered with NAFDAC (check the number on the pack)"
         : `Listed on ${homeListings[0]?.registry ?? listings[0].registry}`;
   } else if (verdict === "caution") {
     headline =
@@ -1220,7 +1217,7 @@ export async function verifyHealthProduct(
   } else {
     headline = nafdacReached
       ? "Unlisted across checked public registries"
-      : `Verification incomplete — ${homeLabel} unreachable`;
+      : `Verification incomplete: ${homeLabel} unreachable`;
   }
 
   const summary =

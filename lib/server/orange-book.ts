@@ -150,7 +150,7 @@ export function getOrangeBookStats(): {
 /**
  * Searches the indexed US FDA Orange Book dataset (products, patents, exclusivity).
  * Gracefully reports `available: false` in deployments where `data/` is omitted,
- * allowing live openFDA APIs to answer seamlessly.
+ * allowing live openFDA APIs to answer directly.
  */
 export function searchOrangeBook(opts: {
   query?: string;

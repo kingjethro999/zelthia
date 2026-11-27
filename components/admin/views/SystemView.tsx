@@ -207,7 +207,7 @@ export function SystemView() {
                   </span>
                   <div>
                     <h2 className="font-display text-lg font-semibold text-ink">
-                      Zero-Knowledge encryption coverage
+                      Zero-knowledge encryption coverage
                     </h2>
                     <p className="text-xs text-muted">
                       Split-key AES-256-GCM sealing status

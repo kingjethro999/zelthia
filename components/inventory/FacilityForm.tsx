@@ -297,8 +297,9 @@ export function BasicsSection({ f, set, fieldError }: SectionProps) {
           <span>
             Only facilities whose licence has been checked and approved by a
             Zelthia administrator get the green verified tick in search and
-            chat. When you save, we look for your licence on your regulator's
-            public website so the reviewer has evidence to hand.
+            chat. When you save, we look for your licence on your
+            regulator&apos;s public website so the reviewer has evidence to
+            hand.
           </span>
         </p>
       </div>

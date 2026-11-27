@@ -305,7 +305,7 @@ function AccountForm() {
         <section className="rounded-3xl border border-line bg-surface p-5 sm:p-7">
           <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-ink">
             <ShieldCheck className="h-5 w-5 text-brand" aria-hidden />
-            Privacy, Subject Access &amp; Data Protection Rights
+            Privacy, subject access, and data protection rights
           </h2>
           <p className="mt-1 text-sm text-muted">
             Enforced under the Nigeria Data Protection Act 2023, UK Data
@@ -351,7 +351,7 @@ function AccountForm() {
               onClick={exportData}
             >
               <Download className="h-4 w-4" aria-hidden />
-              Subject Access Request &amp; Data Export
+              Subject access request &amp; data export
             </Button>
             <Button
               variant="secondary"
