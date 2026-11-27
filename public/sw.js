@@ -1,6 +1,6 @@
 // Zelthia service worker: offline shell + cache-first static assets.
 // API calls and auth are never cached.
-const VERSION = "zelthia-v2";
+const VERSION = "zelthia-v3";
 const SHELL = ["/offline.html", "/icons/icon-192.png", "/icons/icon-96.png"];
 
 self.addEventListener("install", (event) => {
