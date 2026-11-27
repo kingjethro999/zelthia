@@ -168,7 +168,10 @@ export function parseFacilityInput(body: Record<string, unknown>) {
     throw new ValidationError("Choose what kind of facility this is.", "kind");
   const country = cleanCountry(body.country);
   if (!country)
-    throw new ValidationError("Choose the country this facility is in.", "country");
+    throw new ValidationError(
+      "Choose the country this facility is in.",
+      "country",
+    );
   const city = str(body.city, 80);
   if (!city) throw new ValidationError("Enter the city or town.", "city");
   const address = str(body.address, 240);

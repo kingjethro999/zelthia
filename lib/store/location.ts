@@ -13,7 +13,8 @@ export interface UserGeo {
   source: "header" | "ip" | "default" | "device";
 }
 
-export type GeoPermission = "unknown" | "prompt" | "granted" | "denied" | "unsupported";
+export type GeoPermission =
+  "unknown" | "prompt" | "granted" | "denied" | "unsupported";
 
 interface LocationState {
   /** From the IP address. Always fetched, whatever the person decides. */
@@ -104,7 +105,9 @@ export function requestDeviceLocation(): Promise<UserGeo | null> {
         resolve(geo);
       },
       (err) => {
-        st.setPermission(err.code === err.PERMISSION_DENIED ? "denied" : "prompt");
+        st.setPermission(
+          err.code === err.PERMISSION_DENIED ? "denied" : "prompt",
+        );
         resolve(null);
       },
       { enableHighAccuracy: false, timeout: 15_000, maximumAge: 10 * 60_000 },

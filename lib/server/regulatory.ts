@@ -1146,7 +1146,12 @@ export async function verifyHealthProduct(
     });
   }
 
-  if (home && listings.length > 0 && homeListings.length === 0 && nafdacReached) {
+  if (
+    home &&
+    listings.length > 0 &&
+    homeListings.length === 0 &&
+    nafdacReached
+  ) {
     flags.push({
       code: "IMPORT_UNLISTED_LOCALLY",
       severity: "caution",

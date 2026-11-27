@@ -172,8 +172,8 @@ export function DirectorySearch() {
             Search what pharmacies and clinics
             {geo ? ` in ${geo.countryName}` : " near you"} have in stock, or
             scan a pack to check it against{" "}
-            {REGULATOR[country] ? `${REGULATOR[country]} and ` : ""}other
-            public medicine registers.
+            {REGULATOR[country] ? `${REGULATOR[country]} and ` : ""}other public
+            medicine registers.
           </p>
         )}
 

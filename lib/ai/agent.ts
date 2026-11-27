@@ -378,8 +378,7 @@ export async function runTurn({
   // A place named in the message wins, then the saved profile, then the
   // browser or IP location. Results never leave the person's country.
   const country = geo.country;
-  const geoPlace =
-    [geo.city, geo.region].filter(Boolean).join(", ") || null;
+  const geoPlace = [geo.city, geo.region].filter(Boolean).join(", ") || null;
   const location =
     plan.location ?? (profile.location?.trim() || null) ?? geoPlace;
   const matches: DirectoryMatch[] = [];

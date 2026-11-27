@@ -104,7 +104,9 @@ function PlusBreakdown({ region }: { region: PriceRegion }) {
         the same as one with three.
       </p>
       <table className="mt-3 w-full text-left">
-        <caption className="sr-only">Monthly price by number of locations</caption>
+        <caption className="sr-only">
+          Monthly price by number of locations
+        </caption>
         <tbody className="divide-y divide-line">
           {rows.map(([label, amount]) => (
             <tr key={label}>
@@ -137,8 +139,12 @@ export function PricingPlans({ region }: { region: PriceRegion }) {
           text: "Scan-to-Stock: check each carton against public medicine registers before it goes on the shelf",
         },
         { text: "A record of every delivery and which supplier brought it" },
-        { text: "Your stock shows up when patients nearby search or ask the health chat" },
-        { text: "A public page for your facility and a QR sticker for your counter" },
+        {
+          text: "Your stock shows up when patients nearby search or ask the health chat",
+        },
+        {
+          text: "A public page for your facility and a QR sticker for your counter",
+        },
       ],
       cta: { href: "/signup?role=provider", label: "List your facility" },
       highlight: true,
@@ -155,8 +161,14 @@ export function PricingPlans({ region }: { region: PriceRegion }) {
           text: "A green verified badge once a Zelthia reviewer has checked your licence",
         },
         { text: "Your listings shown above unverified ones in search" },
-        { text: "A printed Verified on Zelthia sticker posted to you", soon: true },
-        { text: "A monthly report of what people near you searched for", soon: true },
+        {
+          text: "A printed Verified on Zelthia sticker posted to you",
+          soon: true,
+        },
+        {
+          text: "A monthly report of what people near you searched for",
+          soon: true,
+        },
       ],
     },
     {

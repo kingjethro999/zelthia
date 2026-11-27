@@ -70,7 +70,6 @@ function validate(step: number, f: FacilityDraft): Local {
   if (step === 1) {
     if (!f.address.trim()) e.address = "Add the street address.";
     if (!f.city.trim()) e.city = "Add the city or town.";
-
   }
   if (step === 2 && f.services.length === 0)
     e.services = "Add at least one service or test.";

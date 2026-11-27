@@ -111,7 +111,10 @@ async function Sticker({ params }: Props) {
             </span>
           </span>
           {f.verified ? (
-            <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold" style={{ color: GREEN }}>
+            <span
+              className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold"
+              style={{ color: GREEN }}
+            >
               <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
               Verified
             </span>
@@ -158,7 +161,10 @@ async function Sticker({ params }: Props) {
         </div>
 
         {/* Facility strip */}
-        <footer className="mt-3 px-5 py-3 text-white" style={{ background: DEEP }}>
+        <footer
+          className="mt-3 px-5 py-3 text-white"
+          style={{ background: DEEP }}
+        >
           <p className="truncate text-[15px] font-semibold leading-tight">
             {f.name}
           </p>

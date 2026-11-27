@@ -236,8 +236,8 @@ function ProductDialogInner({
                 Have the carton nearby?
               </p>
               <p className="text-xs text-muted">
-                Scan the barcode or snap the pack to fill these fields and
-                check it with {regulatorCopy(country).regulator}.
+                Scan the barcode or snap the pack to fill these fields and check
+                it with {regulatorCopy(country).regulator}.
               </p>
             </div>
             <Button

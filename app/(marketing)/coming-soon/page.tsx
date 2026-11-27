@@ -39,7 +39,10 @@ function Cards({ items }: { items: Item[] }) {
   return (
     <ul className="mt-5 grid gap-3 sm:grid-cols-3">
       {items.map(({ icon: Icon, title, body }) => (
-        <li key={title} className="rounded-3xl border border-line bg-surface p-5">
+        <li
+          key={title}
+          className="rounded-3xl border border-line bg-surface p-5"
+        >
           <Icon className="h-5 w-5 text-brand" aria-hidden />
           <h3 className="mt-4 text-base font-semibold text-ink">{title}</h3>
           <p className="mt-1.5 text-sm leading-relaxed text-muted">{body}</p>
@@ -55,9 +58,12 @@ const FACILITIES: Item[] = [
     title: "Paid facility plans",
     body: (
       <>
-        Verified Pro and Diagnostic & Hospital Plus open when payments go
-        live. Everything you use today stays free.{" "}
-        <Link href="/pricing" className="font-medium text-brand hover:underline">
+        Verified Pro and Diagnostic & Hospital Plus open when payments go live.
+        Everything you use today stays free.{" "}
+        <Link
+          href="/pricing"
+          className="font-medium text-brand hover:underline"
+        >
           See the plans
         </Link>
         .
@@ -104,8 +110,8 @@ export default function ComingSoonPage() {
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-muted">
           The Zelthia app is next. It brings Darling and live chat, which are
-          not on the website. There is no release date yet, and nothing on
-          this page can be bought today.
+          not on the website. There is no release date yet, and nothing on this
+          page can be bought today.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <ButtonLink href="/chat" size="lg">

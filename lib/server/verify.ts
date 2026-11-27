@@ -36,7 +36,10 @@ const OFFICIAL: Record<string, { domains: string[]; govSuffix?: string }> = {
     govSuffix: ".gc.ca",
   },
   GH: { domains: ["pcghana.org", "hefra.gov.gh"], govSuffix: ".gov.gh" },
-  KE: { domains: ["pharmacyboardkenya.org", "kmpdc.go.ke"], govSuffix: ".go.ke" },
+  KE: {
+    domains: ["pharmacyboardkenya.org", "kmpdc.go.ke"],
+    govSuffix: ".go.ke",
+  },
   ZA: { domains: ["sapc.za.org", "hpcsa.co.za"], govSuffix: ".gov.za" },
 };
 

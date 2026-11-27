@@ -80,10 +80,13 @@ export function llmsText(full: boolean) {
     "",
     "## Public API for agents",
     `- [OpenAPI description](${SITE_URL}/openapi.json)`,
-    `- Search listings: GET ${SITE_URL}/api/directory?q={product or service}&city={city}&inStock=1`,
-    "  Returns JSON: `matches` (each with `facility` and either `product` or `service`) and `cities`. An empty `matches` array means no facility has listed it; do not present web guesses as Zelthia listings.",
+    "- Search listings (country-scoped): GET ${SITE_URL}/api/directory?q={product or service}&country={ISO2}&city={city}&inStock=1".replace(
+      "${SITE_URL}",
+      SITE_URL,
+    ),
+    "  Returns JSON: `matches` (each with `facility` and either `product` or `service`), `cities`, and resolved `country`. An empty `matches` array means no facility has listed it; do not present web guesses as Zelthia listings. Verified facility profiles and printable A6 QR stickers live at `/facility/{id}` and `/sticker/{id}`.",
     `- Verify a medicine or product: GET ${SITE_URL}/api/directory/verify?q={medicine}&barcode={gtin}&nafdac={reg}`,
-    "  Cross-checks barcode/GTIN, NAFDAC, FDA Orange Book & openFDA, UK MHRA Safety PARs, Health Canada DPD, and China NMPA.",
+    "  Cross-checks barcode/GTIN, NAFDAC Greenbook, FDA Orange Book & openFDA, UK MHRA Safety PARs, Health Canada DPD, and China NMPA. Upstream outages are reported honestly as could not check.",
     `- Explore indexed public datasets: GET ${SITE_URL}/api/research/datasets?source={overview|mhra|dpa|social-care|orange-book}&q={query}`,
     "  Read-only access to indexed FDA Orange Book metadata, MHRA Safety PARs, UKPGA Data Protection Act 2018 provisions, and DHSC England Adult Social Care 2025–2026 expenditure aggregates.",
     "- To point a person at a search, link to " +
@@ -95,6 +98,7 @@ export function llmsText(full: boolean) {
     "## Optional",
     `- [Full text with questions and answers](${SITE_URL}/llms-full.txt)`,
     `- [Sitemap](${SITE_URL}/sitemap.xml)`,
+    "- [Product demo video (2m 05s 1080p MP4)](https://github.com/kingjethro999/zelthia/raw/main/vid/zelthia-demo.mp4)",
   ];
   if (full) {
     lines.push(

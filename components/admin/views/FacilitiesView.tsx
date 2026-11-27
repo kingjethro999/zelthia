@@ -522,7 +522,8 @@ export function FacilitiesView() {
                             {p.name}
                           </p>
                           <p className="truncate text-muted">
-                            {p.category} · {formatMoney(p.priceNgn, detail.facility.currency)}
+                            {p.category} ·{" "}
+                            {formatMoney(p.priceNgn, detail.facility.currency)}
                           </p>
                         </div>
                         <GlassBadge

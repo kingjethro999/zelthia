@@ -1,69 +1,218 @@
 # Zelthia
 
-Inventory for pharmacies, clinics and hospitals in Nigeria, with a health companion on the patient side.
+![Zelthia Banner](./public/zelthiabanner.jpeg)
 
-Facilities keep their stock, prices, batches, expiry dates and landmark directions up to date. Patients search what is listed and see what is available nearby before they travel. The health companion answers questions with a person's allergies, conditions and medicines in mind, and explains doctor's notes from a photo. Zelthia is free to use. Paid add-ons for specific features, such as verified facility listings, are planned.
+Zelthia pairs an inventory, pack-verification, and public listing system for pharmacies, clinics, hospitals, diagnostic centres, and health stores with an AI patient health chat, a handwritten prescription/note reader, and a country-scoped search for real in-stock medicines and diagnostic services. Built Nigeria-first with multi-country geolocation and regional purchasing-power pricing.
 
-Zelthia gives guidance, not a diagnosis, and does not replace a doctor or pharmacist. It does not sell or dispense medicine.
+> **Clinical notice:** Zelthia provides informational guidance and helps locate stock or diagnostic services. It does not diagnose illness, prescribe medicine, or sell or dispense products, and it does not replace a licensed doctor or pharmacist. In an emergency in Nigeria, call **112**.
 
-## What is in the app
+---
 
-**For facilities** (`/provider`, `/for-facilities`)
+## Product Demo
 
-- Stock, price and batch per product, with one-tap quantity changes
-- Low-stock level per product and a 90-day expiry view
-- Services such as scans and tests
-- Landmark directions, including recorded voice directions
-- Verified badge for facilities with a confirmed licence or registration number
+[![Watch the Zelthia Product Demo (2:05 · 1080p MP4)](./public/zelthiabanner.jpeg)](./vid/zelthia-demo.mp4)
 
-**For patients** (`/inventory`, `/chat`, `/doctors-note-reader`)
+- **Repository file:** [`vid/zelthia-demo.mp4`](./vid/zelthia-demo.mp4) (`2 min 05 sec` · `1920×1080` H.264/AAC · `~11 MB`)
+- **Direct stream / download:** <https://github.com/kingjethro999/zelthia/raw/main/vid/zelthia-demo.mp4>
 
-- Public search of facility listings with price, stock, hours and directions
-- Health chat with an optional profile, and a doctor's note reader for photos and PDFs
-- Web search fallback when nothing is listed, with sources and an "unverified" label
+<video src="./vid/zelthia-demo.mp4" controls preload="metadata" poster="./public/zelthiabanner.jpeg" width="100%"></video>
 
-## Stack
+The walkthrough covers:
 
-Next.js 16 (App Router), React 19, Tailwind CSS 4, PostgreSQL (`pg`), Zustand, lucide-react, pnpm. Tables are created on first use.
+1. Patient health chat with allergy/medication context and photo reading for handwritten prescriptions and clinical notes.
+2. Public medicine and test lookup scoped to verified nearby facilities with prices, stock counts, and landmark/voice directions.
+3. Facility inventory management, licence verification, and live regulatory pack checks.
 
-## Getting started
+---
+
+## What Is Live on the Web
+
+### For Patients & Shoppers (`/chat`, `/inventory`, `/doctors-note-reader`, `/facility/[id]`)
+
+- **Health chat (`/chat`):** Takes an optional encrypted health profile (age, sex, height, weight, blood group, allergies, chronic conditions, active medicines) into account, flags drug-allergy and drug-drug risks, runs automatic emergency red-flag detection, streams step-by-step tool activity, fails over across configured inference providers (`Groq`, `Google Gemini`, `NVIDIA NIM`, `APMIX`, `OpenAI`), and falls back deterministically when providers are unavailable. Works with or without an account.
+- **Doctor's note & prescription reader (`/doctors-note-reader`, `/chat`):** Transcribes handwritten notes, prescriptions, referral slips, lab results, and product cartons from photos or PDFs (`unpdf` plus multimodal vision models), expands clinical shorthand, and queries facilities carrying the prescribed items or tests.
+- **Medicine, product & service directory (`/inventory`):** Searches real facility listings scoped to the visitor's country and city (resolved via edge geo headers, `ipwho.is` IP lookup, or opt-in browser coordinates rounded to ~100 m through OpenStreetMap Nominatim). Verified facilities rank ahead of unverified ones. Listings display live quantities, prices, opening hours, written landmark directions, and recorded audio directions. When no local facility stocks an item, web fallback results are displayed separately with an unverified badge and source URLs.
+- **Pack & registration verification (`/inventory`, `/api/directory/verify`):** Checks barcodes (EAN-13, EAN-8, UPC-A, GS1 DataMatrix `(01)`/`(17)`/`(10)`/`(21)`), NAFDAC registration numbers, US NDCs, UK MHRA PL numbers, Health Canada DINs, China NMPA codes, or carton photos against official public registers. Output distinguishes code matches, name matches, post-market safety signals, and upstream outages (an unreachable register reports "could not check" and is never cached or treated as unlisted).
+
+### For Health Facilities (`/provider`, `/for-facilities`, `/facility/[id]`, `/sticker/[id]`, `/pricing`)
+
+- **Inventory & services dashboard (`/provider`):** Supports one or multiple branches (pharmacies, clinics, hospitals, diagnostic/scan centres, health stores) with one-tap quantity adjustments, per-product low-stock thresholds, a 90-day expiry view, prescription-only flags, and listed clinical/diagnostic services (X-ray, ultrasound, ECG, laboratory tests).
+- **Scan-to-Stock & supplier intake log (`POST /api/inventory/scan`):** Uses the browser `BarcodeDetector` API with a pure-JS 1D EAN-13/EAN-8 canvas fallback plus carton OCR to pre-fill product fields, execute live multi-regulator checks, and persist server-issued `regulatory_reports`. Product saves only retain a regulatory status backed by a matching server report (`verdict` and product match). Every scanned carton is logged in `stock_scans` with its supplier, triggering a 90-day cross-facility caution flag (`SUPPLIER_RISK`) when other facilities recorded danger verdicts for cartons from a supplier sharing the normalized name.
+- **Landmark & voice directions:** Facilities publish landmark instructions and can record voice directions in the browser (`MediaRecorder` -> encrypted private Cloudinary storage + Groq Whisper transcription).
+- **Public facility pages & A6 QR stickers (`/facility/[id]`, `/sticker/[id]`):** Public facility pages render `schema.org` JSON-LD (`Pharmacy`, `MedicalClinic`, `Hospital`, `DiagnosticLab`, `HealthAndBeautyBusiness`), and verified profiles are automatically included in `/sitemap.xml`. `/sticker/[id]` generates a print-ready A6 (`105 × 148 mm`) counter sticker with a level-`H` error-corrected QR code linking to the facility's live stock page.
+- **Licence verification & regional pricing (`/pricing`):** Submitted licence numbers (such as PCN, MDCN, or HEFAMAA) are checked against `.gov.ng` sources for preliminary evidence and queued for administrator review. Basic listing is free today and stays free. Upcoming paid tiers (`Verified Pro` and `Diagnostic & Hospital Plus`, plus mobile `Companion`) use regional pricing (`NGN` in Nigeria, `USD` internationally) and never bypass licence verification.
+
+---
+
+## Public Regulatory, Statutory & Health-Economics Datasets
+
+| Dataset / Register                             | Coverage & Scale                                                                                                                                                                         | Code Module                                                                                                                                                                  |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Nigeria NAFDAC Greenbook & Alerts**          | Direct DataTables JSON lookup (`greenbook.nafdac.gov.ng`) by exact NRN (`A4-9674`) and product name with polite throttling + ZenRows relay fallback; NAFDAC alerts/recalls               | [`lib/server/greenbook.ts`](./lib/server/greenbook.ts), [`lib/server/regulatory.ts`](./lib/server/regulatory.ts)                                                             |
+| **US FDA Orange Book (`EOBZIP_2026_10`)**      | `48,990` indexed product rows with active/discontinued status, patent counts, and exclusivity dates                                                                                      | [`lib/server/orange-book.ts`](./lib/server/orange-book.ts), `data/EOBZIP_2026_10/`                                                                                           |
+| **US openFDA Live REST APIs**                  | 7 live endpoints: `drug/ndc`, `drug/drugsfda`, `drug/label` (Boxed Warnings & contraindications), `drug/event` (FAERS), `drug/enforcement`, `food/enforcement`, `cosmetic/event` (CAERS) | [`lib/server/openfda.ts`](./lib/server/openfda.ts)                                                                                                                           |
+| **UK MHRA Safety PARs & Reference**            | `61` Safety Public Assessment Reports (2006–2026) with clinical class expansion, `HC 516` 2025–2026 Annual Report (`186` pp.), 2026 leadership directorates, 15-section Privacy Notice   | [`lib/server/mhra.ts`](./lib/server/mhra.ts), [`lib/server/datasets/`](./lib/server/datasets)                                                                                |
+| **Health Canada DPD & China NMPA**             | Live Health Canada Drug Product Database DIN queries (`health-products.canada.ca/api/drug`) and Guoyao Zhunzi code parsing                                                               | [`lib/server/regulatory.ts`](./lib/server/regulatory.ts), [`lib/barcode.ts`](./lib/barcode.ts)                                                                               |
+| **England Adult Social Care 2025–2026**        | `509,352` DHSC CSV rows aggregated across England (`£31,643,733k` gross / `£26,684,153k` net expenditure), `9` regions, and `153` Local Authorities                                      | [`lib/server/social-care.ts`](./lib/server/social-care.ts), [`lib/server/datasets/adult-social-care-2025-2026.json`](./lib/server/datasets/adult-social-care-2025-2026.json) |
+| **UK Data Protection Act 2018 (`2018 c. 12`)** | `354`-page statute (`11` indexed provisions) + `18`-page National Security Certificates Guidance                                                                                         | [`lib/server/compliance.ts`](./lib/server/compliance.ts), [`lib/server/datasets/ukpga-dpa2018.json`](./lib/server/datasets/ukpga-dpa2018.json)                               |
+
+---
+
+## Security, Zero-Knowledge Encryption & Data Protection
+
+- **Split-key envelope encryption ([`lib/server/crypto.ts`](./lib/server/crypto.ts)):** Account passwords are hashed with `scrypt` (`N=16384, r=8, p=1`), using a dummy constant-work verification path for unknown email addresses. Each user receives a random 256-bit Data Encryption Key (`DEK`) wrapped by a password-derived `KEK` via `AES-256-GCM` (`zelthia:dek:v1` AAD). Health profiles (`data_enc`), conversation titles (`title_enc`), chat messages (`payload_enc`), and private media attachments (`ZENC\x01` binary envelope in Cloudinary) are sealed at rest.
+- **Enforced statutory privacy rights (NDPA 2023 · UKPGA DPA 2018 · UK GDPR):**
+  - Explicit consent recorded at signup in `users.consent_history` alongside `terms_version`.
+  - Subject Access Request & portability export via `GET /api/account/export` (DPA 2018 s. 45 / UK GDPR Art. 15 & 20).
+  - Runtime Right to Restrict Processing via `users.processing_restricted` (DPA 2018 s. 47 / UK GDPR Art. 18), forcing transient non-persisted chat in `POST /api/chat` and blocking profile writes (`409 Conflict`) in `PUT /api/account` while active.
+  - Human-in-the-loop safeguard on automated triage and facility licensing (DPA 2018 s. 14 / UK GDPR Art. 22).
+  - Immediate cascade deletion of account, sessions, messages, facilities, and stored media (`DELETE /api/account`), plus multi-device session revocation (`POST /api/auth/sessions/revoke-others`).
+- **Application & network hardening:**
+  - HTTP-only `SameSite=Lax` split session cookies hashed with SHA-256 in PostgreSQL.
+  - Strict `Origin` checks on state-changing API routes, magic-byte attachment validation ([`lib/server/file-sniff.ts`](./lib/server/file-sniff.ts)), and PostgreSQL sliding-window rate limiting (`rate_limits`).
+  - SSRF guard in [`lib/server/http.ts`](./lib/server/http.ts) blocking private, loopback, link-local, and cloud metadata IPs before outbound fetches.
+  - Security headers in [`next.config.ts`](./next.config.ts): strict `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Cross-Origin-Opener-Policy: same-origin`, HSTS in production, and sandboxed attachment headers (`/api/attachments/*`).
+  - Stealth admin portal (`app/(adm)/[portal]/...`) gated by `ADMIN_ROUTE_SLUG` and the `ADMIN_EMAIL` allowlist, logging all moderation actions to `admin_audit_log`. `/admin` returns `404`.
+
+---
+
+## System Architecture
+
+```mermaid
+flowchart TD
+  Client["Web Client (Next.js 16 + React 19 + Zustand)"] --> ChatAPI["POST /api/chat (Health Agent & OCR)"]
+  Client --> ScanAPI["POST /api/inventory/scan & GET /api/directory/verify"]
+  Client --> DirAPI["GET /api/directory & /api/research/datasets"]
+  Client --> ProviderAPI["/api/facilities & /api/products (Provider CRUD)"]
+  Client --> AdminPortal["/[portal] (Stealth Admin Console)"]
+
+  ChatAPI --> Providers["AI Chain (Groq -> Gemini -> NVIDIA -> APMIX -> OpenAI)"]
+  ChatAPI --> Crypto["Zero-Knowledge Crypto (AES-256-GCM + ZENC01 Vault)"]
+  ScanAPI --> RegEngine["Regulatory Engine (NAFDAC Greenbook, FDA, MHRA, DPD, NMPA)"]
+  RegEngine --> Cache["PostgreSQL regulatory_cache (7d TTL) & regulatory_reports"]
+  ScanAPI --> StockLog["PostgreSQL stock_scans (Cross-Facility Supplier Risk)"]
+  Crypto --> PG["PostgreSQL (Strict TLS + Auto-Schema)"]
+  Crypto --> Cloud["Cloudinary Private Vault"]
+```
+
+---
+
+## Repository Structure
+
+```text
+zelthia/
+├── app/
+│   ├── (adm)/[portal]/       # Stealth admin dashboard (overview, facilities, inventory, verifications, users, audit, system)
+│   ├── (auth)/               # /signin, /signup, /setup
+│   ├── (marketing)/          # /, /about, /for-facilities, /doctors-note-reader, /pricing, /coming-soon, /facility/[id], /privacy, /terms
+│   ├── (workspace)/          # /inventory, /provider, /provider/new, /account
+│   ├── api/                  # REST routes: auth, account, chat, conversations, directory, facilities, products, geo, research, admin
+│   ├── chat/                 # /chat and /chat/[id]
+│   ├── sticker/[id]/         # Printable A6 facility QR sticker
+│   ├── llms.txt/             # Machine-readable summary for AI agents
+│   ├── llms-full.txt/        # Extended documentation + FAQs for AI agents
+│   └── openapi.json/         # OpenAPI 3.1 spec for public endpoints
+├── components/               # UI primitives, admin, chat, inventory (ScanToStockSheet), marketing, profile, providers
+├── data/                     # Local public FDA Orange Book files (EOBZIP_2026_10/) & reference docs
+├── lib/
+│   ├── ai/                   # Tool-calling health agent, multi-provider client, system prompts, offline fallback
+│   ├── server/               # Postgres schema/pool, crypto, auth, greenbook, openfda, orange-book, mhra, social-care, compliance, geo, http
+│   ├── store/                # Zustand client stores (session, chat, location)
+│   └── barcode.ts            # EAN-13/EAN-8, GS1 DataMatrix parser & 1D canvas decoder
+├── scripts/
+│   ├── build-public-datasets.mjs      # Builds lib/server/datasets/*.json from official public reports
+│   ├── seed-admin.mjs                 # Seeds/resets an admin account with wrapped DEK
+│   └── verify-seo-and-routes.mjs      # Verifies App Router structure, sitemap, robots, and JSON-LD
+├── vid/                      # Product demo video (zelthia-demo.mp4)
+└── mobile/                   # Native Android (Kotlin/Compose), iOS (Swift placeholder), and wake-word ONNX/TFLite assets
+```
+
+---
+
+## Database Schema
+
+Tables and additive migrations are defined in `SCHEMA` inside [`lib/server/db.ts`](./lib/server/db.ts) and applied automatically on first database query (`ensureSchema()`):
+
+| Table                        | Purpose                                                                                                         |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `users`                      | Accounts, `scrypt` hashes, wrapped per-user `DEK`, `role`, consent version/history, `processing_restricted`     |
+| `sessions`                   | SHA-256 hashed HTTP-only session tokens and expiration                                                          |
+| `health_profiles`            | AES-256-GCM sealed patient biometrics, allergies, conditions, and medications                                   |
+| `conversations` / `messages` | AES-256-GCM sealed chat threads and turn payloads                                                               |
+| `attachments`                | Encrypted upload metadata referencing private Cloudinary objects or encrypted local blobs                       |
+| `facilities`                 | Registered pharmacies, clinics, hospitals, scan centres, stores, services, and verification evidence            |
+| `products`                   | Branch SKUs, prices, quantities, batches, expiry dates, barcodes, NAFDAC numbers, and trusted regulatory status |
+| `regulatory_cache`           | 7-day cache for successful external regulator lookups                                                           |
+| `regulatory_reports`         | Server-issued verification reports paired against product saves                                                 |
+| `stock_scans`                | Facility Scan-to-Stock intake log powering 90-day cross-facility supplier warnings                              |
+| `rate_limits`                | PostgreSQL sliding-window rate-limit log                                                                        |
+| `admin_audit_log`            | Immutable log of admin moderation and maintenance actions                                                       |
+
+---
+
+## API & Agent Discovery Surface
+
+- **Public read-only APIs:**
+  - `GET /api/directory` — Country-scoped search across verified and listed facility stock/services (`q`, `country`, `city`, `category`, `inStock`)
+  - `GET /api/directory/verify` & `POST /api/directory/verify` — Live regulatory verification for a medicine name, barcode/GTIN, NAFDAC number, foreign pack code, or pack image
+  - `GET /api/research/datasets` — Read-only explorer (`source=overview|mhra|dpa|social-care|orange-book`, `q`, `limit`)
+  - `GET /api/geo`, `/api/geo/countries`, `/api/geo/regions`, `/api/geo/reverse` — Country/region metadata and ~100 m reverse geocoding
+  - `GET /openapi.json` — OpenAPI 3.1 schema for public agent-callable endpoints
+  - `GET /llms.txt` & `GET /llms-full.txt` — Machine-readable platform documentation
+- **Authenticated APIs:** `/api/auth/*`, `/api/account` & `/api/account/export`, `/api/chat`, `/api/conversations/*`, `/api/attachments/[id]`, `/api/facilities/*`, `/api/products/[id]`, `/api/inventory/scan`, `/api/admin/*`.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** `20+`
+- **pnpm** `12+` (`packageManager: pnpm@12.23.0`)
+- **PostgreSQL** `14+`
+
+### Installation & Local Development
 
 ```bash
 pnpm install
 cp .env.example .env
+# Fill DATABASE_URL and at least one AI provider key in .env
 pnpm dev
 ```
 
-Open http://localhost:3000.
+Open <http://localhost:3000>. Tables are created automatically on the first database request.
 
-| Script        | What it does               |
-| ------------- | -------------------------- |
-| `pnpm dev`    | Development server         |
-| `pnpm build`  | Production build           |
-| `pnpm start`  | Serve the production build |
-| `pnpm lint`   | ESLint                     |
-| `pnpm format` | Prettier                   |
+### Scripts & Commands
 
-## Environment
+| Command                                                                  | Description                                                                       |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `pnpm dev`                                                               | Start Next.js 16 Turbopack dev server                                             |
+| `pnpm build`                                                             | Create production build (`next build`)                                            |
+| `pnpm start`                                                             | Serve production build (`next start`)                                             |
+| `pnpm lint`                                                              | Run ESLint (`eslint-config-next`)                                                 |
+| `pnpm format`                                                            | Format workspace files with Prettier                                              |
+| `pnpm exec tsc --noEmit`                                                 | Run TypeScript type check                                                         |
+| `node scripts/build-public-datasets.mjs`                                 | Rebuild [`lib/server/datasets/`](./lib/server/datasets) JSON indexes from `data/` |
+| `node scripts/seed-admin.mjs --email admin@example.com --password "..."` | Create or reset an admin user with a wrapped DEK                                  |
+| `node scripts/verify-seo-and-routes.mjs`                                 | Verify required Next.js routes, sitemap, robots, and JSON-LD                      |
 
-Copy `.env.example` to `.env`. The main groups are:
+---
 
-- `DATABASE_URL`: accounts, sessions, health profiles and listings
-- `NEXT_PUBLIC_SITE_URL`: canonical links, sitemap and Open Graph
-- `AI_PROVIDER_ORDER` plus the provider keys (`GROQ_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`, `APMIX_API_KEY`, `OPENAI_API_KEY`): providers are tried in order and unset keys are skipped
-- `FIRECRAWL_API_KEY`, `TAVILY_API_KEY`, `JINA_API_KEY`: web search and photos for "where can I get this" answers
-- `CLOUDINARY_*`: private storage for chat uploads and recorded directions
+## Environment Variables
 
-Never commit `.env`.
+Copy [`.env.example`](./.env.example) to `.env`. Never commit `.env` or expose server secrets under `NEXT_PUBLIC_*`.
 
-## Layout
+| Group                   | Variables                                                                                                                                                                                                                         | Notes                                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Site & Geo**          | `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_CONTACT_EMAIL`, `DEFAULT_COUNTRY`                                                                                                                                                            | Canonical URL, contact address, loopback fallback country (default `NG`)                                |
+| **PostgreSQL**          | `DATABASE_URL`, `DATABASE_CA_CERT`                                                                                                                                                                                                | Connection string (strict TLS for non-local hosts; optional PEM CA with `\n`)                           |
+| **Stealth Admin**       | `ADMIN_EMAIL`, `ADMIN_ROUTE_SLUG`                                                                                                                                                                                                 | Comma-separated allowlist + 16–128 char URL-safe path segment for `/(adm)/[portal]`                     |
+| **AI & Speech**         | `AI_PROVIDER_ORDER`, `AI_REQUEST_TIMEOUT_MS`, `AI_MAX_FALLBACKS`, `GROQ_API_KEY`, `GROQ_MODEL`, `GROQ_TRANSCRIPTION_MODEL`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `NVIDIA_API_KEY`, `NVIDIA_MODEL`, `APMIX_API_KEY`, `OPENAI_API_KEY` | Providers run in `AI_PROVIDER_ORDER` with automatic failover; Groq Whisper transcribes voice directions |
+| **Web Search & Relays** | `FIRECRAWL_API_KEY`, `TAVILY_API_KEY`, `YOU_API_KEY`, `JINA_API_KEY`, `ZENROWS_API_KEY`, `TINYFISH_API_KEY`                                                                                                                       | Web availability lookups plus ZenRows relay for NAFDAC Greenbook access                                 |
+| **Private Media Vault** | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_SECRET`                                                                                                                                                                | Authenticated private storage for encrypted chat attachments and audio clips                            |
 
-```
-app/          routes: chat, inventory, provider, for-facilities, doctors-note-reader, account, setup, legal pages
-components/   ui kit, marketing, chat, inventory, profile
-lib/          ai, server (db, auth, inventory), motion, site facts
-mobile/       native Android and iOS work, see mobile/README.md
-scripts/      SEO and route checks
-```
+---
 
-Agent-facing text is served at `/llms.txt`, `/llms-full.txt` and `/openapi.json`.
+## Mobile Clients & Wake-Word Models (`mobile/`)
+
+Native mobile apps (`Android` in `mobile/kotlin` under `com.zelthia.app`, `iOS` in `mobile/swift`) and the **"Darling"** on-device wake-word assistant are currently in development and previewed at `/coming-soon`. See [`mobile/README.md`](./mobile/README.md) for the Android Compose stack and the ONNX/TFLite `"Hey Darling"` audio model inventory.

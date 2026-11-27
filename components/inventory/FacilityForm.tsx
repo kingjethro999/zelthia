@@ -50,7 +50,8 @@ const COUNTRY_COPY: Record<string, CountryCopy> = {
     directions:
       "Opposite First Bank, first gate after the Total filling station. Blue building with a green cross.",
     licence: "e.g. PCN/FP/2020/04512",
-    licenceHint: "PCN premises licence, MDCN, HEFAMAA or state ministry number.",
+    licenceHint:
+      "PCN premises licence, MDCN, HEFAMAA or state ministry number.",
   },
   GH: {
     regionLabel: "Region",
@@ -84,7 +85,8 @@ const COUNTRY_COPY: Record<string, CountryCopy> = {
   CA: {
     regionLabel: "Province or territory",
     city: "Toronto",
-    licenceHint: "Provincial college of pharmacists or ministry licence number.",
+    licenceHint:
+      "Provincial college of pharmacists or ministry licence number.",
   },
 };
 
@@ -230,7 +232,9 @@ export function BasicsSection({ f, set, fieldError }: SectionProps) {
             set("country", v);
             set("state", "");
           }}
-          placeholder={countries.length ? "Choose a country" : "Loading countries"}
+          placeholder={
+            countries.length ? "Choose a country" : "Loading countries"
+          }
           options={countries.map((c) => ({ value: c.code, label: c.name }))}
         />
         {fieldError("country") && (
@@ -258,7 +262,9 @@ export function BasicsSection({ f, set, fieldError }: SectionProps) {
           value={f.phone}
           onChange={(e) => set("phone", e.target.value)}
           error={fieldError("phone")}
-          placeholder={dialPrefix ? `${dialPrefix} …` : "Phone with country code"}
+          placeholder={
+            dialPrefix ? `${dialPrefix} …` : "Phone with country code"
+          }
           autoComplete="tel"
         />
         <TextField
