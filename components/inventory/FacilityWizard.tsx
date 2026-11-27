@@ -44,6 +44,7 @@ const STEPS = [
 /** Which step each server-side field error belongs to, so a rejection jumps back to it. */
 const FIELD_STEP: Record<string, number> = {
   kind: 0,
+  country: 0,
   name: 0,
   phone: 0,
   email: 0,
@@ -62,13 +63,14 @@ function validate(step: number, f: FacilityDraft): Local {
   const e: Local = {};
   if (step === 0) {
     if (!f.name.trim()) e.name = "Add the name patients will see.";
+    if (!f.country) e.country = "Choose the country this facility is in.";
     if (f.phone.replace(/\D/g, "").length < 7)
       e.phone = "Add a phone number patients can call.";
   }
   if (step === 1) {
     if (!f.address.trim()) e.address = "Add the street address.";
     if (!f.city.trim()) e.city = "Add the city or town.";
-    if (!f.state) e.state = "Choose a state.";
+
   }
   if (step === 2 && f.services.length === 0)
     e.services = "Add at least one service or test.";

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocationStore } from "./location";
+
 import { create } from "zustand";
 import type {
   AgentStep,
@@ -188,6 +190,9 @@ export const useChat = create<ChatState>()((set, get) => ({
           temporary: !saved,
           history: saved ? undefined : get().localTurns,
           biometrics: profile,
+          // Precise position only if the person allowed it; the server falls
+          // back to their IP location otherwise.
+          location: useLocationStore.getState().device,
         }),
       });
       if (!res.ok || !res.body) {

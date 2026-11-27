@@ -91,6 +91,8 @@ export interface AdminProductListItem extends Product {
   facilityKind: FacilityKind;
   facilityCity: string;
   facilityVerified: boolean;
+  /** ISO 4217 currency of the facility's prices. */
+  facilityCurrency: string;
 }
 
 export interface AdminProductSummary {

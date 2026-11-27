@@ -60,6 +60,8 @@ export async function getPublicFacility(
       address: f.address,
       city: f.city,
       state: f.state,
+      country: f.country,
+      currency: f.currency,
       directions: f.directions,
       openingHours: f.openingHours,
       services: f.services,

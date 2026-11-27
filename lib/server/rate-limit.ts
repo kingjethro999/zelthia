@@ -88,11 +88,16 @@ function rightmostIp(header: string | null): string {
  * Prefers platform-verified proxy headers, then the rightmost XFF hop.
  */
 export function clientIp(req: Request): string {
+  return ipFromHeaders(req.headers);
+}
+
+/** Same as clientIp, for server components that only have headers(). */
+export function ipFromHeaders(h: Headers): string {
   const raw =
-    rightmostIp(req.headers.get("x-vercel-forwarded-for")) ||
-    req.headers.get("cf-connecting-ip")?.trim() ||
-    req.headers.get("x-real-ip")?.trim() ||
-    rightmostIp(req.headers.get("x-forwarded-for")) ||
+    rightmostIp(h.get("x-vercel-forwarded-for")) ||
+    h.get("cf-connecting-ip")?.trim() ||
+    h.get("x-real-ip")?.trim() ||
+    rightmostIp(h.get("x-forwarded-for")) ||
     "unknown";
   return raw.slice(0, 64);
 }

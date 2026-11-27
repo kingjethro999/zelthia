@@ -1,5 +1,7 @@
 "use client";
 
+import { useUserGeo } from "@/lib/store/location";
+
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,8 +46,26 @@ const SUGGESTIONS = [
   { icon: ScanLine, text: "Ultrasound scan" },
 ];
 
+/** The home regulator named in copy for each country Zelthia checks directly. */
+const REGULATOR: Record<string, string> = {
+  NG: "NAFDAC",
+  US: "US FDA",
+  GB: "UK MHRA",
+  CA: "Health Canada",
+};
+
+/** What the registration number printed on a pack is called in each country. */
+const PACK_CODE: Record<string, string> = {
+  NG: "NAFDAC no.",
+  US: "NDC",
+  GB: "PL number",
+  CA: "DIN",
+};
+
 export function DirectorySearch() {
   const router = useRouter();
+  const geo = useUserGeo();
+  const country = geo?.country ?? "";
   const params = useSearchParams();
   const [q, setQ] = useState(params.get("search") ?? "");
   const [city, setCity] = useState(params.get("city") ?? "ALL");
@@ -69,6 +89,7 @@ export function DirectorySearch() {
     setError(null);
     setWeb({ status: "idle", places: [], report: null });
     const qs = new URLSearchParams({ q, inStock: inStock ? "1" : "0" });
+    if (country) qs.set("country", country);
     if (city !== "ALL") qs.set("city", city);
     if (category !== "ALL") qs.set("category", category);
     try {
@@ -82,7 +103,7 @@ export function DirectorySearch() {
     } finally {
       setLoading(false);
     }
-  }, [q, city, category, inStock]);
+  }, [q, city, category, inStock, country]);
 
   // Re-run when filters change; typing waits for a short pause.
   useEffect(() => {
@@ -95,6 +116,7 @@ export function DirectorySearch() {
     if (cleanQ.length < 2) return;
     setWeb({ status: "loading", places: [], report: null });
     const qs = new URLSearchParams({ q: cleanQ });
+    if (country) qs.set("country", country);
     if (city !== "ALL") qs.set("city", city);
     if (category !== "ALL") qs.set("category", category);
     if (refresh) qs.set("refresh", "1");
@@ -147,8 +169,11 @@ export function DirectorySearch() {
         </h1>
         {!searching && (
           <p className="mx-auto mt-3 max-w-xl text-center text-muted">
-            Search live pharmacy stock, scan a barcode or carton photo, and
-            check NAFDAC, US FDA & global public safety registries.
+            Search what pharmacies and clinics
+            {geo ? ` in ${geo.countryName}` : " near you"} have in stock, or
+            scan a pack to check it against{" "}
+            {REGULATOR[country] ? `${REGULATOR[country]} and ` : ""}other
+            public medicine registers.
           </p>
         )}
 
@@ -164,10 +189,10 @@ export function DirectorySearch() {
         >
           <Search className="ml-2.5 h-5 w-5 shrink-0 text-muted" aria-hidden />
           <input
-            aria-label="Search for a medicine, NAFDAC number, barcode or service"
+            aria-label={`Search for a medicine, ${PACK_CODE[country] ?? "registration number"}, barcode or service`}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Name, NAFDAC no., barcode, or scan"
+            placeholder={`Name, ${PACK_CODE[country] ?? "registration no."}, barcode, or scan`}
             className="h-11 min-w-0 flex-1 bg-transparent text-[15px] text-ink placeholder:text-muted focus:outline-none"
           />
           <button
@@ -244,8 +269,9 @@ export function DirectorySearch() {
                 Live authenticity & wider web search
               </p>
               <p className="text-xs text-muted">
-                Cross-check &ldquo;{q.trim()}&rdquo; across NAFDAC, FDA Orange
-                Book, Health Canada & the wider web.
+                Checks &ldquo;{q.trim()}&rdquo; against{" "}
+                {REGULATOR[country] ?? "national"} records first, then NAFDAC,
+                US FDA, Health Canada, UK MHRA and the wider web.
               </p>
             </div>
             <Button

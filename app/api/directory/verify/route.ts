@@ -11,6 +11,7 @@ import {
 } from "@/lib/server/api";
 import { sniffChatAttachment } from "@/lib/server/file-sniff";
 import { searchDirectory } from "@/lib/server/inventory";
+import { resolveCountry } from "@/lib/server/geo";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 import {
   lookupBarcodeMetadata,
@@ -60,6 +61,8 @@ async function runVerification(opts: {
   expiresOn?: string | null;
   city?: string | null;
   forceRefresh?: boolean;
+  /** Country of the person checking: picks the home register and keeps results local. */
+  userCountry: string;
 }) {
   const cleanName = opts.query.trim().slice(0, 120);
   const terms = cleanName
@@ -83,25 +86,27 @@ async function runVerification(opts: {
       countryOfOrigin: opts.countryOfOrigin,
       expiresOn: opts.expiresOn,
       forceRefresh: opts.forceRefresh,
+      userCountry: opts.userCountry,
     }),
     terms.length
       ? searchDirectory({
           terms,
+          country: opts.userCountry,
           city: opts.city ?? null,
           inStockOnly: false,
           limit: 20,
         })
       : Promise.resolve([]),
-    searchPlaces(cleanName, opts.city ?? null, 6),
+    searchPlaces(cleanName, opts.city ?? null, 6, opts.userCountry),
     searchWebGeneral(
-      `${cleanName} ${opts.nafdacCode ?? ""} authentic OR NAFDAC OR FDA`,
+      `${cleanName} ${opts.nafdacCode ?? ""} authentic OR registered OR recall`,
       {
         limit: 6,
-        country: "NG",
+        country: opts.userCountry,
         filterLowValue: true,
       },
     ),
-    searchImages(cleanName, opts.city ?? null, 6),
+    searchImages(cleanName, opts.city ?? null, 6, opts.userCountry),
   ]);
 
   const seenUrls = new Set<string>();
@@ -178,6 +183,7 @@ export async function GET(req: Request) {
       expiresOn: gs1?.gs1Expiry ?? null,
       city,
       forceRefresh: refresh,
+      userCountry: await resolveCountry(req, url.searchParams.get("country")),
     });
 
     return json(payload);
@@ -297,6 +303,7 @@ export async function POST(req: Request) {
         gs1?.gs1Expiry ||
         (typeof vision.expiresOn === "string" ? vision.expiresOn : null),
       city,
+      userCountry: await resolveCountry(req, body.country),
     });
 
     return json(payload);

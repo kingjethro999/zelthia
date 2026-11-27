@@ -17,10 +17,12 @@ import { Button } from "@/components/ui/Button";
 import { Stepper, TextArea, TextField } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Choice";
+import { regulatorCopy } from "@/lib/regulators";
 import {
   PRODUCT_CATEGORIES,
   PRODUCT_FORMS,
   type Product,
+  currencySymbol,
 } from "@/lib/inventory-types";
 import { RegulatoryReportCard } from "./RegulatoryReportCard";
 
@@ -76,6 +78,8 @@ export function ProductDialog({
   onClose,
   onSave,
   onOpenScanner,
+  currency = "NGN",
+  country,
 }: {
   open: boolean;
   initial: ProductDraft | null;
@@ -84,6 +88,10 @@ export function ProductDialog({
     draft: ProductDraft,
   ) => Promise<{ ok: boolean; error?: string; field?: string }>;
   onOpenScanner?: () => void;
+  /** ISO 4217 currency of the facility, for the price field. */
+  currency?: string;
+  /** Facility country, for registration-number wording. */
+  country?: string;
 }) {
   // Stay mounted through the exit so the sheet leaves the way it came; a
   // fresh open after that starts from a clean draft.
@@ -96,6 +104,8 @@ export function ProductDialog({
       onClose={onClose}
       onSave={onSave}
       onOpenScanner={onOpenScanner}
+      currency={currency}
+      country={country}
     />
   );
 }
@@ -106,6 +116,8 @@ function ProductDialogInner({
   onClose,
   onSave,
   onOpenScanner,
+  currency = "NGN",
+  country,
 }: {
   open: boolean;
   initial: ProductDraft | null;
@@ -114,6 +126,9 @@ function ProductDialogInner({
     draft: ProductDraft,
   ) => Promise<{ ok: boolean; error?: string; field?: string }>;
   onOpenScanner?: () => void;
+  /** ISO 4217 currency of the facility, for the price field. */
+  currency?: string;
+  country?: string;
 }) {
   const [p, setP] = useState<ProductDraft>(initial ?? EMPTY_PRODUCT);
   const [saving, setSaving] = useState(false);
@@ -129,7 +144,7 @@ function ProductDialogInner({
   const verifyAuthenticity = async () => {
     if (!p.name.trim() && !p.nafdacNumber.trim() && !p.barcode.trim()) {
       setError({
-        message: "Enter a product name, NAFDAC code, or barcode first.",
+        message: `Enter a product name, ${regulatorCopy(country).code} or barcode first.`,
         field: "name",
       });
       return;
@@ -221,8 +236,8 @@ function ProductDialogInner({
                 Have the carton nearby?
               </p>
               <p className="text-xs text-muted">
-                Scan barcode or snap pack to autofill fields & verify
-                NAFDAC/FDA.
+                Scan the barcode or snap the pack to fill these fields and
+                check it with {regulatorCopy(country).regulator}.
               </p>
             </div>
             <Button
@@ -248,7 +263,7 @@ function ProductDialogInner({
         />
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField
-            label="NAFDAC Reg. No. (optional)"
+            label={`${regulatorCopy(country).codeLabel} (optional)`}
             value={p.nafdacNumber}
             onChange={(e) =>
               set(
@@ -256,7 +271,7 @@ function ProductDialogInner({
                 e.target.value.toUpperCase().replace(/\s+/g, ""),
               )
             }
-            placeholder="e.g. A4-9674"
+            placeholder={`e.g. ${regulatorCopy(country).example}`}
           />
           <TextField
             label="Barcode / GTIN (optional)"
@@ -279,13 +294,13 @@ function ProductDialogInner({
             icon={Globe}
             value={p.countryOfOrigin}
             onChange={(e) => set("countryOfOrigin", e.target.value)}
-            placeholder="e.g. Nigeria, UK, India"
+            placeholder="Where it was made, e.g. India"
           />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-mist/45 px-4 py-3">
           <p className="text-xs text-muted">
-            Check public registries (NAFDAC, FDA Orange Book, Health Canada,
-            MHRA, NMPA) before saving.
+            Check it with {regulatorCopy(country).regulator} and other public
+            registers before saving.
           </p>
           <Button
             type="button"
@@ -350,7 +365,7 @@ function ProductDialogInner({
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField
-            label="Price in naira (optional)"
+            label={`Price in ${currency} (${currencySymbol(currency)}, optional)`}
             inputMode="decimal"
             value={p.priceNgn ?? ""}
             onChange={(e) => {

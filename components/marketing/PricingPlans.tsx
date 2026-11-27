@@ -1,104 +1,28 @@
-"use client";
-
-import { useState } from "react";
-import { Check } from "lucide-react";
-import { ChoiceGroup } from "@/components/ui/Choice";
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { formatPrice, price, type PriceRegion } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
-
-type Region = "ng" | "intl";
 
 interface Feature {
   text: string;
-  /** Not built yet; shown so the plan is honest about what it includes today. */
+  /** Not built yet. Shown so a plan is honest about what it has today. */
   soon?: boolean;
 }
 
 interface Plan {
   name: string;
-  price: Record<Region, string>;
+  price: string;
   per: string;
   blurb: string;
   features: Feature[];
   /** Live sign-up link. Plans without one are not on sale yet. */
   cta?: { href: string; label: string };
   highlight?: boolean;
+  children?: React.ReactNode;
 }
 
-/**
- * Purchasing-power pricing: Nigeria pays in naira at local rates, everywhere
- * else pays the same number in US dollars (₦15,000 / $15).
- */
-const FACILITY_PLANS: Plan[] = [
-  {
-    name: "Basic listing",
-    price: { ng: "₦0", intl: "$0" },
-    per: "forever",
-    blurb: "Everything a facility needs to get found and keep stock right.",
-    features: [
-      { text: "Inventory dashboard with stock, prices, batches and expiry" },
-      {
-        text: "Scan-to-Stock checks against NAFDAC, US FDA and other registries",
-      },
-      { text: "Supplier intake history and red-flag warnings" },
-      { text: "Listed in patient search and health chat answers" },
-      { text: "Public facility page with a QR counter sticker" },
-    ],
-    cta: { href: "/signup?role=provider", label: "List your facility" },
-    highlight: true,
-  },
-  {
-    name: "Verified Pro",
-    price: { ng: "₦15,000", intl: "$15" },
-    per: "per month",
-    blurb:
-      "For pharmacies and clinics that want more patients through the door.",
-    features: [
-      { text: "Everything in Basic" },
-      {
-        text: "Verified badge after a Zelthia administrator reviews your licence",
-      },
-      { text: "Verified facilities ranked first in search results" },
-      { text: "Printed “Verified on Zelthia” counter sticker" },
-      { text: "Search engine indexing of your public page" },
-      {
-        text: "Monthly report of what nearby patients searched for",
-        soon: true,
-      },
-    ],
-    highlight: true,
-  },
-  {
-    name: "Diagnostic & Hospital Plus",
-    price: { ng: "₦50,000 – ₦100,000", intl: "$50 – $100" },
-    per: "per month, by size",
-    blurb: "For scan centres, labs and hospitals with several branches.",
-    features: [
-      { text: "Everything in Verified Pro" },
-      { text: "Several branches under one account" },
-      { text: "Scan and test booking requests from patients", soon: true },
-      { text: "Search-demand analytics by area", soon: true },
-      { text: "Priority placement in health chat answers", soon: true },
-    ],
-  },
-];
-
-const COMPANION: Plan = {
-  name: "Zelthia companion",
-  price: { ng: "₦3,000", intl: "$5" },
-  per: "per month",
-  blurb:
-    "Darling, the voice companion, and in-app live chat for check-ins, reminders and quick facility lookups.",
-  features: [
-    { text: "Arrives with the Zelthia mobile app", soon: true },
-    {
-      text: "Health chat, doctor's note reader and search stay free on the web",
-    },
-  ],
-};
-
-function PlanCard({ plan, region }: { plan: Plan; region: Region }) {
+function PlanCard({ plan }: { plan: Plan }) {
   return (
     <section
       aria-labelledby={`plan-${plan.name}`}
@@ -112,14 +36,14 @@ function PlanCard({ plan, region }: { plan: Plan; region: Region }) {
       <h3 id={`plan-${plan.name}`} className="text-base font-semibold text-ink">
         {plan.name}
       </h3>
-      <p className="mt-1 text-sm text-muted">{plan.blurb}</p>
+      <p className="mt-1 text-sm leading-relaxed text-muted">{plan.blurb}</p>
       <p className="mt-5">
         <span className="title font-display text-3xl font-semibold tabular-nums text-ink">
-          {plan.price[region]}
+          {plan.price}
         </span>
         <span className="ml-1.5 text-sm text-muted">{plan.per}</span>
       </p>
-      <ul className="mt-5 flex-1 space-y-2.5 text-sm">
+      <ul className="mt-5 space-y-2.5 text-sm">
         {plan.features.map((f) => (
           <li key={f.text} className="flex gap-2">
             <Check
@@ -140,49 +64,141 @@ function PlanCard({ plan, region }: { plan: Plan; region: Region }) {
           </li>
         ))}
       </ul>
-      {plan.cta ? (
-        <ButtonLink href={plan.cta.href} className="mt-6">
-          {plan.cta.label}
-        </ButtonLink>
-      ) : (
-        <div className="mt-6">
-          <Button variant="secondary" disabled className="w-full">
-            Coming soon
-          </Button>
-          <Link
-            href="/coming-soon"
-            className="mt-2.5 block text-center text-xs font-medium text-muted underline-offset-4 hover:text-ink hover:underline"
-          >
-            See what’s coming
-          </Link>
-        </div>
-      )}
+      {plan.children}
+      <div className="mt-auto pt-6">
+        {plan.cta ? (
+          <ButtonLink href={plan.cta.href} className="w-full">
+            {plan.cta.label}
+          </ButtonLink>
+        ) : (
+          <>
+            <Button variant="secondary" disabled className="w-full">
+              Coming soon
+            </Button>
+            <Link
+              href="/coming-soon"
+              className="mt-2.5 block text-center text-xs font-medium text-muted underline-offset-4 hover:text-ink hover:underline"
+            >
+              See what’s coming
+            </Link>
+          </>
+        )}
+      </div>
     </section>
   );
 }
 
-export function PricingPlans() {
-  const [region, setRegion] = useState<Region>("ng");
+/** How the Diagnostic & Hospital Plus price is worked out. */
+function PlusBreakdown({ region }: { region: PriceRegion }) {
+  const rows = [
+    ["1 location", price("plusOneSite", region)],
+    ["2 locations", price("plusTwoSites", region)],
+    ["3 or more locations", price("plusCap", region)],
+  ];
+  return (
+    <div className="mt-5 rounded-2xl bg-mist/70 p-4 text-sm">
+      <p className="font-medium text-ink">How the price is set</p>
+      <p className="mt-1 leading-relaxed text-muted">
+        You pay for the number of branches you run under one account. From the
+        third branch on, nothing more is added, so a group with ten sites pays
+        the same as one with three.
+      </p>
+      <table className="mt-3 w-full text-left">
+        <caption className="sr-only">Monthly price by number of locations</caption>
+        <tbody className="divide-y divide-line">
+          {rows.map(([label, amount]) => (
+            <tr key={label}>
+              <th scope="row" className="py-2 font-normal text-ink">
+                {label}
+              </th>
+              <td className="py-2 text-right font-semibold tabular-nums text-ink">
+                {amount}
+                <span className="font-normal text-muted"> /month</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function PricingPlans({ region }: { region: PriceRegion }) {
+  const facilityPlans: Plan[] = [
+    {
+      name: "Basic listing",
+      price: formatPrice(0, region),
+      per: "free, for good",
+      blurb:
+        "For any pharmacy, clinic, hospital, scan centre or health store. This is what every facility uses today.",
+      features: [
+        { text: "Stock, prices, batches and expiry dates in one dashboard" },
+        {
+          text: "Scan-to-Stock: check each carton against public medicine registers before it goes on the shelf",
+        },
+        { text: "A record of every delivery and which supplier brought it" },
+        { text: "Your stock shows up when patients nearby search or ask the health chat" },
+        { text: "A public page for your facility and a QR sticker for your counter" },
+      ],
+      cta: { href: "/signup?role=provider", label: "List your facility" },
+      highlight: true,
+    },
+    {
+      name: "Verified Pro",
+      price: price("verifiedPro", region),
+      per: "a month",
+      blurb:
+        "For a facility that wants more patients to find it and trust it before they arrive.",
+      features: [
+        { text: "Everything in Basic" },
+        {
+          text: "A green verified badge once a Zelthia reviewer has checked your licence",
+        },
+        { text: "Your listings shown above unverified ones in search" },
+        { text: "A printed Verified on Zelthia sticker posted to you", soon: true },
+        { text: "A monthly report of what people near you searched for", soon: true },
+      ],
+    },
+    {
+      name: "Diagnostic & Hospital Plus",
+      price: `From ${price("plusOneSite", region)}`,
+      per: "a month",
+      blurb:
+        "For scan centres, labs and hospitals, including groups with several branches.",
+      features: [
+        { text: "Everything in Verified Pro, for every branch" },
+        { text: "All branches managed from one account" },
+        { text: "Patients can request a slot for a scan or test", soon: true },
+        { text: "What people search for, broken down by area", soon: true },
+      ],
+      children: <PlusBreakdown region={region} />,
+    },
+  ];
+
+  const companion: Plan = {
+    name: "Zelthia companion",
+    price: price("companion", region),
+    per: "a month",
+    blurb:
+      "Darling, the voice companion, and live chat inside the Zelthia app, for check-ins, reminders and finding care quickly.",
+    features: [
+      { text: "Comes with the Zelthia mobile app", soon: true },
+      {
+        text: "Health chat, the doctor’s note reader and medicine search stay free on the web",
+      },
+    ],
+  };
+
   return (
     <>
-      <ChoiceGroup<Region>
-        label="Show prices for"
-        variant="pills"
-        value={region}
-        onChange={setRegion}
-        options={[
-          { value: "ng", label: "Nigeria (₦)" },
-          { value: "intl", label: "Other countries ($)" },
-        ]}
-      />
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
-        {FACILITY_PLANS.map((p) => (
-          <PlanCard key={p.name} plan={p} region={region} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        {facilityPlans.map((p) => (
+          <PlanCard key={p.name} plan={p} />
         ))}
       </div>
       <h2 className="mt-16 text-lg font-semibold text-ink">For patients</h2>
       <div className="mt-4 max-w-md">
-        <PlanCard plan={COMPANION} region={region} />
+        <PlanCard plan={companion} />
       </div>
     </>
   );

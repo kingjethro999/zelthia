@@ -22,7 +22,7 @@ import type {
 import {
   FACILITY_KIND_LABEL,
   PRODUCT_CATEGORIES,
-  formatNaira,
+  formatMoney,
   stockStatus,
 } from "@/lib/inventory-types";
 import { AdminSheet } from "../ui/AdminSheet";
@@ -357,7 +357,7 @@ export function InventoryView() {
 
                   <div className="flex shrink-0 items-center gap-2.5">
                     <span className="tabular text-sm font-semibold text-ink">
-                      {formatNaira(p.priceNgn)}
+                      {formatMoney(p.priceNgn, p.facilityCurrency)}
                     </span>
                     <GlassBadge
                       tone={
@@ -455,7 +455,7 @@ export function InventoryView() {
               <div>
                 <p className="text-muted">Price</p>
                 <p className="tabular mt-0.5 font-semibold text-ink">
-                  {formatNaira(selected.priceNgn)}
+                  {formatMoney(selected.priceNgn, selected.facilityCurrency)}
                 </p>
               </div>
               <div>

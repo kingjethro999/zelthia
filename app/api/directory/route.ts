@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { directoryCities, searchDirectory } from "@/lib/server/inventory";
 import { handle, json } from "@/lib/server/api";
+import { resolveCountry } from "@/lib/server/geo";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 
 /** Public search over real facility listings only. */
@@ -21,17 +22,21 @@ export async function GET(req: Request) {
     const category = url.searchParams.get("category")?.trim() || null;
     const inStock = url.searchParams.get("inStock") === "1";
     const terms = q ? [q, ...q.split(/\s+/).filter((w) => w.length > 3)] : [];
+    // Results stay inside the searcher's country: device location if the
+    // browser shared it, otherwise the IP address.
+    const country = await resolveCountry(req, url.searchParams.get("country"));
     const [matches, cities] = await Promise.all([
       searchDirectory({
         terms,
+        country,
         city,
         category,
         inStockOnly: inStock,
         limit: 40,
       }),
-      directoryCities(),
+      directoryCities(country),
     ]);
-    return json({ matches, cities });
+    return json({ matches, cities, country });
   } catch (err) {
     return handle("GET /api/directory", err);
   }

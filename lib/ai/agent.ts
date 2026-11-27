@@ -13,6 +13,7 @@ import { parseAiResponse, stripTags } from "./parser";
 import { complete, readWithVision, stream, type Turn } from "./providers";
 import { generateClinicalFallback } from "./fallback";
 import { searchDirectory } from "@/lib/server/inventory";
+import type { GeoInfo } from "@/lib/server/geo";
 import { searchDataProtectionProvisions } from "@/lib/server/compliance";
 import { getMhraAgencyOverview } from "@/lib/server/mhra";
 import { verifyHealthProduct } from "@/lib/server/regulatory";
@@ -173,7 +174,7 @@ interface Plan {
   complianceQuery: string | null;
 }
 
-const PLAN_PROMPT = `You route requests for a health assistant in Nigeria (with public UK MHRA, US FDA, DHSC Social Care Finance 2025-2026, and UKPGA Data Protection Act 2018 datasets). Read the conversation and decide:
+const PLAN_PROMPT = `You route requests for a health assistant used worldwide (with public UK MHRA, US FDA, DHSC Social Care Finance 2025-2026, and UKPGA Data Protection Act 2018 datasets). Read the conversation and decide:
 1) Whether the user needs to find a place for a medicine, health/beauty product, test, scan or procedure ("needs").
 2) Whether the user mentioned, asked about the authenticity/safety/ingredients of, or uploaded a photo of a specific medicine, skincare cream, soap, herbal product, supplement, or regulatory code ("checks").
 3) Whether the user asks about England/UK Adult Social Care Finance 2025-2026 figures ("socialCareQuery"), or UK Data Protection Act 2018 (UKPGA c. 12) / NDPA 2023 privacy rights / MHRA governance ("complianceQuery").
@@ -278,6 +279,8 @@ export interface TurnInput {
   profile: BiometricProfile;
   steps: StepTracker;
   emit: Emit;
+  /** Where the person is: the browser position if they allowed it, else their IP. */
+  geo: GeoInfo;
 }
 
 export interface TurnResult {
@@ -321,6 +324,7 @@ export async function runTurn({
   profile,
   steps,
   emit,
+  geo,
 }: TurnInput): Promise<TurnResult> {
   const userText = userTurnText(text, files);
   const turns: Turn[] = [...history, { role: "user", content: userText }];
@@ -371,7 +375,13 @@ export async function runTurn({
       steps.finish(planStep, "Answering directly");
     }
 
-  const location = plan.location ?? (profile.location?.trim() || null);
+  // A place named in the message wins, then the saved profile, then the
+  // browser or IP location. Results never leave the person's country.
+  const country = geo.country;
+  const geoPlace =
+    [geo.city, geo.region].filter(Boolean).join(", ") || null;
+  const location =
+    plan.location ?? (profile.location?.trim() || null) ?? geoPlace;
   const matches: DirectoryMatch[] = [];
   const places: WebPlace[] = [];
   const images: WebImage[] = [];
@@ -425,6 +435,7 @@ export async function runTurn({
             inlineCodes.guoyaoZhunzi ||
             inlineCodes.ndc ||
             inlineCodes.mhraPl,
+          userCountry: country,
         });
         steps.finish(
           regStep,
@@ -452,13 +463,19 @@ export async function runTurn({
     const dirStep = steps.start(`Checking Zelthia listings for ${need.what}`);
     let found: DirectoryMatch[] = [];
     try {
-      found = await searchDirectory({ terms, city: location, limit: 12 });
+      found = await searchDirectory({
+        terms,
+        country,
+        city: location?.split(",")[0]?.trim() || null,
+        limit: 12,
+      });
       let detail = found.length
         ? `${found.length} listing${found.length === 1 ? "" : "s"}${location ? ` in ${location}` : ""}`
         : `No facility on Zelthia lists it${location ? ` in ${location}` : ""} yet`;
       if (!found.length && location) {
-        found = await searchDirectory({ terms, limit: 12 });
-        if (found.length) detail += `, ${found.length} elsewhere`;
+        found = await searchDirectory({ terms, country, limit: 12 });
+        if (found.length)
+          detail += `, ${found.length} elsewhere in ${geo.countryName}`;
       }
       steps.finish(dirStep, detail);
     } catch (err) {
@@ -469,15 +486,15 @@ export async function runTurn({
 
     if (found.length < 2) {
       const webStep = steps.start(
-        `Searching the web for ${need.what}${location ? ` near ${location}` : " in Nigeria"}`,
+        `Searching the web for ${need.what}${location ? ` near ${location}` : ` in ${geo.countryName}`}`,
       );
       const [{ places: web }, wide, pics] = await Promise.all([
-        searchPlaces(need.what, location, 6),
+        searchPlaces(need.what, location, 6, country),
         searchWebGeneral(
-          `${need.what}${location ? ` ${location}` : ""} Nigeria`,
-          { limit: 4, country: "NG", filterLowValue: true },
+          `${need.what}${location ? ` ${location}` : ""} ${geo.countryName}`,
+          { limit: 4, country, filterLowValue: true },
         ).catch(() => ({ results: [] as WebPlace[] })),
-        searchImages(need.what, location, 8),
+        searchImages(need.what, location, 8, country),
       ]);
       const combined = [...web];
       for (const w of wide.results) {
@@ -554,9 +571,17 @@ export async function runTurn({
 
   // 5. Answer, grounded only in what was actually found. Keep untrusted retrieved data
   // out of the system prompt and wrapped in explicit data delimiters in the user turn.
-  const locationLine = location
-    ? `USER LOCATION: ${cleanUntrusted(location, 160)}`
-    : "USER LOCATION: unknown";
+  const precision =
+    geo.source === "device"
+      ? "precise, shared by their browser"
+      : "approximate, from their internet connection";
+  const locationLine = `USER LOCATION: ${
+    location ? `${cleanUntrusted(location, 160)}, ` : ""
+  }${geo.countryName} (${plan.location ? "named in their message" : precision})${
+    geo.source === "device" && geo.lat != null
+      ? `. Coordinates ${geo.lat}, ${geo.lon}.`
+      : "."
+  } Give emergency numbers, regulators and prices for ${geo.countryName}, not Nigeria unless they are in Nigeria.`;
 
   const hasContext =
     plan.needs.length > 0 ||

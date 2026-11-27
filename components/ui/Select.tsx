@@ -23,6 +23,8 @@ interface SelectProps<T extends string> {
   size?: "sm" | "md";
   className?: string;
   align?: "left" | "right";
+  /** Adds a filter box at the top of the list, for long lists like countries. */
+  searchable?: boolean;
 }
 
 export function Select<T extends string>({
@@ -36,6 +38,7 @@ export function Select<T extends string>({
   size = "md",
   className,
   align = "left",
+  searchable = false,
 }: SelectProps<T>) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -44,9 +47,16 @@ export function Select<T extends string>({
   const listRef = useRef<HTMLUListElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const typeahead = useRef({ text: "", at: 0 });
+  const [filter, setFilter] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const selectedIndex = options.findIndex((o) => o.value === value);
-  const selected = selectedIndex >= 0 ? options[selectedIndex] : undefined;
+  const selected = options.find((o) => o.value === value);
+  const needle = filter.trim().toLowerCase();
+  const shown =
+    searchable && needle
+      ? options.filter((o) => o.label.toLowerCase().includes(needle))
+      : options;
+  const selectedIndex = shown.findIndex((o) => o.value === value);
   const SelectedIcon = selected?.icon ?? LeadIcon;
 
   useEffect(() => {
@@ -66,12 +76,15 @@ export function Select<T extends string>({
   }, [active, open]);
 
   const openList = () => {
-    setActive(selectedIndex >= 0 ? selectedIndex : 0);
+    setFilter("");
+    const i = options.findIndex((o) => o.value === value);
+    setActive(i >= 0 ? i : 0);
     setOpen(true);
+    if (searchable) requestAnimationFrame(() => searchRef.current?.focus());
   };
 
   const commit = (index: number) => {
-    const opt = options[index];
+    const opt = shown[index];
     if (!opt) return;
     onChange(opt.value);
     setOpen(false);
@@ -89,7 +102,7 @@ export function Select<T extends string>({
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setActive((i) => Math.min(options.length - 1, i + 1));
+        setActive((i) => Math.min(shown.length - 1, i + 1));
         break;
       case "ArrowUp":
         e.preventDefault();
@@ -101,10 +114,14 @@ export function Select<T extends string>({
         break;
       case "End":
         e.preventDefault();
-        setActive(options.length - 1);
+        setActive(shown.length - 1);
         break;
       case "Enter":
+        e.preventDefault();
+        commit(active);
+        break;
       case " ":
+        if (searchable) break;
         e.preventDefault();
         commit(active);
         break;
@@ -116,7 +133,7 @@ export function Select<T extends string>({
         setOpen(false);
         break;
       default:
-        if (e.key.length === 1 && /\S/.test(e.key)) {
+        if (!searchable && e.key.length === 1 && /\S/.test(e.key)) {
           const now = Date.now();
           const t = typeahead.current;
           t.text =
@@ -178,6 +195,24 @@ export function Select<T extends string>({
         />
       </button>
 
+      {open && searchable && (
+        <div className="material-popover absolute left-0 right-0 z-50 mt-1.5 rounded-t-xl border border-b-0 border-line p-1.5">
+          <input
+            ref={searchRef}
+            type="search"
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setActive(0);
+            }}
+            onKeyDown={onKeyDown}
+            placeholder="Type to search"
+            aria-label={`Search ${label}`}
+            aria-controls={`${id}-list`}
+            className="h-9 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink outline-none focus:border-brand"
+          />
+        </div>
+      )}
       {open && (
         <ul
           ref={listRef}
@@ -185,11 +220,15 @@ export function Select<T extends string>({
           role="listbox"
           aria-labelledby={`${id}-label`}
           className={cn(
-            "animate-pop material-popover absolute z-50 mt-1.5 max-h-72 min-w-full origin-top overflow-auto overscroll-contain rounded-xl border border-line p-1",
+            "animate-pop material-popover absolute z-50 max-h-72 min-w-full origin-top overflow-auto overscroll-contain border border-line p-1",
+            searchable ? "mt-[3.25rem] rounded-b-xl" : "mt-1.5 rounded-xl",
             align === "right" ? "right-0" : "left-0",
           )}
         >
-          {options.map((opt, i) => {
+          {shown.length === 0 && (
+            <li className="px-2.5 py-2 text-sm text-muted">No matches</li>
+          )}
+          {shown.map((opt, i) => {
             const isSelected = opt.value === value;
             const OptIcon = opt.icon;
             return (

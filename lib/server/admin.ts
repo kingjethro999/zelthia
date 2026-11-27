@@ -21,6 +21,7 @@ import { readServerEnv } from "./admin-route";
 import { getComplianceFrameworkSummary } from "./compliance";
 import { CURRENT_TERMS_VERSION } from "./crypto";
 import { query } from "./db";
+import { currencyOf } from "./geo";
 import {
   isUuid,
   listVerificationsForAdmin,
@@ -541,6 +542,7 @@ type ProductAdminRow = Parameters<typeof toProduct>[0] & {
   facility_name: string;
   facility_kind: FacilityKind;
   facility_city: string;
+  facility_country: string | null;
   facility_verified: boolean;
 };
 
@@ -576,6 +578,7 @@ export async function listProductsForAdmin(opts: {
          f.name as facility_name,
          f.kind as facility_kind,
          f.city as facility_city,
+         f.country as facility_country,
          (f.verification_status = 'verified') as facility_verified
        from products p
        join facilities f on f.id = p.facility_id
@@ -663,6 +666,7 @@ export async function listProductsForAdmin(opts: {
       facilityKind: r.facility_kind,
       facilityCity: r.facility_city,
       facilityVerified: r.facility_verified,
+      facilityCurrency: currencyOf(r.facility_country ?? "NG"),
     })),
     total: countRows[0]?.total ?? 0,
     summary: {

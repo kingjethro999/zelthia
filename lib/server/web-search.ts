@@ -2,6 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import type { WebImage, WebPlace } from "@/lib/inventory-types";
 import { readServerEnv } from "./admin-route";
+import { countryName } from "./geo";
 import { assertSafeExternalUrl, fetchService, politeThrottle } from "./http";
 
 const TIMEOUT_MS = 14000;
@@ -185,7 +186,9 @@ export async function searchWebGeneral(
       run: async () =>
         (
           await tavilySearch(cleanQuery, limit, {
-            country: opts.country === "NG" ? "nigeria" : undefined,
+            country: opts.country
+              ? countryName(opts.country).toLowerCase()
+              : undefined,
             includeDomains: opts.includeDomains,
           })
         ).places,
@@ -453,23 +456,26 @@ export async function searchPlaces(
   what: string,
   where: string | null,
   limit = 6,
+  /** ISO country code of the person searching; results stay in that country. */
+  country = "NG",
 ) {
+  const name = countryName(country);
   const q =
-    `${what} ${where ? `in ${where}` : ""} Nigeria hospital OR pharmacy OR clinic OR centre`
+    `${what} ${where ? `in ${where}` : ""} ${name} hospital OR pharmacy OR clinic OR centre`
       .replace(/\s+/g, " ")
       .trim();
   const errors: string[] = [];
   const engines: (() => Promise<WebPlace[]>)[] = [
-    () => firecrawlSearch(q, limit + 4, "NG"),
+    () => firecrawlSearch(q, limit + 4, country),
     async () =>
       (
         await tavilySearch(
-          `where to get ${what}${where ? ` in ${where}` : ""} Nigeria`,
+          `where to get ${what}${where ? ` in ${where}` : ""} ${name}`,
           limit + 4,
-          { country: "nigeria" },
+          { country: name.toLowerCase() },
         )
       ).places,
-    () => youSearch(q, limit + 4, "NG"),
+    () => youSearch(q, limit + 4, country),
     () => jinaSearch(q, limit + 4),
   ];
   for (const engine of engines) {
@@ -504,8 +510,9 @@ export async function searchImages(
   what: string,
   where: string | null,
   limit = 8,
+  country = "NG",
 ): Promise<WebImage[]> {
-  const q = `${what}${where ? ` ${where}` : ""} Nigeria`;
+  const q = `${what}${where ? ` ${where}` : ""} ${countryName(country)}`;
   const key = readServerEnv("FIRECRAWL_API_KEY");
   if (key) {
     try {
@@ -522,7 +529,7 @@ export async function searchImages(
             query: q,
             limit: limit + 4,
             sources: ["images"],
-            country: "NG",
+            country,
           }),
           signal: AbortSignal.timeout(TIMEOUT_MS),
         },
@@ -558,7 +565,7 @@ export async function searchImages(
   try {
     const { images } = await tavilySearch(q, 3, {
       images: true,
-      country: "nigeria",
+      country: countryName(country).toLowerCase(),
     });
     return images
       .filter((i) => i.url?.startsWith("http"))

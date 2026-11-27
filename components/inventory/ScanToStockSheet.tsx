@@ -1,5 +1,8 @@
 "use client";
 
+import { useUserGeo } from "@/lib/store/location";
+import { regulatorCopy } from "@/lib/regulators";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -34,6 +37,7 @@ import {
   type RegulatoryReport,
   type WebImage,
   type WebPlace,
+  currencySymbol,
 } from "@/lib/inventory-types";
 import { usePresence } from "@/lib/motion";
 import { decode1DBarcodeFromImageData, parseScannedCode } from "@/lib/barcode";
@@ -163,6 +167,10 @@ export interface ScanToStockSheetProps {
   onClose: () => void;
   mode?: "stock" | "verify";
   facilityId?: string;
+  /** ISO 4217 currency of the facility, for the price field. */
+  currency?: string;
+  /** Facility country; in verify mode the visitor's own location is used. */
+  country?: string;
   city?: string | null;
   initialCode?: string;
   onStocked?: (product: Product) => void;
@@ -180,12 +188,18 @@ function ScanToStockInner({
   onClose,
   mode = "stock",
   facilityId,
+  currency = "NGN",
+  country: facilityCountry,
   city,
   initialCode,
   onStocked,
   onVerified,
 }: ScanToStockSheetProps) {
   const isVerifyOnly = mode === "verify";
+  const userGeo = useUserGeo();
+  const reg = regulatorCopy(
+    isVerifyOnly ? userGeo?.country : (facilityCountry ?? userGeo?.country),
+  );
 
   const [inputMode, setInputMode] = useState<InputMode>(
     initialCode ? "manual" : "camera",
@@ -658,7 +672,7 @@ function ScanToStockInner({
       title={isVerifyOnly ? "Scan & verify product" : "Scan to stock"}
       description={
         isVerifyOnly
-          ? "Scan a barcode or snap a medicine/cream carton to check NAFDAC, FDA & global public registries."
+          ? `Scan a barcode or snap a carton to check it with ${reg.regulator} and other public medicine registers.`
           : "Verify supplier cartons against public registries in real time before placing them on shelves."
       }
       footer={
@@ -827,7 +841,7 @@ function ScanToStockInner({
                     variant="ghost"
                     onClick={() => setInputMode("manual")}
                   >
-                    Enter NAFDAC / barcode
+                    Type a code instead
                   </Button>
                 </div>
               </div>
@@ -870,7 +884,7 @@ function ScanToStockInner({
                           className="h-3.5 w-3.5 text-brand"
                           aria-hidden
                         />
-                        Align barcode or NAFDAC panel
+                        Line up the barcode or {reg.code}
                       </>
                     )}
                   </span>
@@ -913,8 +927,9 @@ function ScanToStockInner({
           {!cameraError && (
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted">
-                Barcodes & GS1 DataMatrix lock automatically; or tap Snap to
-                read printed NAFDAC numbers, strength & expiry via AI Vision.
+                Barcodes and GS1 DataMatrix codes lock on by themselves. Tap
+                Snap to read the {reg.code}, strength and expiry from the
+                printed pack.
               </p>
               <Button
                 type="button"
@@ -951,8 +966,8 @@ function ScanToStockInner({
             Upload or take a photo of the carton
           </h3>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted">
-            Capture the front label, NAFDAC registration panel, or barcode
-            strip. Large phone photos are compressed securely in your browser.
+            Capture the front label, the panel with the {reg.code}, or the
+            barcode. Large photos are shrunk in your browser before upload.
           </p>
           <Button
             className="mt-5"
@@ -974,12 +989,12 @@ function ScanToStockInner({
           className="space-y-4 rounded-3xl border border-line bg-surface p-5"
         >
           <TextField
-            label="NAFDAC Reg. No., Barcode (GTIN/EAN), NDC, or Product Name"
+            label={`${reg.codeLabel}, barcode or product name`}
             icon={Barcode}
             value={manualInput}
             onChange={(e) => setManualInput(e.target.value)}
-            placeholder="e.g. A4-9674, 01-4821, 8901234567893, Tydineal"
-            hint="Checks NAFDAC Greenbook & Herbal DB, US FDA Orange Book & recalls, Health Canada DPD, UK MHRA & China NMPA."
+            placeholder={`e.g. ${reg.example}, 5012345678900, or a product name`}
+            hint={`Checked with ${reg.regulator} first, then NAFDAC, US FDA, Health Canada, UK MHRA and China NMPA records and recall lists.`}
           />
           <div className="flex flex-wrap gap-2">
             <Button type="submit" loading={scanning}>
@@ -1140,7 +1155,7 @@ function ScanToStockInner({
                   </div>
                 </div>
                 <TextField
-                  label="Selling price (₦)"
+                  label={`Selling price (${currencySymbol(currency)})`}
                   inputMode="decimal"
                   value={draft.priceNgn ?? ""}
                   onChange={(e) => {
@@ -1186,7 +1201,7 @@ function ScanToStockInner({
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <TextField
-                  label="NAFDAC Reg. No."
+                  label={reg.codeLabel}
                   value={draft.nafdacNumber}
                   onChange={(e) =>
                     setDraftField(

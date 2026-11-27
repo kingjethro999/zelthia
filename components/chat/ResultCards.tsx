@@ -13,7 +13,7 @@ import { AudioPlayer } from "@/components/ui/AudioPlayer";
 import { RegulatoryReportCard } from "@/components/inventory/RegulatoryReportCard";
 import {
   FACILITY_KIND_LABEL,
-  formatNaira,
+  formatMoney,
   stockStatus,
   type DirectoryMatch,
   type RegulatoryReport,
@@ -61,7 +61,7 @@ export function DirectoryMatches({ matches }: { matches: DirectoryMatch[] }) {
                       {[
                         m.product.strength,
                         m.product.packSize,
-                        formatNaira(m.product.priceNgn),
+                        formatMoney(m.product.priceNgn, m.facility.currency),
                       ]
                         .filter(Boolean)
                         .join(", ")}

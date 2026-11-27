@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
       {
         key: "Permissions-Policy",
         value:
-          "camera=(self), microphone=(self), geolocation=(), payment=(), usb=(), browsing-topics=()",
+          "camera=(self), microphone=(self), geolocation=(self), payment=(), usb=(), browsing-topics=()",
       },
       { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
       ...(isDev

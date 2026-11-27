@@ -28,7 +28,7 @@ import type {
 import {
   FACILITY_KINDS,
   FACILITY_KIND_LABEL,
-  formatNaira,
+  formatMoney,
   stockStatus,
 } from "@/lib/inventory-types";
 import { useAdminShell } from "../AdminShell";
@@ -522,7 +522,7 @@ export function FacilitiesView() {
                             {p.name}
                           </p>
                           <p className="truncate text-muted">
-                            {p.category} · {formatNaira(p.priceNgn)}
+                            {p.category} · {formatMoney(p.priceNgn, detail.facility.currency)}
                           </p>
                         </div>
                         <GlassBadge

@@ -54,7 +54,12 @@ export interface Facility {
   email: string;
   address: string;
   city: string;
+  /** State, province or nation within the country. */
   state: string;
+  /** ISO 3166-1 alpha-2 country code, e.g. "NG", "GB", "US". */
+  country: string;
+  /** ISO 4217 currency for this facility's prices, from its country. */
+  currency: string;
   directions: string;
   openingHours: string;
   licenseNumber: string;
@@ -150,6 +155,7 @@ export interface RegulatoryAlertFlag {
     | "NAFDAC_NOT_COVERED"
     | "VERIFICATION_UNAVAILABLE"
     | "SUPPLIER_RISK"
+    | "HOME_REGISTRY_NOT_COVERED"
     | "STALE_CACHE_FALLBACK";
   severity: "danger" | "caution" | "info";
   title: string;
@@ -255,6 +261,39 @@ export interface WebImage {
   height?: number;
 }
 
-export function formatNaira(n: number | null) {
-  return n === null ? "Price not listed" : `₦${n.toLocaleString("en-NG")}`;
+/**
+ * Formats a listed price in the facility's own currency. Product prices are
+ * stored as a plain number in that currency (the column is still called
+ * price_ngn from when Zelthia only served Nigeria).
+ */
+export function formatMoney(n: number | null, currency = "NGN") {
+  if (n === null) return "Price not listed";
+  try {
+    return new Intl.NumberFormat(currency === "NGN" ? "en-NG" : "en", {
+      style: "currency",
+      currency,
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(n);
+  } catch {
+    return `${currency} ${n.toLocaleString("en")}`;
+  }
+}
+
+/** Currency symbol on its own, for field labels like "Selling price (£)". */
+export function currencySymbol(currency = "NGN") {
+  try {
+    return (
+      new Intl.NumberFormat("en", {
+        style: "currency",
+        currency,
+        currencyDisplay: "narrowSymbol",
+      })
+        .formatToParts(0)
+        .find((p) => p.type === "currency")?.value ?? currency
+    );
+  } catch {
+    return currency;
+  }
 }

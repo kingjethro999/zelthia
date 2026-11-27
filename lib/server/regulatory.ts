@@ -12,6 +12,7 @@ import type {
   RegistrySourceFinding,
 } from "@/lib/inventory-types";
 import { query } from "./db";
+import { countryName } from "./geo";
 import {
   greenbookByName,
   greenbookByNrn,
@@ -62,6 +63,12 @@ export interface VerifyProductInput {
   countryOfOrigin?: string;
   expiresOn?: string | null;
   forceRefresh?: boolean;
+  /**
+   * ISO country of the person checking. Their own regulator's register decides
+   * the verdict (NAFDAC for NG, FDA for US, MHRA for GB, Health Canada for CA);
+   * every other register is still searched for wider evidence.
+   */
+  userCountry?: string;
 }
 
 export interface BarcodeMetadata {
@@ -128,7 +135,8 @@ function safeUrl(raw: string | undefined): string | undefined {
 function buildCacheKey(input: VerifyProductInput): string {
   const parts = [
     // Bump when verdict rules change so older cached verdicts are not reused.
-    "v2",
+    "v3",
+    (input.userCountry ?? "NG").toUpperCase(),
     input.name.trim().toLowerCase(),
     (input.genericName ?? "").trim().toLowerCase(),
     (input.category ?? "").trim().toLowerCase(),
@@ -796,6 +804,10 @@ async function checkGlobalAndChina(
   // Targeted search across UK MHRA, China NMPA, EMA, India CDSCO, Australia TGA, SAHPRA
   const domains = [
     "products.mhra.gov.uk",
+    "gov.uk",
+    "fda.gov",
+    "canada.ca",
+    "who.int",
     "ema.europa.eu",
     "cdsco.gov.in",
     "tga.gov.au",
@@ -837,7 +849,7 @@ async function checkGlobalAndChina(
           "nmpa.gov.cn",
         )
           ? "China NMPA"
-          : host.includes("mhra")
+          : host.includes("mhra") || host.endsWith("gov.uk")
             ? "UK MHRA"
             : "Global Pharmacovigilance";
 
@@ -868,6 +880,35 @@ async function checkGlobalAndChina(
   }
 
   return { findings, flags, okCalls, failedCalls };
+}
+
+const capitalise = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+const countryLabel = (code: string) => countryName(code);
+
+/* ---------- Home register by country ---------- */
+
+interface HomeRegister {
+  /** Name shown to the person, e.g. "NAFDAC". */
+  label: string;
+  registries: RegistrySourceFinding["registry"][];
+}
+
+const HOME_REGISTERS: Record<string, HomeRegister> = {
+  NG: {
+    label: "NAFDAC",
+    registries: ["NAFDAC Greenbook", "NAFDAC Herbal & Traditional"],
+  },
+  US: {
+    label: "the US FDA",
+    registries: ["US FDA Orange Book", "US FDA openFDA", "US FDA Drugs@FDA"],
+  },
+  GB: { label: "the UK MHRA", registries: ["UK MHRA"] },
+  CA: { label: "Health Canada", registries: ["Health Canada DPD"] },
+};
+
+/** The register that decides the verdict for a country, or null if Zelthia doesn't check it yet. */
+export function homeRegisterFor(country?: string): HomeRegister | null {
+  return HOME_REGISTERS[(country ?? "NG").toUpperCase()] ?? null;
 }
 
 /* ---------- Report persistence ---------- */
@@ -941,11 +982,23 @@ export async function verifyHealthProduct(
     .filter(Boolean)
     .join(" ");
   const parsedCodes = extractRegulatoryCodes(combinedText);
+  // Only a NAFDAC-shaped number goes to the Greenbook. Anything else typed in
+  // the code box (a UK PL, a DIN, an NDC) is treated as a foreign code.
+  const typedCode = rawInput.nafdacCode?.trim() ?? "";
+  const typedIsNafdac = Boolean(
+    typedCode && extractRegulatoryCodes(`NAFDAC ${typedCode}`).nafdac,
+  );
   const input: VerifyProductInput = {
     ...rawInput,
-    nafdacCode: rawInput.nafdacCode || parsedCodes.nafdac,
+    nafdacCode: (typedIsNafdac ? typedCode : "") || parsedCodes.nafdac,
+    foreignCode:
+      [rawInput.foreignCode, typedIsNafdac ? "" : typedCode]
+        .filter(Boolean)
+        .join(" ") || undefined,
     barcode: rawInput.barcode || parsedCodes.barcode,
   };
+  const country = (input.userCountry ?? "NG").toUpperCase();
+  const home = homeRegisterFor(country);
   const cacheKey = buildCacheKey(input);
 
   // Cached public-record result, refreshed live once it is older than 7 days
@@ -1009,8 +1062,7 @@ export async function verifyHealthProduct(
     });
   }
 
-  const nafdacReached =
-    nafdacRes.status === "fulfilled" && nafdacRes.value.reached;
+  const nafdacOk = nafdacRes.status === "fulfilled" && nafdacRes.value.reached;
   for (const r of [nafdacRes, fdaRes, globalRes]) {
     if (r.status === "fulfilled") {
       findings.push(...r.value.findings);
@@ -1031,6 +1083,18 @@ export async function verifyHealthProduct(
 
   for (const f of findings) f.evidence = evidenceOf(f);
 
+  // "Reached" means the register that decides the verdict answered.
+  const homeIds = new Set(home?.registries ?? []);
+  const nafdacReached =
+    country === "NG"
+      ? nafdacOk
+      : country === "US"
+        ? fdaRes.status === "fulfilled" && fdaRes.value.okCalls > 0
+        : country === "CA"
+          ? hcRes.status === "fulfilled" && hcRes.value.okCalls > 0
+          : okCalls > 0;
+  const homeLabel = home?.label ?? "the registers we check";
+
   // Live outage: fall back to the last known record with an explicit warning
   if (!nafdacReached && cachedRow) {
     const staleDate = new Date(cachedRow.checked_at).toLocaleDateString(
@@ -1049,7 +1113,7 @@ export async function verifyHealthProduct(
               code: "STALE_CACHE_FALLBACK",
               severity: "caution",
               title: "Live verification failed — showing cached record",
-              detail: `NAFDAC could not be reached just now. Showing the cached public record from ${staleDate}. Check again before relying on it.`,
+              detail: `${homeLabel} could not be reached just now. Showing the cached public record from ${staleDate}. Check again before relying on it.`,
             },
             ...cachedRow.payload.flags.filter(
               (f) => f.code !== "STALE_CACHE_FALLBACK",
@@ -1065,31 +1129,38 @@ export async function verifyHealthProduct(
     (f.status === "matched" || f.status === "discontinued") &&
     f.evidence !== "signal";
   const listings = findings.filter(isListing);
-  const nafdacListings = listings.filter(
-    (f) =>
-      f.registry === "NAFDAC Greenbook" ||
-      f.registry === "NAFDAC Herbal & Traditional",
+  const homeListings = home
+    ? listings.filter((f) => homeIds.has(f.registry))
+    : listings;
+  const nafdacCodeMatch = listings.some(
+    (f) => f.registry === "NAFDAC Greenbook" && f.evidence === "code",
   );
-  const nafdacCodeMatch = nafdacListings.some((f) => f.evidence === "code");
   const codeNotFound = flags.some((f) => f.code === "NAFDAC_CODE_NOT_FOUND");
 
   if (!nafdacReached) {
     flags.push({
       code: "VERIFICATION_UNAVAILABLE",
       severity: "caution",
-      title: "NAFDAC could not be checked right now",
-      detail:
-        "The NAFDAC registry did not answer, so this result is incomplete. It does not mean the product is unlisted. Try again shortly, and consult a licensed pharmacy, clinic or hospital nearby before relying on it.",
+      title: `${capitalise(homeLabel)} could not be checked right now`,
+      detail: `${capitalise(homeLabel)} did not answer, so this result is incomplete. It does not mean the product is unlisted. Try again shortly, and consult a licensed pharmacy, clinic or hospital nearby before relying on it.`,
     });
   }
 
-  if (listings.length > 0 && nafdacListings.length === 0 && nafdacReached) {
+  if (home && listings.length > 0 && homeListings.length === 0 && nafdacReached) {
     flags.push({
       code: "IMPORT_UNLISTED_LOCALLY",
       severity: "caution",
-      title: "Listed abroad, not confirmed on NAFDAC",
-      detail:
-        "A product with this name appears on an international register (such as US FDA, Health Canada or UK MHRA), but no NAFDAC registration matched. A foreign listing says nothing about this pack. Confirm local registration with a licensed pharmacist before stocking or using it.",
+      title: `Listed abroad, not confirmed with ${home.label}`,
+      detail: `A product with this name appears on another country's register, but no ${home.label} record matched. A foreign listing says nothing about the pack in your hand. Ask a licensed pharmacist whether it is authorised where you are before using or stocking it.`,
+    });
+  }
+
+  if (!home && listings.length > 0) {
+    flags.push({
+      code: "HOME_REGISTRY_NOT_COVERED",
+      severity: "info",
+      title: `Zelthia doesn't check ${countryLabel(country)}'s own register yet`,
+      detail: `This product appears on ${listings[0].registry}. Your national regulator may list it under a different name or number, so confirm with a local pharmacist.`,
     });
   }
 
@@ -1108,7 +1179,7 @@ export async function verifyHealthProduct(
   let verdict: RegulatoryVerdict;
   if (hasDanger) verdict = "danger";
   else if (listings.length === 0) verdict = "unverified";
-  else if (hasCaution || codeNotFound || nafdacListings.length === 0)
+  else if (hasCaution || codeNotFound || homeListings.length === 0)
     verdict = "caution";
   else verdict = "verified";
 
@@ -1131,9 +1202,12 @@ export async function verifyHealthProduct(
       flags.find((f) => f.severity === "danger")?.title ??
       "Red Flag: Safety or authenticity warning";
   } else if (verdict === "verified") {
-    headline = nafdacCodeMatch
-      ? "NAFDAC number matches the Greenbook record"
-      : "Product name registered with NAFDAC — check the number on the pack";
+    headline =
+      country === "NG"
+        ? nafdacCodeMatch
+          ? "NAFDAC number matches the Greenbook record"
+          : "Product name registered with NAFDAC — check the number on the pack"
+        : `Listed on ${homeListings[0]?.registry ?? listings[0].registry}`;
   } else if (verdict === "caution") {
     headline =
       flags.find((f) => f.severity === "caution")?.title ??
@@ -1141,7 +1215,7 @@ export async function verifyHealthProduct(
   } else {
     headline = nafdacReached
       ? "Unlisted across checked public registries"
-      : "Verification incomplete — NAFDAC unreachable";
+      : `Verification incomplete — ${homeLabel} unreachable`;
   }
 
   const summary =
@@ -1178,7 +1252,7 @@ export async function verifyHealthProduct(
     coverage: { ok: okCalls, failed: failedCalls },
   };
 
-  // Only cache a result that actually reached NAFDAC; an outage is not a record.
+  // Only cache a result that reached the deciding register; an outage is not a record.
   if (nafdacReached) {
     try {
       await query(

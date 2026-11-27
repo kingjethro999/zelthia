@@ -13,6 +13,7 @@ import {
   type VerificationStatus,
 } from "@/lib/inventory-types";
 import { query } from "./db";
+import { cleanCountry, currencyOf } from "./geo";
 import { applyPhysicalExpiryCheck, getIssuedReport } from "./regulatory";
 
 /* ---------- row mapping ---------- */
@@ -27,6 +28,7 @@ interface FacilityRow {
   address: string;
   city: string;
   state: string;
+  country: string;
   directions: string;
   opening_hours: string;
   license_number: string;
@@ -76,6 +78,8 @@ export const toFacility = (r: FacilityRow): Facility => ({
   address: r.address,
   city: r.city,
   state: r.state,
+  country: r.country ?? "NG",
+  currency: currencyOf(r.country ?? "NG"),
   directions: r.directions,
   openingHours: r.opening_hours,
   licenseNumber: r.license_number,
@@ -162,6 +166,9 @@ export function parseFacilityInput(body: Record<string, unknown>) {
     : null;
   if (!kind)
     throw new ValidationError("Choose what kind of facility this is.", "kind");
+  const country = cleanCountry(body.country);
+  if (!country)
+    throw new ValidationError("Choose the country this facility is in.", "country");
   const city = str(body.city, 80);
   if (!city) throw new ValidationError("Enter the city or town.", "city");
   const address = str(body.address, 240);
@@ -199,6 +206,7 @@ export function parseFacilityInput(body: Record<string, unknown>) {
     address,
     city,
     state: str(body.state, 80),
+    country,
     directions: str(body.directions, 1200),
     openingHours: str(body.openingHours, 160),
     licenseNumber,
@@ -317,11 +325,12 @@ export async function createFacility(
 ) {
   const rows = await query<FacilityRow>(
     `insert into facilities (owner_id, name, kind, phone, email, address, city, state,
-       directions, opening_hours, license_number, services, directions_audio_id)
+       directions, opening_hours, license_number, services, directions_audio_id, country)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
        (select id from attachments
          where id = $13 and user_id = $1 and message_id is null
-           and encrypted = false and mime like 'audio/%'))
+           and encrypted = false and mime like 'audio/%'),
+       $14)
      returning *`,
     [
       ownerId,
@@ -337,6 +346,7 @@ export async function createFacility(
       f.licenseNumber,
       f.services,
       f.directionsAudioId,
+      f.country,
     ],
   );
   await query(
@@ -375,7 +385,7 @@ export async function updateFacility(
 
   const rows = await query<FacilityRow>(
     `update facilities set name=$3, kind=$4, phone=$5, email=$6, address=$7, city=$8, state=$9,
-       directions=$10, opening_hours=$11, license_number=$12, services=$13,
+       directions=$10, opening_hours=$11, license_number=$12, services=$13, country=$15,
        directions_audio_id=(select id from attachments
                               where id = $14 and user_id = $2 and message_id is null
                                 and encrypted = false and mime like 'audio/%'),
@@ -403,6 +413,7 @@ export async function updateFacility(
       f.licenseNumber,
       f.services,
       f.directionsAudioId,
+      f.country,
     ],
   );
   if (!rows[0]) return null;
@@ -711,6 +722,8 @@ const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
  */
 export async function searchDirectory(opts: {
   terms: string[];
+  /** Only facilities in this country. Patients never see other countries' stock. */
+  country: string;
   city?: string | null;
   category?: string | null;
   inStockOnly?: boolean;
@@ -736,11 +749,19 @@ export async function searchDirectory(opts: {
         and ($2::text is null or f.city ilike $2 or f.state ilike $2)
         and ($3::text is null or p.category = $3)
         and (not $4 or p.quantity > 0)
+        and f.country = $6
       order by (p.quantity > 0) desc,
                (f.verification_status = 'verified') desc,
                p.updated_at desc
       limit $5`,
-    [patterns, city, opts.category ?? null, opts.inStockOnly ?? false, limit],
+    [
+      patterns,
+      city,
+      opts.category ?? null,
+      opts.inStockOnly ?? false,
+      limit,
+      opts.country,
+    ],
   );
   for (const r of productRows) {
     results.push({ facility: toFacility(r.f), product: toProduct(r) });
@@ -752,8 +773,9 @@ export async function searchDirectory(opts: {
          from facilities f, unnest(f.services) s
         where exists (select 1 from unnest($1::text[]) pat where s ilike pat)
           and ($2::text is null or f.city ilike $2 or f.state ilike $2)
+          and f.country = $4
         limit $3`,
-      [patterns, city, limit],
+      [patterns, city, limit, opts.country],
     );
     for (const r of serviceRows) {
       results.push({ facility: toFacility(r), service: r.matched });
@@ -762,9 +784,10 @@ export async function searchDirectory(opts: {
   return results;
 }
 
-export async function directoryCities() {
+export async function directoryCities(country: string) {
   const rows = await query<{ city: string }>(
-    "select distinct city from facilities where city <> '' order by city",
+    "select distinct city from facilities where city <> '' and country = $1 order by city",
+    [country],
   );
   return rows.map((r) => r.city);
 }

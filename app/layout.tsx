@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import "./globals.css";
+import { LocationProvider } from "@/components/providers/LocationProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { SITE_URL } from "@/lib/utils";
 
@@ -103,6 +104,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <SessionProvider />
+        <LocationProvider />
         {children}
       </body>
     </html>

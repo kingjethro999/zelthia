@@ -12,7 +12,7 @@ import {
 import { ButtonLink } from "@/components/ui/Button";
 import {
   FACILITY_KIND_LABEL,
-  formatNaira,
+  formatMoney,
   stockStatus,
   type FacilityKind,
 } from "@/lib/inventory-types";
@@ -91,7 +91,7 @@ async function FacilityProfile({ params }: Props) {
       streetAddress: f.address,
       addressLocality: f.city,
       addressRegion: f.state,
-      addressCountry: "NG",
+      addressCountry: f.country,
     },
     openingHours: f.openingHours || undefined,
     availableService: f.services.map((s) => ({
@@ -102,7 +102,7 @@ async function FacilityProfile({ params }: Props) {
       "@type": "Offer",
       itemOffered: { "@type": "Product", name: p.name },
       ...(p.priceNgn != null
-        ? { price: p.priceNgn, priceCurrency: "NGN" }
+        ? { price: p.priceNgn, priceCurrency: f.currency }
         : {}),
       availability: "https://schema.org/InStock",
     })),
@@ -257,7 +257,7 @@ async function FacilityProfile({ params }: Props) {
                     </span>
                     {p.priceNgn != null && (
                       <span className="font-semibold tabular-nums text-ink">
-                        {formatNaira(p.priceNgn)}
+                        {formatMoney(p.priceNgn, f.currency)}
                       </span>
                     )}
                   </div>

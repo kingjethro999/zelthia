@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { searchImages, searchPlaces } from "@/lib/server/web-search";
+import { resolveCountry } from "@/lib/server/geo";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 import { handle, json } from "@/lib/server/api";
 
@@ -20,9 +21,10 @@ export async function GET(req: Request) {
         429,
       );
     const city = url.searchParams.get("city")?.trim() || null;
+    const country = await resolveCountry(req, url.searchParams.get("country"));
     const [{ places }, images] = await Promise.all([
-      searchPlaces(q, city, 8),
-      searchImages(q, city, 8),
+      searchPlaces(q, city, 8, country),
+      searchImages(q, city, 8, country),
     ]);
     return json({ places, images });
   } catch (err) {

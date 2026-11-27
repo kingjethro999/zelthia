@@ -5,17 +5,43 @@ import { fetchService } from "./http";
 const PENDING_NOTE =
   "Submitted for admin review. A Zelthia administrator will check your licence before enabling the verified badge.";
 
-/** Official Nigerian healthcare and government registry domains only. */
-const AUTHORITATIVE_DOMAINS = [
-  "pcn.gov.ng",
-  "mdcn.gov.ng",
-  "hefamaa.lagosstate.gov.ng",
-  "nafdac.gov.ng",
-  "nhia.gov.ng",
-  "health.gov.ng",
-  "nmcn.gov.ng",
-  "mlscn.gov.ng",
-];
+/**
+ * Official licensing registers per country. Evidence is only collected from
+ * these domains (and the country's government suffix), never the open web.
+ */
+const OFFICIAL: Record<string, { domains: string[]; govSuffix?: string }> = {
+  NG: {
+    domains: [
+      "pcn.gov.ng",
+      "mdcn.gov.ng",
+      "hefamaa.lagosstate.gov.ng",
+      "nafdac.gov.ng",
+      "nhia.gov.ng",
+      "health.gov.ng",
+      "nmcn.gov.ng",
+      "mlscn.gov.ng",
+    ],
+    govSuffix: ".gov.ng",
+  },
+  GB: {
+    domains: ["pharmacyregulation.org", "cqc.org.uk", "gmc-uk.org", "nhs.uk"],
+    govSuffix: ".gov.uk",
+  },
+  US: {
+    domains: ["npiregistry.cms.hhs.gov", "nabp.pharmacy", "cms.gov"],
+    govSuffix: ".gov",
+  },
+  CA: {
+    domains: ["ocpinfo.com", "napra.ca", "collegeofpharmacists.bc.ca"],
+    govSuffix: ".gc.ca",
+  },
+  GH: { domains: ["pcghana.org", "hefra.gov.gh"], govSuffix: ".gov.gh" },
+  KE: { domains: ["pharmacyboardkenya.org", "kmpdc.go.ke"], govSuffix: ".go.ke" },
+  ZA: { domains: ["sapc.za.org", "hpcsa.co.za"], govSuffix: ".gov.za" },
+};
+
+const officialFor = (country: string) =>
+  OFFICIAL[country] ?? { domains: [] as string[], govSuffix: undefined };
 
 interface Hit {
   url: string;
@@ -23,22 +49,23 @@ interface Hit {
   description: string;
 }
 
-function isAuthoritativeUrl(rawUrl: string): string | null {
+function isAuthoritativeUrl(rawUrl: string, country: string): string | null {
+  const { domains, govSuffix } = officialFor(country);
   try {
     const parsed = new URL(rawUrl);
     if (parsed.protocol !== "https:" && parsed.protocol !== "http:")
       return null;
     const host = parsed.hostname.toLowerCase();
     const match =
-      AUTHORITATIVE_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`)) ||
-      host.endsWith(".gov.ng");
+      domains.some((d) => host === d || host.endsWith(`.${d}`)) ||
+      Boolean(govSuffix && host.endsWith(govSuffix));
     return match ? host : null;
   } catch {
     return null;
   }
 }
 
-async function searchOfficial(q: string): Promise<Hit[]> {
+async function searchOfficial(q: string, country: string): Promise<Hit[]> {
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) return [];
   const res = await fetchService(
@@ -50,7 +77,7 @@ async function searchOfficial(q: string): Promise<Hit[]> {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query: q, limit: 8, country: "NG" }),
+      body: JSON.stringify({ query: q, limit: 8, country }),
       signal: AbortSignal.timeout(15000),
     },
   );
@@ -85,7 +112,7 @@ function nameTokensMatch(facilityName: string, haystack: string): boolean {
 }
 
 /**
- * Gathers preliminary findings from official Nigerian `.gov.ng` registries for
+ * Gathers preliminary findings from the facility's own country's official registers for
  * human administrator review. Never auto-approves (`verified`) — only an admin
  * can grant or reject the verified badge.
  */
@@ -103,13 +130,22 @@ export async function gatherVerificationEvidence(f: Facility): Promise<{
   const cleanLicence = f.licenseNumber.replace(/"/g, "").trim();
   const cleanName = f.name.replace(/"/g, "").trim();
 
+  const country = f.country || "NG";
+  const { domains, govSuffix } = officialFor(country);
+  const sites = [
+    ...domains.slice(0, 5).map((d) => `site:${d}`),
+    ...(govSuffix ? [`site:${govSuffix.slice(1)}`] : []),
+  ];
+  // No known register for this country: leave it to the admin reviewer.
+  if (!sites.length) {
+    return { status: "pending", note: PENDING_NOTE, url: "", evidence: [] };
+  }
+  const siteExpr = `(${sites.join(" OR ")})`;
+
   try {
     const results = await Promise.allSettled([
-      searchOfficial(`site:gov.ng "${cleanLicence}"`),
-      searchOfficial(`site:gov.ng "${cleanName}" ${f.city}`),
-      searchOfficial(
-        `(site:pcn.gov.ng OR site:mdcn.gov.ng OR site:hefamaa.lagosstate.gov.ng OR site:nafdac.gov.ng) "${cleanName}"`,
-      ),
+      searchOfficial(`${siteExpr} "${cleanLicence}"`, country),
+      searchOfficial(`${siteExpr} "${cleanName}" ${f.city}`, country),
     ]);
 
     const seen = new Set<string>();
@@ -120,7 +156,7 @@ export async function gatherVerificationEvidence(f: Facility): Promise<{
       if (res.status !== "fulfilled") continue;
       for (const hit of res.value) {
         if (seen.has(hit.url)) continue;
-        const domain = isAuthoritativeUrl(hit.url);
+        const domain = isAuthoritativeUrl(hit.url, country);
         if (!domain) continue;
         seen.add(hit.url);
 

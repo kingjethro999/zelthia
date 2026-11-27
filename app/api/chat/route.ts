@@ -31,6 +31,7 @@ import {
 } from "@/lib/server/conversations";
 import { uploadPrivateRaw } from "@/lib/server/storage";
 import { sniffChatAttachment } from "@/lib/server/file-sniff";
+import { requestGeo } from "@/lib/server/geo";
 import { clientIp, rateLimit } from "@/lib/server/rate-limit";
 
 export const maxDuration = 120;
@@ -100,6 +101,7 @@ export async function POST(req: NextRequest) {
       429,
     );
 
+  const geo = await requestGeo(req, body.location);
   const restricted = Boolean(ctx?.user.processingRestricted);
   const saved = Boolean(ctx) && !restricted && body.temporary !== true;
   let conversationId: string | null = null;
@@ -267,6 +269,7 @@ export async function POST(req: NextRequest) {
           profile,
           steps,
           emit,
+          geo,
         });
 
         let assistant: ChatMessageView = {

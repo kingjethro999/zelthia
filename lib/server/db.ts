@@ -105,6 +105,8 @@ create table if not exists facilities (
   updated_at timestamptz not null default now()
 );
 create index if not exists facilities_owner_idx on facilities(owner_id);
+alter table facilities add column if not exists country text not null default 'NG';
+create index if not exists facilities_country_idx on facilities(country);
 create table if not exists products (
   id uuid primary key default gen_random_uuid(),
   facility_id uuid not null references facilities(id) on delete cascade,

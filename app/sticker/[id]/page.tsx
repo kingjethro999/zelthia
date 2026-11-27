@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Camera, MapPin, ScanLine } from "lucide-react";
 import QRCode from "qrcode";
 import { FACILITY_KIND_LABEL } from "@/lib/inventory-types";
 import { getPublicFacility } from "@/lib/server/public-facility";
@@ -15,20 +15,51 @@ export const metadata: Metadata = {
 
 type Props = { params: Promise<{ id: string }> };
 
+// Fixed print colours: the sticker must look the same in light or dark mode.
+const GREEN = "#0d7f57";
+const DEEP = "#0a3d2c";
+const INK = "#0e2a2b";
+
 export default function StickerPage(props: Props) {
   return (
     <main
       id="main"
-      className="flex flex-1 flex-col items-center px-4 py-10 print:p-0"
+      className="flex flex-1 flex-col items-center px-4 py-10 print:block print:p-0"
     >
+      {/* One A6 card per page, no browser margins. */}
+      <style>{`@page { size: 105mm 148mm; margin: 0; }`}</style>
       <Suspense
         fallback={
-          <div className="h-[520px] w-full max-w-sm animate-pulse motion-reduce:animate-none rounded-[28px] bg-mist" />
+          <div className="aspect-[105/148] w-full max-w-[360px] animate-pulse rounded-[28px] bg-mist motion-reduce:animate-none" />
         }
       >
         <Sticker {...props} />
       </Suspense>
     </main>
+  );
+}
+
+function Step({
+  n,
+  icon: Icon,
+  text,
+}: {
+  n: number;
+  icon: typeof Camera;
+  text: string;
+}) {
+  return (
+    <li className="flex flex-1 flex-col items-center gap-1 text-center">
+      <span
+        className="flex h-8 w-8 items-center justify-center rounded-full text-white"
+        style={{ background: GREEN }}
+      >
+        <Icon className="h-4 w-4" aria-hidden />
+      </span>
+      <span className="text-[10px] font-semibold leading-tight">
+        {n}. {text}
+      </span>
+    </li>
   );
 }
 
@@ -38,62 +69,110 @@ async function Sticker({ params }: Props) {
   if (!data) notFound();
   const f = data.facility;
   const url = `${SITE_URL}/facility/${f.id}`;
-  // Plain black on white with a wide quiet zone so cheap phone cameras read it.
+  // High error correction so the logo in the middle never stops it scanning.
   const svg = await QRCode.toString(url, {
     type: "svg",
-    errorCorrectionLevel: "M",
-    margin: 2,
-    color: { dark: "#0b1f17", light: "#ffffff" },
+    errorCorrectionLevel: "H",
+    margin: 0,
+    color: { dark: INK, light: "#ffffff" },
   });
+  const place = [f.city, f.state].filter(Boolean).join(", ");
 
   return (
     <>
-      <div className="mb-6 max-w-sm text-center text-sm text-muted print:hidden">
-        Print on a sticker sheet or plain paper and place it at your counter.
+      <p className="mb-6 max-w-sm text-center text-sm leading-relaxed text-muted print:hidden">
+        Prints at A6 (105 × 148 mm), the size of a postcard. Use sticker paper
+        or print on card and laminate it, then put it where customers wait.
         {!f.verified &&
-          " The verified badge appears once a Zelthia administrator approves your licence."}
-      </div>
+          " The verified badge is added once a Zelthia reviewer approves your licence."}
+      </p>
 
       <section
         aria-label={`QR sticker for ${f.name}`}
-        className="w-full max-w-sm rounded-[28px] border-2 border-[#0b1f17] bg-white p-7 text-center text-[#0b1f17] [print-color-adjust:exact] print:max-w-none print:break-inside-avoid"
+        className="flex aspect-[105/148] w-full max-w-[360px] flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_18px_50px_-20px_rgba(10,61,44,0.45)] [print-color-adjust:exact] [-webkit-print-color-adjust:exact] print:h-[148mm] print:w-[105mm] print:max-w-none print:rounded-none print:shadow-none"
+        style={{ color: INK }}
       >
-        <div className="flex items-center justify-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/icon-96.png" alt="" width={28} height={28} />
-          <span className="font-display text-xl font-semibold tracking-tight">
-            Zelthia
+        {/* Brand band */}
+        <header
+          className="flex items-center justify-between px-5 py-3.5 text-white"
+          style={{ background: GREEN }}
+        >
+          <span className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/icons/icon-96.png"
+              alt=""
+              width={26}
+              height={26}
+              className="rounded-md bg-white p-0.5"
+            />
+            <span className="font-display text-lg font-semibold tracking-tight">
+              Zelthia
+            </span>
           </span>
+          {f.verified ? (
+            <span className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold" style={{ color: GREEN }}>
+              <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+              Verified
+            </span>
+          ) : (
+            <span className="text-[11px] font-medium opacity-90">
+              Health stock, near you
+            </span>
+          )}
+        </header>
+
+        <div className="flex flex-1 flex-col items-center px-5 pt-4 text-center">
+          <p className="font-display text-[22px] font-bold leading-[1.1] tracking-[-0.02em]">
+            Scan to see what
+            <br />
+            we have in stock
+          </p>
+
+          {/* QR tile with the logo knocked out of the centre */}
+          <div
+            className="relative mt-4 rounded-2xl border-[3px] bg-white p-3"
+            style={{ borderColor: GREEN }}
+          >
+            <div
+              className="h-40 w-40 [&_svg]:h-full [&_svg]:w-full"
+              role="img"
+              aria-label={`QR code linking to ${url}`}
+              dangerouslySetInnerHTML={{ __html: svg }}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/icons/icon-96.png"
+              alt=""
+              width={34}
+              height={34}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-1"
+            />
+          </div>
+
+          <ol className="mt-4 flex w-full gap-2">
+            <Step n={1} icon={Camera} text="Open your camera" />
+            <Step n={2} icon={ScanLine} text="Point at the code" />
+            <Step n={3} icon={MapPin} text="See stock, prices, directions" />
+          </ol>
         </div>
 
-        {f.verified ? (
-          <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#0b1f17] px-4 py-1.5 text-sm font-semibold text-white">
-            <BadgeCheck className="h-4 w-4" aria-hidden />
-            Verified on Zelthia
+        {/* Facility strip */}
+        <footer className="mt-3 px-5 py-3 text-white" style={{ background: DEEP }}>
+          <p className="truncate text-[15px] font-semibold leading-tight">
+            {f.name}
           </p>
-        ) : (
-          <p className="mt-4 text-sm font-semibold">Find us on Zelthia</p>
-        )}
-
-        <div
-          className="mx-auto mt-5 w-56 [&_svg]:h-auto [&_svg]:w-full"
-          role="img"
-          aria-label={`QR code linking to ${url}`}
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
-
-        <p className="mt-4 text-lg font-semibold leading-snug">{f.name}</p>
-        <p className="text-xs">
-          {FACILITY_KIND_LABEL[f.kind]}
-          {f.city && ` · ${f.city}`}
-        </p>
-        <p className="mt-4 text-sm">
-          Scan to see what we have in stock, prices and directions.
-        </p>
-        <p className="mt-2 break-all text-[10px] opacity-70">{url}</p>
+          <p className="truncate text-[10px] opacity-80">
+            {FACILITY_KIND_LABEL[f.kind]}
+            {place && ` · ${place}`}
+          </p>
+        </footer>
       </section>
 
-      <div className="mt-6">
+      <p className="mt-4 max-w-sm break-all text-center text-xs text-muted print:hidden">
+        The code opens {url}
+      </p>
+      <div className="mt-5">
         <PrintButton />
       </div>
     </>

@@ -32,7 +32,7 @@ import { TagInput } from "@/components/ui/Field";
 import {
   FACILITY_KIND_LABEL,
   PRODUCT_CATEGORIES,
-  formatNaira,
+  formatMoney,
   stockStatus,
   type Facility,
   type Product,
@@ -670,7 +670,7 @@ function StockTab({ facility }: { facility: Facility }) {
                           p.category,
                           p.form,
                           p.packSize,
-                          formatNaira(p.priceNgn),
+                          formatMoney(p.priceNgn, facility.currency),
                         ]
                           .filter(Boolean)
                           .join(", ")}
@@ -795,11 +795,15 @@ function StockTab({ facility }: { facility: Facility }) {
         onClose={() => setEditing(null)}
         onSave={save}
         onOpenScanner={() => setScanOpen(true)}
+        currency={facility.currency}
+        country={facility.country}
       />
       <ScanToStockSheet
         open={scanOpen}
         onClose={() => setScanOpen(false)}
         facilityId={facility.id}
+        currency={facility.currency}
+        country={facility.country}
         onStocked={upsert}
       />
       <Dialog
@@ -836,10 +840,17 @@ function StockTab({ facility }: { facility: Facility }) {
 }
 
 function toDraft(f: Facility): FacilityDraft {
-  const { id: _id, createdAt: _c, verification: _v, ...rest } = f;
+  const {
+    id: _id,
+    createdAt: _c,
+    verification: _v,
+    currency: _cur,
+    ...rest
+  } = f;
   void _id;
   void _c;
   void _v;
+  void _cur;
   return rest;
 }
 
